@@ -1,37 +1,53 @@
-HELP.md
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
+# ========== Java ========== #
+*.class
+*.jar
+*.war
+*.log
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
-
-### IntelliJ IDEA ###
+# ========== IDE (IntelliJ, Eclipse, STS) ========== #
 .idea
 *.iws
 *.iml
 *.ipr
+.classpath
+.project
+.factorypath
+.settings/
+.springBeans
+.sts4-cache
+.apt_generated
+bin/
 out/
+
+# Allow bin/out inside src
+!**/src/main/**/bin/
+!**/src/test/**/bin/
 !**/src/main/**/out/
 !**/src/test/**/out/
 
-### NetBeans ###
+# ========== Build Tools ========== #
+.gradle
+/build/
+build/
+target/
+
+# Allow Gradle wrapper
+!gradle/wrapper/gradle-wrapper.jar
+
+# ========== System Files ========== #
+.DS_Store
+HELP.md
+
+# ========== NetBeans ========== #
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
 
-### VS Code ###
+# ========== VS Code ========== #
 .vscode/
+
+# ========== Secrets ========== #
+application.yml
+firebase-secret.json
