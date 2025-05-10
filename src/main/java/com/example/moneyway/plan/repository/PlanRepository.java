@@ -1,4 +1,7 @@
 package com.example.moneyway.plan.repository;
 
-public class PlanRepository {
+import com.example.moneyway.plan.domain.Plan;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface PlanRepository extends JpaRepository<Plan, Long> {
 }
