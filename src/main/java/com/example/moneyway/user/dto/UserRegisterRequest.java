@@ -1,0 +1,4 @@
+package com.example.moneyway.user.dto;
+
+public class UserRegisterRequest {
+}
