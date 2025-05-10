@@ -50,9 +50,6 @@ public class User {
     @PrePersist
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
-        System.out.println("🔥 @PrePersist 호출됨");
-        System.out.println("🕒 createdAt: " + createdAt);
-        System.out.println("🧾 저장할 사용자: firebaseUid=" + firebaseUid + ", email=" + email + ", nickname=" + nickname);
     }
 
     @PreUpdate
