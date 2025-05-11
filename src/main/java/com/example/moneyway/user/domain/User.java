@@ -6,9 +6,9 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users") // MySQL에서 'user'는 예약어이므로 'users'로 명시
+@Table(name = "users") // 'user'는 MySQL 예약어
 @Getter
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA 프록시용 기본 생성자
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class User {
@@ -17,43 +17,31 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "firebase_uid", nullable = false, unique = true, length = 128)
-    private String firebaseUid;
-
-    @Column(name = "kakao_id", unique = true, nullable = true, length = 128) // nullable 명시!
+    @Column(name = "kakao_id", nullable = false, unique = true, length = 128)
     private String kakaoId;
 
-    @Column(name = "login_type", nullable = false, length = 30)
-    private String loginType;
-
-    @Column(name = "email", length = 128)
-    private String email;
-
-    @Column(name = "nickname", length = 50)
+    @Column(name = "nickname", nullable = false, length = 50)
     private String nickname;
 
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
-    @Column(name = "gender", length = 10)
-    private String gender;
+    @Column(name = "login_type", nullable = false, length = 30)
+    private String loginType = "KAKAO"; // 고정값
 
-    @Column(name = "age_range", length = 20)
-    private String ageRange;
-
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist
-    public void onCreate() {
+    protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
 
     @PreUpdate
-    public void onUpdate() {
+    protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
 }
