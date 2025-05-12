@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users") // 'user'는 MySQL 예약어
+@Table(name = "users")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
@@ -20,6 +20,9 @@ public class User {
     @Column(name = "kakao_id", nullable = false, unique = true, length = 128)
     private String kakaoId;
 
+    @Column(name = "email", length = 128) // ✅ 추가
+    private String email;
+
     @Column(name = "nickname", nullable = false, length = 50)
     private String nickname;
 
@@ -27,7 +30,7 @@ public class User {
     private String profileImageUrl;
 
     @Column(name = "login_type", nullable = false, length = 30)
-    private String loginType = "KAKAO"; // 고정값
+    private String loginType = "KAKAO";
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
