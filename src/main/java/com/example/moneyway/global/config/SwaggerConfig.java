@@ -52,4 +52,12 @@ public class SwaggerConfig {
                 .pathsToMatch("/user/**")
                 .build();
     }
+
+    @Bean
+    public GroupedOpenApi planApi() {
+        return GroupedOpenApi.builder()
+                .group("plan-api")
+                .packagesToScan("com.example.moneyway.plan.controller")
+                .build();
+    }
 }

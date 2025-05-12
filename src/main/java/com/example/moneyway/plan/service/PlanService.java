@@ -1,20 +1,23 @@
 package com.example.moneyway.plan.service;
 
 import com.example.moneyway.plan.domain.Plan;
-import com.example.moneyway.plan.dto.PlanCreateRequest;
-import com.example.moneyway.plan.dto.PlanDetailResponse;
-import com.example.moneyway.plan.dto.PlanUpdateRequest;
+import com.example.moneyway.plan.domain.PlanPlace;
+import com.example.moneyway.plan.dto.*;
+import com.example.moneyway.plan.repository.PlanPlaceRepository;
 import com.example.moneyway.plan.repository.PlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class PlanService {
 
     private final PlanRepository planRepository;
+    private final PlanPlaceRepository planPlaceRepository;
+
 
     /**
      * 여행 계획 생성
@@ -76,5 +79,27 @@ public class PlanService {
                 request.getIsPublic()
         );
     }
+    public List<PlanDetailResponse> getAllPlans() {
+        return planRepository.findAll().stream()
+                .map(PlanDetailResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    public void addPlace(Long planId, PlanPlaceRequest request) {
+        Plan plan = planRepository.findById(planId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 계획이 존재하지 않습니다."));
+
+        PlanPlace planPlace = PlanPlace.builder()
+                .plan(plan)
+                .placeName(request.getPlaceName())
+                .description(request.getDescription())
+                .day(request.getDay())
+                .time(request.getTime())
+                .build();
+
+        planPlaceRepository.save(planPlace);
+    }
+
+
 
 }

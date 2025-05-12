@@ -2,7 +2,9 @@ package com.example.moneyway.plan.controller;
 
 import com.example.moneyway.plan.dto.PlanCreateRequest;
 import com.example.moneyway.plan.dto.PlanDetailResponse;
+import com.example.moneyway.plan.dto.PlanPlaceRequest;
 import com.example.moneyway.plan.dto.PlanUpdateRequest;
+
 import com.example.moneyway.plan.service.PlanService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 
+import java.util.List;
 import java.util.Map;
 
 @Tag(name = "Plan", description = "여행 계획 관련 API")
@@ -62,4 +65,23 @@ public class PlanController {
         planService.updatePlan(id, request);
         return ResponseEntity.ok(Map.of("updatedPlanId", id));
     }
+
+    @Operation(summary = "여행 계획 전체 조회")
+    @GetMapping
+    public ResponseEntity<List<PlanDetailResponse>> getAllPlans() {
+        List<PlanDetailResponse> plans = planService.getAllPlans();
+        return ResponseEntity.ok(plans);
+    }
+
+    @Operation(summary = "여행 계획에 장소 추가")
+    @PostMapping("/{id}/places")
+    public ResponseEntity<Void> addPlace(
+            @PathVariable Long id,
+            @RequestBody PlanPlaceRequest request) {
+        planService.addPlace(id, request);
+        return ResponseEntity.ok(). build();
+    }
+
+
+
 }
