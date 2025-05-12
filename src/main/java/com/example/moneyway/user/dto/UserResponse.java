@@ -11,6 +11,7 @@ public class UserResponse {
 
     private final Long id;
     private final String kakaoId;
+    private final String email;             // ✅ 추가
     private final String nickname;
     private final String profileImageUrl;
     private final String loginType;
@@ -20,6 +21,7 @@ public class UserResponse {
     @Builder
     public UserResponse(Long id,
                         String kakaoId,
+                        String email,               // ✅ 추가
                         String nickname,
                         String profileImageUrl,
                         String loginType,
@@ -27,6 +29,7 @@ public class UserResponse {
                         LocalDateTime updatedAt) {
         this.id = id;
         this.kakaoId = kakaoId;
+        this.email = email;             // ✅ 추가
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
         this.loginType = loginType;
@@ -38,6 +41,7 @@ public class UserResponse {
         return UserResponse.builder()
                 .id(user.getId())
                 .kakaoId(user.getKakaoId())
+                .email(user.getEmail())           // ✅ 추가
                 .nickname(user.getNickname())
                 .profileImageUrl(user.getProfileImageUrl())
                 .loginType(user.getLoginType())
