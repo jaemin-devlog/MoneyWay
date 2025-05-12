@@ -3,6 +3,7 @@ package com.example.moneyway.plan.service;
 import com.example.moneyway.plan.domain.Plan;
 import com.example.moneyway.plan.dto.PlanCreateRequest;
 import com.example.moneyway.plan.dto.PlanDetailResponse;
+import com.example.moneyway.plan.dto.PlanUpdateRequest;
 import com.example.moneyway.plan.repository.PlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -59,5 +60,21 @@ public class PlanService {
         planRepository.deleteById(planId);
     }
 
+    public void updatePlan(Long planId, PlanUpdateRequest request) {
+        Plan plan = planRepository.findById(planId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 ID의 Plan이 존재하지 않습니다."));
+
+        int perPerson = request.getTotalBudget() / request.getPersonCount();
+
+        plan.update(
+                request.getTitle(),
+                request.getTotalBudget(),
+                request.getPersonCount(),
+                perPerson,
+                request.getStartDate(),
+                request.getEndDate(),
+                request.getIsPublic()
+        );
+    }
 
 }

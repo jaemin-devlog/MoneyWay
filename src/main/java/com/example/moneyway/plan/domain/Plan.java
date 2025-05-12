@@ -44,4 +44,17 @@ public class Plan {
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void update(String title, Integer totalBudget, Integer personCount,
+                       Integer budgetPerPerson, LocalDate startDate, LocalDate endDate,
+                       Boolean isPublic) {
+        this.title = title;
+        this.totalBudget = totalBudget;
+        this.personCount = personCount;
+        this.budgetPerPerson = budgetPerPerson;
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.isPublic = isPublic;
+    }
+
 }
