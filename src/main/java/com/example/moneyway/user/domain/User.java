@@ -26,6 +26,9 @@ public class User {
     @Column(name = "nickname", nullable = false, length = 50)
     private String nickname;
 
+    @Column(name = "password", length = 100)
+    private String password;
+
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
@@ -47,4 +50,12 @@ public class User {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    // User.java
+    public User update(String nickname) {
+        this.nickname = nickname;
+        return this;
+    }
+
+
 }
