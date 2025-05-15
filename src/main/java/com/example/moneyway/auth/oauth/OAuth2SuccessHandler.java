@@ -30,7 +30,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     public static final Duration ACCESS_TOKEN_DURATION = Duration.ofHours(1);      // 액세스 토큰 1시간
 
     // 로그인 후 리다이렉트할 프론트엔드 경로
-    public static final String REDIRECT_PATH = "http://localhost:3000/oauth-success";
+    public static final String REDIRECT_PATH = "http://localhost:8081/auth/kakao/callback";
 
     // 의존성 주입된 구성 요소들
     private final JwtTokenProvider tokenProvider;
@@ -68,6 +68,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
         // 7️⃣ 최종 리다이렉트 (프론트로 이동)
         getRedirectStrategy().sendRedirect(request, response, REDIRECT_PATH);
+        System.out.println("✅ 카카오 로그인 성공! 토큰 발급 및 리다이렉트 시작");
+
     }
 
     // RefreshToken을 DB에 저장하거나 갱신

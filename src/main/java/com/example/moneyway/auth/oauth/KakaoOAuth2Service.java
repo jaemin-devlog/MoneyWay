@@ -1,5 +1,6 @@
 package com.example.moneyway.auth.oauth;
 
+import com.example.moneyway.user.domain.LoginType;
 import com.example.moneyway.user.domain.User;
 import com.example.moneyway.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +43,7 @@ public class KakaoOAuth2Service extends DefaultOAuth2UserService {
                             .kakaoId(kakaoId)
                             .email(email)
                             .nickname(nickname)
-                            .loginType("KAKAO")
+                            .loginType(LoginType.KAKAO)
                             .build();
                     return userRepository.save(newUser);
                 });

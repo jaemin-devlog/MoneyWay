@@ -1,4 +1,4 @@
-package com.example.moneyway.user.dto;
+package com.example.moneyway.user.dto.response;
 
 import com.example.moneyway.user.domain.User;
 import lombok.Builder;
@@ -11,7 +11,7 @@ public class UserResponse {
 
     private final Long id;
     private final String kakaoId;
-    private final String email;             // ✅ 추가
+    private final String email;
     private final String nickname;
     private final String profileImageUrl;
     private final String loginType;
@@ -21,7 +21,7 @@ public class UserResponse {
     @Builder
     public UserResponse(Long id,
                         String kakaoId,
-                        String email,               // ✅ 추가
+                        String email,
                         String nickname,
                         String profileImageUrl,
                         String loginType,
@@ -29,7 +29,7 @@ public class UserResponse {
                         LocalDateTime updatedAt) {
         this.id = id;
         this.kakaoId = kakaoId;
-        this.email = email;             // ✅ 추가
+        this.email = email;
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
         this.loginType = loginType;
@@ -40,11 +40,11 @@ public class UserResponse {
     public static UserResponse from(User user) {
         return UserResponse.builder()
                 .id(user.getId())
-                .kakaoId(user.getKakaoId())
-                .email(user.getEmail())           // ✅ 추가
+                .kakaoId(user.getKakaoId())                         // null 가능
+                .email(user.getEmail())
                 .nickname(user.getNickname())
-                .profileImageUrl(user.getProfileImageUrl())
-                .loginType(user.getLoginType())
+                .profileImageUrl(user.getProfileImageUrl())         // null 가능
+                .loginType(user.getLoginType().toString())              // ✅ Enum → String
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
                 .build();
