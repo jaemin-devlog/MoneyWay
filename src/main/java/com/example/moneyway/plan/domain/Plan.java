@@ -8,14 +8,26 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Plan {
+
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @Column(name = "travel_style")
+    private String travelStyle;
+    //여행 스타일 저장(한개의 계획에 하나만)
+    public void setTravelStyle(String travelStyle) {
+        this.travelStyle = travelStyle;
+    }
+
     private Boolean isPublic = true;
     private Integer likeCount = 0;
 
@@ -34,6 +46,9 @@ public class Plan {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PlanPlace> places = new ArrayList<>();
+
     @PrePersist
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -48,6 +63,8 @@ public class Plan {
     public void update(String title, Integer totalBudget, Integer personCount,
                        Integer budgetPerPerson, LocalDate startDate, LocalDate endDate,
                        Boolean isPublic) {
+
+
         this.title = title;
         this.totalBudget = totalBudget;
         this.personCount = personCount;

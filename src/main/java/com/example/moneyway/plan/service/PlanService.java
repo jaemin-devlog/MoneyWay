@@ -1,5 +1,8 @@
 package com.example.moneyway.plan.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import jakarta.transaction.Transactional;
+import org.springframework.http.ResponseEntity;
 import com.example.moneyway.plan.domain.Plan;
 import com.example.moneyway.plan.domain.PlanPlace;
 import com.example.moneyway.plan.dto.*;
@@ -8,6 +11,8 @@ import com.example.moneyway.plan.repository.PlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -100,6 +105,31 @@ public class PlanService {
         planPlaceRepository.save(planPlace);
     }
 
+    @Transactional
+    public void deletePlace(Long planId, Long placeId) {
+        Plan plan = planRepository.findById(planId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 계획이 존재하지 않습니다."));
+
+        PlanPlace place = planPlaceRepository.findById(placeId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 장소가 존재하지 않습니다."));
+
+        if (!place.getPlan().getId().equals(plan.getId())) {
+            throw new IllegalArgumentException("해당 장소는 요청한 계획에 속하지 않습니다.");
+        }
+
+        planPlaceRepository.delete(place);
+    }
+
+    @Transactional
+    public void updateTravelStyle(Long planId, String travelStyle) {
+        Plan plan = planRepository.findById(planId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 Plan이 존재하지 않습니다."));
+        plan.setTravelStyle(travelStyle); // setter 추가 필요
+    }
+
+
+
+    //tourAPI를 활용한 장소 상세 정보 가져오기
 
 
 }

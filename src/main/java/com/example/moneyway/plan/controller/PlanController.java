@@ -1,15 +1,12 @@
 package com.example.moneyway.plan.controller;
 
-import com.example.moneyway.plan.dto.PlanCreateRequest;
-import com.example.moneyway.plan.dto.PlanDetailResponse;
-import com.example.moneyway.plan.dto.PlanPlaceRequest;
-import com.example.moneyway.plan.dto.PlanUpdateRequest;
-
-import com.example.moneyway.plan.service.PlanService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.example.moneyway.plan.dto.*;
+import com.example.moneyway.plan.service.PlanService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
 
 
 import java.util.List;
@@ -82,6 +79,25 @@ public class PlanController {
         return ResponseEntity.ok(). build();
     }
 
+    @DeleteMapping("/{planId}/places/{placeId}")
+    public ResponseEntity<Void> deletePlace(
+            @PathVariable Long planId,
+            @PathVariable Long placeId
+    ) {
+        planService.deletePlace(planId, placeId);
+        return ResponseEntity.noContent().build();
+    }
 
+    @PatchMapping("/{planId}/style")
+    public ResponseEntity<Void> updateStyle(
+            @PathVariable Long planId,
+            @RequestBody PlanStyleRequest request
+    ) {
+        planService.updateTravelStyle(planId, request.getTravelStyle());
+        return ResponseEntity.ok().build();
+    }
+
+
+    //tourAPI활용(정보 가져오기)
 
 }
