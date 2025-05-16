@@ -1,7 +1,7 @@
 package com.example.moneyway.user.service;
 
-import com.example.moneyway.global.exception.CustomException.CustomUserException;
-import com.example.moneyway.global.exception.ErrorCode;
+import com.example.moneyway.common.exception.CustomException.CustomUserException;
+import com.example.moneyway.common.exception.ErrorCode;
 import com.example.moneyway.user.domain.User;
 import com.example.moneyway.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

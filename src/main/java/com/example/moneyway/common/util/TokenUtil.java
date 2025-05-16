@@ -1,7 +1,7 @@
-package com.example.moneyway.global.util;
+package com.example.moneyway.common.util;
 
-import com.example.moneyway.global.exception.CustomException.CustomUserException;
-import com.example.moneyway.global.exception.ErrorCode;
+import com.example.moneyway.common.exception.CustomException.CustomUserException;
+import com.example.moneyway.common.exception.ErrorCode;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 

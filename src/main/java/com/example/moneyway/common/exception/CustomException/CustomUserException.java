@@ -1,6 +1,6 @@
-package com.example.moneyway.global.exception.CustomException; // 위치에 따라 조정
+package com.example.moneyway.common.exception.CustomException; // 위치에 따라 조정
 
-import com.example.moneyway.global.exception.ErrorCode;
+import com.example.moneyway.common.exception.ErrorCode;
 import lombok.Getter;
 
 @Getter

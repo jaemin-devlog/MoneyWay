@@ -1,4 +1,4 @@
-package com.example.moneyway.global.config;
+package com.example.moneyway.common.config;
 
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;

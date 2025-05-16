@@ -1,4 +1,4 @@
-package com.example.moneyway.global.util;
+package com.example.moneyway.common.util;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;

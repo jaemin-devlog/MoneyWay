@@ -1,4 +1,4 @@
-package com.example.moneyway.global.config;
+package com.example.moneyway.common.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
