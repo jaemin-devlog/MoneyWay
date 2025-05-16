@@ -3,19 +3,17 @@ package com.example.moneyway.user.service;
 import com.example.moneyway.auth.jwt.JwtTokenProvider;
 import com.example.moneyway.auth.token.domain.RefreshToken;
 import com.example.moneyway.auth.token.repository.RefreshTokenRepository;
-import com.example.moneyway.global.exception.CustomException.CustomUserException;
-import com.example.moneyway.global.exception.ErrorCode;
-import com.example.moneyway.global.util.CookieUtil;
-import com.example.moneyway.global.util.TokenUtil;
+import com.example.moneyway.common.exception.CustomException.CustomUserException;
+import com.example.moneyway.common.exception.ErrorCode;
+import com.example.moneyway.common.util.CookieUtil;
+import com.example.moneyway.common.util.TokenUtil;
 import com.example.moneyway.user.domain.LoginType;
 import com.example.moneyway.user.domain.User;
 import com.example.moneyway.user.dto.request.*;
 import com.example.moneyway.user.dto.response.EmailCheckResponse;
 import com.example.moneyway.user.dto.response.UserResponse;
 import com.example.moneyway.user.repository.UserRepository;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.constraints.Null;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -23,9 +21,8 @@ import org.springframework.stereotype.Service;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.time.Duration;
-import java.util.Optional;
 
-import static com.example.moneyway.global.util.TokenUtil.resolveToken;
+import static com.example.moneyway.common.util.TokenUtil.resolveToken;
 
 @Service
 @RequiredArgsConstructor

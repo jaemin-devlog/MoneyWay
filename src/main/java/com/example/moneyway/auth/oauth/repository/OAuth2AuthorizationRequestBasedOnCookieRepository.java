@@ -1,6 +1,6 @@
 package com.example.moneyway.auth.oauth.repository;
 
-import com.example.moneyway.global.util.CookieUtil;
+import com.example.moneyway.common.util.CookieUtil;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

@@ -4,7 +4,7 @@ import com.example.moneyway.auth.jwt.JwtTokenProvider;
 import com.example.moneyway.auth.oauth.repository.OAuth2AuthorizationRequestBasedOnCookieRepository;
 import com.example.moneyway.auth.token.domain.RefreshToken;
 import com.example.moneyway.auth.token.repository.RefreshTokenRepository;
-import com.example.moneyway.global.util.CookieUtil;
+import com.example.moneyway.common.util.CookieUtil;
 import com.example.moneyway.user.domain.User;
 import com.example.moneyway.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
