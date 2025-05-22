@@ -6,7 +6,7 @@ import com.example.moneyway.plan.dto.*;
 import com.example.moneyway.plan.service.PlanService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
+import com.example.moneyway.plan.api.TourApiClient;
 
 
 import java.util.List;
@@ -18,9 +18,11 @@ import java.util.Map;
 public class PlanController {
 
     private final PlanService planService;
+    private final TourApiClient tourApiClient;
 
-    public PlanController(PlanService planService) {
+    public PlanController(PlanService planService, TourApiClient tourApiClient) {
         this.planService = planService;
+        this.tourApiClient = tourApiClient;
     }
 
     /**
@@ -100,4 +102,9 @@ public class PlanController {
 
     //tourAPI활용(정보 가져오기)
 
+    @GetMapping("/near-seogwipo")
+    public ResponseEntity<String> getNearbySpotsSeogwipo() {
+        String result = tourApiClient.getNearbySpotsSeogwipo();
+        return ResponseEntity.ok(result);
+    }
 }
