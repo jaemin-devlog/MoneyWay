@@ -23,31 +23,31 @@ repositories {
     mavenCentral()
 }
 dependencies {
-
-    //JWT 관련 라이브러리 (토큰 생성 및 검증)
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
-    runtimeOnly  'io.jsonwebtoken:jjwt-impl:0.11.5'         // 내부 구현체
-    runtimeOnly  'io.jsonwebtoken:jjwt-jackson:0.11.5'      // Jackson으로 JSON 처리 (토큰 파싱용)
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
-    //웹 서버 및 REST API 관련
-    implementation 'org.springframework.boot:spring-boot-starter-web'         // 기본 Spring MVC 웹 기능 (REST Controller 등)
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.mysql:mysql-connector-j:8.3.0'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
-    //보안 (Spring Security)
-    implementation 'org.springframework.boot:spring-boot-starter-security'    // 로그인, 인증/인가 등 보안 처리
-
-    //JPA 및 데이터베이스 관련
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'    // JPA 사용을 위한 의존성
-    runtimeOnly 'com.mysql:mysql-connector-j'                                  // MySQL 데이터베이스 커넥터
-
-    //Lombok (코드 간결화 - Getter/Setter/Constructor 자동 생성)
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    // Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+    // 테스트
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
+    testImplementation 'org.assertj:assertj-core:3.25.3'
 
-    //Swagger (API 문서 자동화 도구)
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'   // Swagger UI 및 OpenAPI 문서 자동 생성
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+
 }
+
 
 
 
