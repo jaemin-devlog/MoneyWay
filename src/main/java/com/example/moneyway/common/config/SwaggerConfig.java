@@ -55,7 +55,13 @@ public class SwaggerConfig {
                 .pathsToMatch("/api/users/**")
                 .build();
     }
-
+    @Bean
+    public GroupedOpenApi planApi() {
+        return GroupedOpenApi.builder()
+                .group("plan-api")
+                .pathsToMatch("/plans/**")  // 또는 "/api/plans/**"
+                .build();
+    }
     @Bean
     public GroupedOpenApi tokenApi() {
         return GroupedOpenApi.builder()

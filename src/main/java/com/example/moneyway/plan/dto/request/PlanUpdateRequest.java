@@ -2,14 +2,12 @@ package com.example.moneyway.plan.dto.request;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.time.LocalDate;
 
 @Getter
-@Setter
 @NoArgsConstructor
-public class PlanCreateRequest {
+public class PlanUpdateRequest {
     private String title;
     private Integer totalBudget;
     private Integer personCount;
