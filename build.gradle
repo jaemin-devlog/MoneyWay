@@ -45,6 +45,8 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.25.3'
 
     implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
 
 }
 

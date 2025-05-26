@@ -1,4 +1,4 @@
-package com.example.moneyway.plan.external;
+package com.example.moneyway.infrastructure.external.tourapi;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -44,5 +44,25 @@ public class TourApiClient {
             return "TourAPI 요청 중 에러 발생: " + e.getMessage();
         }
     }
+    public String getTourListInJeju(int pageNo) {
+        String url = "https://apis.data.go.kr/B551011/KorService2/areaBasedList2"
+                + "?serviceKey=" + serviceKey
+                + "&MobileOS=ETC"
+                + "&MobileApp=AppTest"
+                + "&_type=json"
+                + "&areaCode=39"               // 제주도 전체
+                + "&numOfRows=100"
+                + "&pageNo=" + pageNo;
+
+        try {
+            URI uri = new URI(url);
+            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
+            return response.getBody();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 }
 
