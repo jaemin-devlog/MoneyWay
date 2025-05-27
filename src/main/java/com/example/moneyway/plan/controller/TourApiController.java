@@ -15,14 +15,9 @@ public class TourApiController {
 
     private final TourApiService tourApiService;
 
-    @PostMapping("/sync-seogwipo")
-    public ResponseEntity<String> syncSeogwipo() {
-        tourApiService.syncTourDataToDatabase();
-        return ResponseEntity.ok("📥 Seogwipo 관광 정보가 DB에 저장되었습니다.");
-    }
-    @GetMapping("/jeju/all")
-    public ResponseEntity<String> syncJejuData() {
-        tourApiService.syncJejuTourData();
-        return ResponseEntity.ok("✅ 제주 전체 관광 데이터를 DB에 저장했습니다.");
+    @GetMapping("/all")
+    public ResponseEntity<String> syncAllData() {
+        tourApiService.syncAllTourData();
+        return ResponseEntity.ok("✅ 전국 관광 데이터를 DB에 저장했습니다.");
     }
 }

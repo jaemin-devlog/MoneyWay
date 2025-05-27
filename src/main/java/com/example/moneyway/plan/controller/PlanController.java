@@ -102,14 +102,5 @@ public class PlanController {
     }
 
     // TourAPI 활용(정보 가져오기)
-    @GetMapping("/near-seogwipo")
-    public ResponseEntity<String> getNearbySpotsSeogwipo() {
-        String result = tourApiClient.getNearbySpotsSeogwipo();
-        return ResponseEntity.ok(result);
-    }
-    @PostMapping("/sync-seogwipo")
-    public ResponseEntity<String> syncSeogwipoSpots() {
-        tourApiService.syncTourDataToDatabase();
-        return ResponseEntity.ok("성공적으로 DB에 저장했습니다.");
-    }
+
 }

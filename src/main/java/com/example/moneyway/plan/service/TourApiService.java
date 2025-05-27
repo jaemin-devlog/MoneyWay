@@ -19,39 +19,13 @@ public class TourApiService {
     private final TourPlaceRepository tourPlaceRepository;
     private final ObjectMapper mapper = new ObjectMapper();
 
-    public void syncTourDataToDatabase() {
-        // ✅ 1. API 호출
-        String jsonString = tourApiClient.getNearbySpotsSeogwipo();
-
-        try {
-            // ✅ 2. JSON 파싱
-            Map<String, Object> responseMap = mapper.readValue(jsonString, Map.class);
-            Map<String, Object> body = (Map<String, Object>) ((Map<String, Object>) responseMap.get("response")).get("body");
-            Map<String, Object> items = (Map<String, Object>) body.get("items");
-            List<Map<String, Object>> rawList = (List<Map<String, Object>>) items.get("item");
-
-            if (rawList == null || rawList.isEmpty()) {
-                throw new RuntimeException("📭 가져온 데이터가 없습니다.");
-            }
-
-            // ✅ 3. Entity 변환 및 저장
-            List<TourPlace> places = rawList.stream()
-                    .map(item -> mapper.convertValue(item, TourPlace.class))
-                    .collect(Collectors.toList());
-
-            tourPlaceRepository.saveAll(places);
-            System.out.println("✅ 저장 완료: " + places.size() + "건");
-
-        } catch (Exception e) {
-            throw new RuntimeException("❌ JSON 파싱 실패: " + e.getMessage(), e);
-        }
-    }
-    public void syncJejuTourData() {
+    public void syncAllTourData() {
         int pageNo = 1;
         int totalCount;
 
         do {
-            String json = tourApiClient.getTourListInJeju(pageNo);
+            // 1. 전국 데이터를 가져오는 메서드 호출 (메서드명은 실제 API에 맞게 수정)
+            String json = tourApiClient.getTourListInKorea(pageNo);
             if (json == null) break;
 
             try {
@@ -62,7 +36,7 @@ public class TourApiService {
                 List<Map<String, Object>> items = (List<Map<String, Object>>) ((Map<String, Object>) body.get("items")).get("item");
                 if (items == null || items.isEmpty()) break;
 
-                // ✅ 중복 제거: 이미 있는 contentid는 제외
+                // 중복 contentid 필터
                 List<TourPlace> newPlaces = items.stream()
                         .map(item -> mapper.convertValue(item, TourPlace.class))
                         .filter(place -> !tourPlaceRepository.existsById(place.getContentid()))
