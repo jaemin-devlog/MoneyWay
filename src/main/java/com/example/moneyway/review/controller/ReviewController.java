@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
 @RestController
 @RequestMapping("/api/reviews")
 public class ReviewController {
@@ -17,8 +18,9 @@ public class ReviewController {
     private ReviewService reviewService;
 
     @PostMapping
-    public ResponseEntity<Review> writeReview(@RequestBody ReviewWriteRequest request) {
-        return ResponseEntity.ok(reviewService.saveReview(request));
+    public ResponseEntity<Void> writeReview(@RequestBody ReviewWriteRequest request) {
+        reviewService.writeReview(request);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping

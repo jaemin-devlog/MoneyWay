@@ -12,16 +12,12 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class Review {
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private Long id;
-    private String content;
-    private Long userId;
-    private LocalDateTime createdAt;
-
-    // ★ 여기에 추가!
     private Long planId;
-    // or (만약 Plan이라는 엔티티와 연관관계라면)
-    // @ManyToOne
-    // private Plan plan;
+    private Long userId;
+    private String content;
+    private Integer totalCost;      // int → Integer
+    private LocalDateTime createdAt;
 }
-

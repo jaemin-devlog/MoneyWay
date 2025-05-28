@@ -1,14 +1,17 @@
 package com.example.moneyway.review.dto.response;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
 public class ReviewListResponse {
     private Long id;
-    private String content;
+    private Long planId;
     private Long userId;
+    private String content;
+    private Integer totalCost;
     private LocalDateTime createdAt;
-
-    public ReviewListResponse(Long id, String content, Long userId, LocalDateTime createdAt) {
-    }
-    // 댓글, 좋아요 수 등 추가 가능
 }

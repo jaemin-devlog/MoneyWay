@@ -8,30 +8,40 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class ReviewService {
-    @Autowired
-    private ReviewRepository reviewRepository;
+    private final ReviewRepository reviewRepository;
 
-    public Review saveReview(ReviewWriteRequest request) {
-        Review review = new Review();
-        review.setContent(request.getContent());
-        review.setUserId(request.getUserId());
-        review.setCreatedAt(LocalDateTime.now());
-        review.setPlanId(request.getPlanId()); // ★ 이거 추가
-        return reviewRepository.save(review);
+    public ReviewService(ReviewRepository reviewRepository) {
+        this.reviewRepository = reviewRepository;
     }
 
+    public void writeReview(ReviewWriteRequest request) {
+        Review review = new Review();
+        review.setPlanId(request.getPlan_id());
+        review.setUserId(request.getUser_id());
+        review.setContent(request.getContent());
+        review.setTotalCost(request.getTotal_cost());
+        review.setCreatedAt(LocalDateTime.now());
+        reviewRepository.save(review);
+    }
     public List<ReviewListResponse> getReviews() {
-        return reviewRepository.findAll().stream()
-                .map(review -> new ReviewListResponse(
-                        review.getId(),
-                        review.getContent(),
-                        review.getUserId(),
-                        review.getCreatedAt()
-                )).collect(Collectors.toList());
+        List<Review> reviews = reviewRepository.findAll();
+        List<ReviewListResponse> responseList = new ArrayList<>();
+        for (Review review : reviews) {
+            ReviewListResponse response = new ReviewListResponse();
+            response.setId(review.getId());
+            response.setPlanId(review.getPlanId());
+            response.setUserId(review.getUserId());
+            response.setContent(review.getContent());
+            response.setTotalCost(review.getTotalCost());
+            response.setCreatedAt(review.getCreatedAt());
+            responseList.add(response);
+        }
+        return responseList;
     }
 }

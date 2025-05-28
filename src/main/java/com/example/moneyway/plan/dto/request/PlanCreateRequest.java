@@ -11,6 +11,7 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class PlanCreateRequest {
     private String title;
+    private Integer user_id;
     private Integer totalBudget;
     private Integer personCount;
     private LocalDate startDate;
