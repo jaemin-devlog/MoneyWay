@@ -9,9 +9,12 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class PlanUpdateRequest {
     private String title;
-    private Integer totalBudget;
-    private Integer personCount;
-    private LocalDate startDate;
-    private LocalDate endDate;
-    private Boolean isPublic;
+    private Integer total_budget;
+    private Integer person_count;
+    private Integer budget_per_person;
+    private LocalDate start_date;
+    private LocalDate end_date;
+    private Boolean is_public;
+    private String travel_style;
+    private Integer user_id;
 }

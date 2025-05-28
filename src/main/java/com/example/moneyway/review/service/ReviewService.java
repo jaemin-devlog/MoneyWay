@@ -1,6 +1,7 @@
 package com.example.moneyway.review.service;
 
 import com.example.moneyway.review.domain.Review;
+import com.example.moneyway.review.dto.request.ReviewUpdateRequest;
 import com.example.moneyway.review.dto.request.ReviewWriteRequest;
 import com.example.moneyway.review.dto.response.ReviewListResponse;
 import com.example.moneyway.review.repository.ReviewRepository;
@@ -43,5 +44,40 @@ public class ReviewService {
             responseList.add(response);
         }
         return responseList;
+    }
+    // 단일 조회
+    public ReviewListResponse getReview(Long id) {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 리뷰 없음"));
+        return toResponse(review);
+    }
+
+    // 수정
+    public void updateReview(Long id, ReviewUpdateRequest request) {
+        Review review = reviewRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("해당 리뷰 없음"));
+        review.setContent(request.getContent());
+        review.setTotalCost(request.getTotalCost());
+        reviewRepository.save(review);
+    }
+
+    // 삭제
+    public void deleteReview(Long id) {
+        if (!reviewRepository.existsById(id)) {
+            throw new IllegalArgumentException("해당 리뷰 없음");
+        }
+        reviewRepository.deleteById(id);
+    }
+
+    // 엔티티 → DTO 변환 메서드 (공용)
+    private ReviewListResponse toResponse(Review review) {
+        ReviewListResponse dto = new ReviewListResponse();
+        dto.setId(review.getId());
+        dto.setPlanId(review.getPlanId());
+        dto.setUserId(review.getUserId());
+        dto.setContent(review.getContent());
+        dto.setTotalCost(review.getTotalCost());
+        dto.setCreatedAt(review.getCreatedAt());
+        return dto;
     }
 }
