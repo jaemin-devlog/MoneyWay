@@ -8,11 +8,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TourPlaceDto {
-    private String resultCode;
-    private String resultMsg;
-    private String numOfRows;
-    private String pageNo;
-    private String totalCount;
+//    필순지 몰라 일단 지워놓음
+//    private String resultCode;
+//    private String resultMsg;
+//    private String numOfRows;
+//    private String pageNo;
+//    private String totalCount;
     private String contentid;
     private String contenttypeid;
     private String createdtime;

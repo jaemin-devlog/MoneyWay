@@ -6,7 +6,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.*;
 
-@Builder
+//아래 주석 실행시키기 위한 빌더
+//@Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
 @Table(name = "tour_place")
@@ -19,12 +20,13 @@ public class TourPlace {
 
     @Id
     private String contentid;
-    @Builder.Default
-    private String resultCode = "0000";
-    private String resultMsg;
-    private String numOfRows;
-    private String pageNo;
-    private String totalCount;
+//    이게 필순지 몰라서 일단 지워놓음
+//    @Builder.Default
+//    private String resultCode = "0000";
+//    private String resultMsg;
+//    private String numOfRows;
+//    private String pageNo;
+//    private String totalCount;
     private String contenttypeid;
     private String createdtime;
     private String modifiedtime;

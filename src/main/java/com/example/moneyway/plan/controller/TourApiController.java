@@ -17,10 +17,10 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class TourApiController {
 
     private final TourApiService tourApiService;
-    @Operation(summary = "전국 데이터 저장", description = "전국 데이터를 저장합니다.")
-    @GetMapping("/all")
+    @Operation(summary = "제주도 데이터 저장", description = "제주도 데이터를 저장합니다.")
+    @GetMapping("/JEJU")
     public ResponseEntity<String> syncAllData() {
         tourApiService.syncAllTourData();
-        return ResponseEntity.ok("✅ 전국 관광 데이터를 DB에 저장했습니다.");
+        return ResponseEntity.ok("✅ 제주 관광 데이터를 DB에 저장했습니다.");
     }
 }
