@@ -24,7 +24,7 @@ public class TourApiService {
         int totalCount;
 
         do {
-            // 1. 전국 데이터를 가져오는 메서드 호출 (메서드명은 실제 API에 맞게 수정)
+            // 1. 전국 데이터를 가져오는 메서드 호출
             String json = tourApiClient.getTourListInKorea(pageNo);
             if (json == null) break;
 
