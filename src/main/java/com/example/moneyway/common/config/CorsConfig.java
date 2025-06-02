@@ -15,10 +15,15 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("...") //
+                        // 명시적 도메인 허용 - 개발 환경에 맞게 수정하세요
+                        .allowedOrigins(
+                                "http://localhost:3000",
+                                "http://192.168.100.37:3000",
+                                "https://moneyway-572cf.web.app"
+                        )
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
-                        .allowCredentials(true); // ✅ 쿠키 전달 허용
+                        .allowCredentials(true);
             }
         };
     }

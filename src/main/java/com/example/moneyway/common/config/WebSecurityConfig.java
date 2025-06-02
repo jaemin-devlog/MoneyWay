@@ -1,4 +1,4 @@
-package com.example.moneyway.auth.config;
+package com.example.moneyway.common.config;
 
 import com.example.moneyway.auth.jwt.JwtAuthenticationFilter;
 import com.example.moneyway.auth.jwt.JwtTokenProvider;
@@ -45,10 +45,14 @@ public class WebSecurityConfig {
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(endpoint -> endpoint
                                 .authorizationRequestRepository(oAuth2AuthorizationRequestBasedOnCookieRepository()))
-                                  //인가 요청 정보를 세선이 아니라 쿠키에 저장하기 위해 설정
+                        //인가 요청 정보를 세션이 아니라 쿠키에 저장하기 위해 설정
                         .userInfoEndpoint(info -> info
                                 .userService(kakaoOAuth2Service)) //카카오에서 사용자 정보를 받아서 DB저장
                         .successHandler(oAuth2SuccessHandler())   //OAuth2 인증 후 -> AccessToken, RefreshToken 발급 -> 쿠키로 응답
+                        .failureHandler((request, response, exception) -> {
+                            // 로그인 실패 시 프론트 로그인 에러 페이지로 리다이렉트
+                            response.sendRedirect("http://192.168.100.37:3000/login?error");
+                        })
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 // Filter보다 앞단에서 JWT를 먼저 검사하도록 설정

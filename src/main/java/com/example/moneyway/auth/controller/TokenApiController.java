@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/auth/token")
+@RequestMapping("/api/auth")
 public class TokenApiController {
 
     private final TokenService tokenService;
@@ -24,7 +24,7 @@ public class TokenApiController {
      * 요청: { refreshToken: "..." }
      * 응답: { accessToken: "..." }
      */
-    @PostMapping
+    @PostMapping("/token")
     public ResponseEntity<CreateAccessTokenResponse> reissueAccessToken(
             @RequestBody CreateAccessTokenRequest request) {
 

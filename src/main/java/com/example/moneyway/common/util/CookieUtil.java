@@ -23,11 +23,11 @@ public class CookieUtil {
      */
     public static void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
         ResponseCookie cookie = ResponseCookie.from(name, value)
-                .httpOnly(true)                  // JavaScript 접근 방지
-                .secure(false)                   // HTTPS 환경에서 true로 설정 필요
-                .path("/")                       // 전체 경로에서 유효
-                .maxAge(Duration.ofSeconds(maxAge)) // 유효 시간 설정
-                .sameSite("Lax")                // 기본 로그인 유지용 옵션 (Strict은 인증 실패 가능성 있음)
+                .httpOnly(true)
+                .secure(false)                   // HTTPS가 아니라면 false 유지
+                .path("/")
+                .maxAge(Duration.ofSeconds(maxAge))
+                .sameSite("Lax")                // HTTPS 미사용 환경에 맞게 Lax로 변경
                 .build();
 
         response.addHeader("Set-Cookie", cookie.toString());

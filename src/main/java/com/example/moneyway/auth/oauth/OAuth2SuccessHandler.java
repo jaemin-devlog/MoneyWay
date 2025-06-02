@@ -32,7 +32,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     public static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
     public static final Duration ACCESS_TOKEN_DURATION = Duration.ofHours(1);  // 1시간
     public static final Duration REFRESH_TOKEN_DURATION = Duration.ofDays(14); // 2주
-    public static final String REDIRECT_PATH = "http://localhost:8081/auth/kakao/callback";
+    public static final String REDIRECT_PATH = "http://192.168.100.37:3000";
 
     // ✅ 의존성 주입 객체들
     private final JwtTokenProvider tokenProvider;

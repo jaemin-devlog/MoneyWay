@@ -53,6 +53,11 @@ public class OAuth2AuthorizationCookieRepository implements AuthorizationRequest
         // 쿠키에서 "oauth2_auth_request"라는 이름의 쿠키를 찾음
         Cookie cookie = WebUtils.getCookie(request, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME);
 
+        // 쿠키가 없으면 null 반환하여 NPE 방지
+        if (cookie == null) {
+            return null;
+        }
+
         // 찾은 쿠키를 역직렬화하여 OAuth2AuthorizationRequest 객체로 복원
         /**
          * 문자열 → 객체 (역직렬화)
@@ -84,11 +89,11 @@ public class OAuth2AuthorizationCookieRepository implements AuthorizationRequest
 
 /**
  * ✅ 전체 동작 흐름 설명
- * <p>
+ *
  * 1. 사용자가 OAuth2 로그인 요청을 시도하면 Spring Security는 OAuth2AuthorizationRequest 객체를 생성함
  * 2. saveAuthorizationRequest()가 호출되어 이 객체를 직렬화 후 쿠키에 저장함 (세션 사용하지 않음)
  * 3. 사용자가 로그인 인증 후 리디렉션되면, loadAuthorizationRequest()가 호출되어 쿠키에서 이전 요청 정보를 복원함
  * 4. 인증이 성공적으로 완료되면 removeAuthorizationRequestCookies()가 호출되어 쿠키를 삭제함
- * <p>
+ *
  * → 요약 흐름: 로그인 시도 → 요청 직렬화 & 저장 → 인증 응답 시 복원 → 성공 시 삭제
  */
