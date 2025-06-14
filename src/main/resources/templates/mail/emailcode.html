@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>이메일 인증번호</title>
+</head>
+
+<body style="margin:0; padding:0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f6f8fa;">
+<div style="max-width: 600px; margin: 50px auto; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 40px;">
+
+    <h2 style="color: #333333; margin-bottom: 10px;">MoneyWay</h2>
+    <h1 style="font-size: 24px; color: #222;">이메일 인증번호 안내</h1>
+
+    <p style="color: #555555; font-size: 16px; line-height: 1.5;">
+        본 메일은 <strong>MoneyWay</strong>의 비밀번호 재설정을 위한 이메일 인증입니다.<br/>
+        아래의 인증코드를 입력하여 본인확인을 진행해 주세요.
+    </p>
+
+    <div style="margin: 30px 0; text-align: center;">
+        <div style="display: inline-block; background-color: #f0f4ff; color: #1a53ff; font-size: 24px; font-weight: bold; padding: 15px 30px; border-radius: 6px;" th:text="${code}">
+            123456
+        </div>
+    </div>
+
+    <p style="color: #999999; font-size: 14px;">
+        인증코드는 발송 시점부터 <strong>5분간 유효</strong>합니다.<br/>
+        인증을 요청하지 않았다면 이 메일은 무시하셔도 됩니다.
+    </p>
+
+    <hr style="margin-top: 40px; border: none; border-top: 1px solid #e0e0e0;"/>
+
+    <p style="font-size: 12px; color: #aaaaaa; text-align: center;">
+        ⓒ 2025 MoneyWay. All rights reserved.
+    </p>
+
+</div>
+</body>
+</html>
