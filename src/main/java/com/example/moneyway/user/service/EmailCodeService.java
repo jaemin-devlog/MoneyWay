@@ -1,7 +1,7 @@
 package com.example.moneyway.user.service;
 
 import com.example.moneyway.common.util.MailService;
-import com.example.moneyway.common.exception.CustomUserException;
+import com.example.moneyway.common.exception.CustomException.CustomUserException;
 import com.example.moneyway.common.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

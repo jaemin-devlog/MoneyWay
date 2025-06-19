@@ -3,6 +3,7 @@ package com.example.moneyway.user.controller;
 
 import com.example.moneyway.user.dto.request.EmailCodeRequest;
 import com.example.moneyway.user.dto.request.EmailRequest;
+import com.example.moneyway.user.dto.request.ResetPasswordRequest;
 import com.example.moneyway.user.dto.response.MessageResponse;
 import com.example.moneyway.user.service.EmailCodeService;
 import lombok.RequiredArgsConstructor;

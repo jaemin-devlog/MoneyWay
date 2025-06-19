@@ -7,6 +7,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 @Service
 @RequiredArgsConstructor
@@ -35,9 +36,12 @@ public class MailServiceImpl implements MailService {
 
             // 전송
             mailSender.send(message);
+            System.out.println("🔒 코드 삽입 전: " + code);
+            System.out.println("📩 HTML 내용:\n" + html);
 
         } catch (MessagingException e) {
             throw new RuntimeException("HTML 메일 전송 실패", e);
         }
+
     }
 }

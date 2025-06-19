@@ -50,6 +50,9 @@ public enum ErrorCode {
     // ================= USER: 기타 =================
     UNKNOWN_USER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "사용자 처리 중 예기치 못한 오류가 발생했습니다. 잠시 후 다시 시도해주세요."),
 
+    // ================= USER: 인증 관련 =================
+    INVALID_VERIFICATION_CODE(HttpStatus.BAD_REQUEST, "인증코드가 올바르지 않습니다. 다시 확인해주세요."),
+    VERIFICATION_CODE_EXPIRED(HttpStatus.UNAUTHORIZED, "인증코드가 만료되었습니다. 다시 요청해주세요."),
 
 
 
