@@ -6,9 +6,9 @@ spring:
     active: production
 
   datasource:
-    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?serverTimezone=Asia/Seoul
-    username: ${MYSQLUSER}
-    password: ${MYSQLPASSWORD}
+    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQL_DATABASE}?serverTimezone=Asia/Seoul
+    username: ${MYSQL_USER}
+    password: ${MYSQL_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   data:
@@ -54,6 +54,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
+tourapi:
+  service-key: ${TOUR_API_KEY}
 
 jwt:
   issure: MoneyWay-Auth-Server
