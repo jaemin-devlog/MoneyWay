@@ -58,5 +58,5 @@ tourapi:
   service-key: ${TOUR_API_KEY}
 
 jwt:
-  issure: MoneyWay-Auth-Server
+  issuer: MoneyWay-Auth-Server
   secret-key: ${JWT_SECRET_KEY}
