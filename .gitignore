@@ -49,4 +49,4 @@ HELP.md
 .vscode/
 
 # ========== Secrets ========== #
-application.yml
+application-local.yml
