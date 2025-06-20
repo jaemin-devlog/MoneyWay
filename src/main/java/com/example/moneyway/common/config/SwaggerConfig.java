@@ -39,7 +39,6 @@ public class SwaggerConfig {
                         .version("v1.0"));
     }
 
-
     @Bean
     public GroupedOpenApi authApi() {
         return GroupedOpenApi.builder()
@@ -55,13 +54,39 @@ public class SwaggerConfig {
                 .pathsToMatch("/api/users/**")
                 .build();
     }
+
     @Bean
     public GroupedOpenApi planApi() {
         return GroupedOpenApi.builder()
                 .group("plan-api")
-                .pathsToMatch("/plans/**")  // 또는 "/api/plans/**"
+                .pathsToMatch("/plans/**") // 여기!
                 .build();
     }
+
+    @Bean
+    public GroupedOpenApi reviewApi() {
+        return GroupedOpenApi.builder()
+                .group("review-api")
+                .pathsToMatch("/api/review/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi planTagApi() {
+        return GroupedOpenApi.builder()
+                .group("plan-tag-api")
+                .pathsToMatch("/api/plans/*/tags/**")
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi tourApi() {
+        return GroupedOpenApi.builder()
+                .group("tour-api")
+                .pathsToMatch("/api/tour/**")
+                .build();
+    }
+
     @Bean
     public GroupedOpenApi tokenApi() {
         return GroupedOpenApi.builder()
@@ -70,3 +95,4 @@ public class SwaggerConfig {
                 .build();
     }
 }
+

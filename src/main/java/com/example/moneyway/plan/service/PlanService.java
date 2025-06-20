@@ -25,13 +25,15 @@ public class PlanService {
     @Transactional
     public Long createPlan(PlanCreateRequest request) {
         Plan plan = Plan.builder()
+                .userId(request.getUser_id()) // userId 꼭 세팅!
                 .title(request.getTitle())
-                .totalBudget(request.getTotalBudget())
-                .personCount(request.getPersonCount())
-                .budgetPerPerson(request.getTotalBudget() / request.getPersonCount())
-                .startDate(request.getStartDate())
-                .endDate(request.getEndDate())
-                .isPublic(request.getIsPublic())
+                .totalBudget(request.getTotal_budget())
+                .personCount(request.getPerson_count())
+                .budgetPerPerson(request.getBudget_per_person())
+                .startDate(request.getStart_date())
+                .endDate(request.getEnd_date())
+                .isPublic(request.getIs_public())
+                .travelStyle(request.getTravel_style())
                 .build();
         planRepository.save(plan);
         return plan.getId();
@@ -65,14 +67,15 @@ public class PlanService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 계획입니다."));
         plan.update(
                 request.getTitle(),
-                request.getTotalBudget(),
-                request.getPersonCount(),
-                request.getTotalBudget() / request.getPersonCount(),
-                request.getStartDate(),
-                request.getEndDate(),
-                request.getIsPublic()
+                request.getTotal_budget(),
+                request.getPerson_count(),
+                request.getBudget_per_person(),
+                request.getStart_date(),
+                request.getEnd_date(),
+                request.getIs_public(),
+                request.getTravel_style()
         );
-        // 엔티티 변경감지로 자동 저장됨 (JPA)
+        // 변경감지로 자동저장 (JPA)
     }
 
     /**
@@ -92,14 +95,17 @@ public class PlanService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 계획입니다."));
         PlanPlace planPlace = PlanPlace.builder()
                 .plan(plan)
-                .placeName(request.getPlaceName())
-                .description(request.getDescription())
-                .day(request.getDay())
-                .time(request.getTime())
+                .placeId(request.getPlaceId())
+                .dayIndex(request.getDayIndex())
+                .timeSlot(request.getTimeSlot())
+                .orderIndex(request.getOrderIndex())
+                .estimatedCost(request.getEstimatedCost())
+                .estimatedTime(request.getEstimatedTime())
                 .build();
         planPlaceRepository.save(planPlace);
         plan.getPlaces().add(planPlace);
     }
+
 
     /**
      * 여행 계획에서 장소 삭제
@@ -121,3 +127,4 @@ public class PlanService {
         plan.setTravelStyle(travelStyle);
     }
 }
+

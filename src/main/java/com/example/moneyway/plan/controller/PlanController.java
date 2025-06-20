@@ -7,6 +7,7 @@ import com.example.moneyway.plan.dto.request.PlanUpdateRequest;
 import com.example.moneyway.plan.dto.response.PlanDetailResponse;
 import com.example.moneyway.plan.service.PlanService;
 import com.example.moneyway.infrastructure.external.tourapi.TourApiClient; // TourApiClient 경로 정규화
+import com.example.moneyway.plan.service.TourApiService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class PlanController {
 
     private final PlanService planService;
     private final TourApiClient tourApiClient;
+    private final TourApiService tourApiService;
 
     /**
      * 여행 계획 생성
@@ -100,9 +102,5 @@ public class PlanController {
     }
 
     // TourAPI 활용(정보 가져오기)
-    @GetMapping("/near-seogwipo")
-    public ResponseEntity<String> getNearbySpotsSeogwipo() {
-        String result = tourApiClient.getNearbySpotsSeogwipo();
-        return ResponseEntity.ok(result);
-    }
+
 }

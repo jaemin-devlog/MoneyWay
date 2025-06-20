@@ -3,11 +3,6 @@ package com.example.moneyway.plan.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-/**
- * PlanPlace
- * - 여행 일정 내 개별 장소(맛집, 명소 등)의 정보를 순서, 날짜, 시간 등과 함께 관리
- * - Plan(여행 일정) : PlanPlace(N) 관계
- */
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -24,23 +19,29 @@ public class PlanPlace {
     @JoinColumn(name = "plan_id")
     private Plan plan;
 
-    /** 장소 이름 (Place 엔티티 연동 전 임시, 혹은 실명) */
-    private String placeName;
-
-    /** 일정 설명(메모) */
-    private String description;
+    /** Place 엔티티 연동 (만약 없다면 Long 필드로) */
+    @Column(name = "place_id")
+    private Long placeId; // Place와 FK
 
     /** 여행 며칠째(day 1, 2, 3 등) */
-    private int day;
+    @Column(name = "day_index")
+    private int dayIndex;
 
-    /** 방문 시간대(문자열, 예: 09:00~10:30) */
-    private String time;
+    /** 시간대 (varchar(20)) */
+    @Column(name = "time_slot")
+    private String timeSlot;
 
-    // TODO: place_id(Place 테이블과 FK), 순서(order), 위도/경도 등 추가 가능
+    /** 하루 중 순서 (order_index) */
+    @Column(name = "order_index")
+    private int orderIndex;
 
-    /** Plan, Place 엔티티와 연동 시 확장 예시
-     @ManyToOne(fetch = FetchType.LAZY)
-     @JoinColumn(name = "place_id")
-     private Place place;
-     */
+    /** 예상 비용 */
+    @Column(name = "estimated_cost")
+    private int estimatedCost;
+
+    /** 예상 소요시간(분) */
+    @Column(name = "estimated_time")
+    private int estimatedTime;
+
+    // 필요에 따라 placeName, description 등 추가 정보 필드 사용 가능!
 }
