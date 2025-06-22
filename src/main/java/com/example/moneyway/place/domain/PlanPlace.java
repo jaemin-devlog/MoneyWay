@@ -1,5 +1,6 @@
-package com.example.moneyway.plan.domain;
+package com.example.moneyway.place.domain;
 
+import com.example.moneyway.plan.domain.Plan;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -43,5 +44,13 @@ public class PlanPlace {
     @Column(name = "estimated_time")
     private int estimatedTime;
 
-    // 필요에 따라 placeName, description 등 추가 정보 필드 사용 가능!
+    public void update(int dayIndex, String timeSlot, int orderIndex, int estimatedCost, int estimatedTime) {
+        this.dayIndex = dayIndex;
+        this.timeSlot = timeSlot;
+        this.orderIndex = orderIndex;
+        this.estimatedCost = estimatedCost;
+        this.estimatedTime = estimatedTime;
+    }
+
+
 }

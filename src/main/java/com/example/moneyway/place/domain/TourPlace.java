@@ -1,19 +1,24 @@
-package com.example.moneyway.plan.dto;
+package com.example.moneyway.place.domain;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.*;
 
-@Data
+//아래 주석 실행시키기 위한 빌더
+//@Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
+@Entity
+@Table(name = "tour_place")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TourPlaceDto {
-//    필순지 몰라 일단 지워놓음
-//    private String resultCode;
-//    private String resultMsg;
-//    private String numOfRows;
-//    private String pageNo;
-//    private String totalCount;
+@ToString
+public class TourPlace {
+
+    @Id
     private String contentid;
     private String contenttypeid;
     private String createdtime;
