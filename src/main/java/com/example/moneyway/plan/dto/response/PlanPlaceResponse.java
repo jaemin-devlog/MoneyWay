@@ -2,7 +2,7 @@ package com.example.moneyway.plan.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
-import com.example.moneyway.place.domain.PlanPlace;
+import com.example.moneyway.plan.domain.PlanPlace;
 
 @Getter
 @Builder

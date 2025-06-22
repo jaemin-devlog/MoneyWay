@@ -1,6 +1,6 @@
-package com.example.moneyway.place.repository;
+package com.example.moneyway.plan.repository;
 
-import com.example.moneyway.place.domain.PlanPlace;
+import com.example.moneyway.plan.domain.PlanPlace;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PlanPlaceRepository extends JpaRepository<PlanPlace, Long> {

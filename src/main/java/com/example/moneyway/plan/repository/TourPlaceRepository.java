@@ -1,6 +1,6 @@
-package com.example.moneyway.place.repository;
+package com.example.moneyway.plan.repository;
 
-import com.example.moneyway.place.domain.TourPlace;
+import com.example.moneyway.plan.domain.TourPlace;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
