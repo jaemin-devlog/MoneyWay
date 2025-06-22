@@ -42,8 +42,9 @@ public class PromptBuilder {
             if (!filtered.isEmpty()) {
                 prompt.append("[").append(category).append("]\n");
                 for (TourPlace place : filtered) {
+                    int price = place.getPrice(); // 💡 변경됨
                     prompt.append("- ").append(place.getTitle());
-                    prompt.append(" (").append(place.getEstimatedCost()).append("원)\n");
+                    prompt.append(" (").append(price).append("원)\n");
                 }
             }
         }

@@ -23,6 +23,8 @@ server:
           auth: true
           starttls:
             enable: true
+openai:
+  key: ${OpenAI_Key}
 
   security:
     oauth2:
