@@ -7,7 +7,7 @@ import com.example.moneyway.plan.dto.request.PlanUpdateRequest;
 import com.example.moneyway.plan.dto.response.PlanDetailResponse;
 import com.example.moneyway.plan.service.PlanService;
 import com.example.moneyway.infrastructure.external.tourapi.TourApiClient; // TourApiClient 경로 정규화
-import com.example.moneyway.plan.service.TourApiService;
+import com.example.moneyway.place.service.TourApiService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -80,6 +80,15 @@ public class PlanController {
             @PathVariable Long id,
             @RequestBody PlanPlaceRequest request) {
         planService.addPlace(id, request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{planId}/places")
+    public ResponseEntity<Void> updatePlace(
+            @PathVariable Long planId,
+            @RequestBody PlanPlaceRequest request
+    ) {
+        planService.updatePlace(planId, request);
         return ResponseEntity.ok().build();
     }
 
