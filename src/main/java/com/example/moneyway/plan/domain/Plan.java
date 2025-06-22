@@ -1,6 +1,5 @@
 package com.example.moneyway.plan.domain;
 
-import com.example.moneyway.place.domain.PlanPlace;
 import jakarta.persistence.*;
 import lombok.*;
 
