@@ -1,11 +1,11 @@
 package com.example.moneyway.plan.service;
 
 import com.example.moneyway.plan.domain.Plan;
-import com.example.moneyway.plan.domain.PlanPlace;
+import com.example.moneyway.place.domain.PlanPlace;
 import com.example.moneyway.plan.dto.request.*;
 import com.example.moneyway.plan.dto.response.PlanDetailResponse;
 import com.example.moneyway.plan.repository.PlanRepository;
-import com.example.moneyway.plan.repository.PlanPlaceRepository;
+import com.example.moneyway.place.repository.PlanPlaceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -106,6 +106,25 @@ public class PlanService {
         plan.getPlaces().add(planPlace);
     }
 
+    @Transactional
+    public void updatePlace(Long planId, PlanPlaceRequest request) {
+        PlanPlace planPlace = planPlaceRepository.findById(request.getPlaceId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 장소입니다."));
+
+        // planId와 일치하는지 확인하여 외부에서 다른 계획의 장소를 수정 못하게 막기
+        if (!planPlace.getPlan().getId().equals(planId)) {
+            throw new IllegalArgumentException("해당 계획에 속한 장소가 아닙니다.");
+        }
+
+        // 엔티티에 업데이트 로직 추가하거나 setter로 직접 수정
+        planPlace.update(
+                request.getDayIndex(),
+                request.getTimeSlot(),
+                request.getOrderIndex(),
+                request.getEstimatedCost(),
+                request.getEstimatedTime()
+        );
+    }
 
     /**
      * 여행 계획에서 장소 삭제
