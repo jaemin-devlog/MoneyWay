@@ -50,3 +50,4 @@ HELP.md
 
 # ========== Secrets ========== #
 application-local.yml
+*.env
