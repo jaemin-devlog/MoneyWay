@@ -1,4 +1,4 @@
-package com.example.moneyway.api;
+package com.example.moneyway.ai.controller;
 
 import com.example.moneyway.ai.dto.request.TravelPlanRequestDto;
 import com.example.moneyway.ai.dto.response.GPTDayPlanDto;
