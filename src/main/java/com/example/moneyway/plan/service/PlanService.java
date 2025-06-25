@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -145,5 +146,31 @@ public class PlanService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 계획입니다."));
         plan.setTravelStyle(travelStyle);
     }
+
+    /**
+     * PlanPlace 목록에서 사용된 비용 합산
+     * 총 예산 - 사용 예산 = 잔여 예산 계산
+     */
+    @Transactional(readOnly = true)
+    public Map<String, Integer> getBudget(Long planId) {
+        Plan plan = planRepository.findById(planId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 계획입니다."));
+
+        // PlanPlace 전체 조회 → cost 합산
+        List<PlanPlace> places = planPlaceRepository.findByPlan(plan);
+        int used = places.stream()
+                .mapToInt(PlanPlace::getEstimatedCost)
+                .sum();
+
+        int total = plan.getTotalBudget();
+        int remaining = total - used;
+
+        return Map.of(
+                "totalBudget", total,
+                "usedBudget", used,
+                "remainingBudget", remaining
+        );
+    }
+
 }
 

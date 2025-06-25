@@ -110,6 +110,16 @@ public class PlanController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * 현재 Plan 의 총 예산, 사용 예산, 잔여 예산을 계산하여 반환
+     * 시간표 편집 시 실시간 예산 표시용으로 사용
+     */
+    @Operation(summary = "여행 계획 예산 조회")
+    @GetMapping("/{planId}/budget")
+    public ResponseEntity<Map<String, Integer>> getBudget(@PathVariable Long planId) {
+        Map<String, Integer> budget = planService.getBudget(planId);
+        return ResponseEntity.ok(budget);
+    }
     // TourAPI 활용(정보 가져오기)
 
 }
