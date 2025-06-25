@@ -49,5 +49,5 @@ HELP.md
 .vscode/
 
 # ========== Secrets ========== #
-application.yml
-firebase-secret.json
+application-local.yml
+*.env
