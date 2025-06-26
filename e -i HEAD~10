@@ -1,0 +1,243 @@
+[33mcommit 8be32e2db004da44f1cb5e6fca3969aa33331a5a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/ai[m[33m)[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Tue Jun 24 19:35:22 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Tue Jun 24 19:35:22 2025 +0900
+
+    예산 관련 PlanPlace 기능 추가
+
+[33mcommit 04cdbd427c059b23dea68c8a1d85beccac4d29ce[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Mon Jun 23 23:43:51 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Mon Jun 23 23:43:51 2025 +0900
+
+    경로수정
+
+[33mcommit 1cdb08b29f8fd5e345b11eefd76c8d433f2e8490[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Mon Jun 23 23:36:52 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Mon Jun 23 23:36:52 2025 +0900
+
+    yml 프로필 설정
+
+[33mcommit b68deec6518f9b0f29d27ef4ebca7fd4ec728a1b[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Mon Jun 23 23:36:24 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Mon Jun 23 23:36:24 2025 +0900
+
+    toolchain 주석제거
+
+[33mcommit a15c1fc9b99d992588d6c9f9051b7fe6c5e880b9[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Mon Jun 23 04:01:25 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Mon Jun 23 04:01:25 2025 +0900
+
+    [Refactor] GPT 관련 구성요소 리팩토링 및 TourPlace 필드 수정
+
+[33mcommit 36f0dd96739f6521c516b74bb9a7af51959f64c9[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Mon Jun 23 04:01:03 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Mon Jun 23 04:01:03 2025 +0900
+
+    [AI] GPT 일정 추천 전체 구성 추가 및 RecommendationEngine 제거
+
+[33mcommit 0906198c568f5f4522cb6fb08bb48f71bb906080[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Mon Jun 23 03:41:50 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Mon Jun 23 03:41:50 2025 +0900
+
+    각 변수 주석 and price 변수 추가
+
+[33mcommit 44b24b8b3dd554a0767e56967cc569903563a2e5[m[33m ([m[1;31morigin/develop[m[33m, [m[1;32mdevelop[m[33m)[m
+Merge: 4fabf82 0324a53
+Author:     khlee <ka09068@gmail.com>
+AuthorDate: Sun Jun 22 19:50:41 2025 +0900
+Commit:     GitHub <noreply@github.com>
+CommitDate: Sun Jun 22 19:50:41 2025 +0900
+
+    Merge pull request #5 from jaemin-devlog/revert-4-revert-3-feature/plan
+    
+    Plan & Place 기능 수정 완료""
+
+[33mcommit 0324a53c848ad3d1818e2200d1c72e353a9c2c59[m
+Author:     khlee <ka09068@gmail.com>
+AuthorDate: Sun Jun 22 19:50:21 2025 +0900
+Commit:     GitHub <noreply@github.com>
+CommitDate: Sun Jun 22 19:50:21 2025 +0900
+
+    Revert "Revert "Plan & Place 기능 수정 완료""
+
+[33mcommit 4fabf825a94e91a411ba215dce34565efa54c577[m
+Merge: c5b8fbe d51227a
+Author:     khlee <ka09068@gmail.com>
+AuthorDate: Sun Jun 22 19:46:46 2025 +0900
+Commit:     GitHub <noreply@github.com>
+CommitDate: Sun Jun 22 19:46:46 2025 +0900
+
+    Merge pull request #4 from jaemin-devlog/revert-3-feature/plan
+    
+    Revert "Plan & Place 기능 수정 완료"
+
+[33mcommit d51227ae1023eb8f749f3cc9fb2394db17fda330[m
+Author:     khlee <ka09068@gmail.com>
+AuthorDate: Sun Jun 22 19:32:42 2025 +0900
+Commit:     GitHub <noreply@github.com>
+CommitDate: Sun Jun 22 19:32:42 2025 +0900
+
+    Revert "Plan & Place 기능 수정 완료"
+
+[33mcommit c5b8fbeb8bdad4225739df67a258e8488345c447[m
+Merge: a5b7d3c 44b2169
+Author:     khlee <ka09068@gmail.com>
+AuthorDate: Sun Jun 22 19:27:22 2025 +0900
+Commit:     GitHub <noreply@github.com>
+CommitDate: Sun Jun 22 19:27:22 2025 +0900
+
+    Merge pull request #3 from jaemin-devlog/feature/plan
+    
+    Plan & Place 구조 수정
+
+[33mcommit 44b2169706d30ed719ef65250cebbf92222a7c75[m
+Author:     LeeKangHyun-lab <ka09068@gmail.com>
+AuthorDate: Sun Jun 22 19:24:15 2025 +0900
+Commit:     LeeKangHyun-lab <ka09068@gmail.com>
+CommitDate: Sun Jun 22 19:24:15 2025 +0900
+
+    💡 Plan & Place 기능 수정 완료
+
+[33mcommit a5b7d3c2d5ed0ae03062422c12fe432414889b5b[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Sun Jun 22 18:17:12 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Sun Jun 22 18:17:12 2025 +0900
+
+    common yml
+
+[33mcommit ce640226bafd62a00b4997b86b40fd670487df6e[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Sun Jun 22 18:16:52 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Sun Jun 22 18:16:52 2025 +0900
+
+    envfile git commit ban
+
+[33mcommit 240eb48b8be9df5b6527cec6efacb9783bb3261a[m
+Author:     재민 <153075955+jaemin-devlog@users.noreply.github.com>
+AuthorDate: Sun Jun 22 01:20:47 2025 +0900
+Commit:     GitHub <noreply@github.com>
+CommitDate: Sun Jun 22 01:20:47 2025 +0900
+
+    Delete src/test/java/com/example/moneyway directory
+
+[33mcommit 35b584b6326aa042430b667fd14bf57f90ca87da[m
+Author:     재민 <153075955+jaemin-devlog@users.noreply.github.com>
+AuthorDate: Sun Jun 22 01:20:00 2025 +0900
+Commit:     GitHub <noreply@github.com>
+CommitDate: Sun Jun 22 01:20:00 2025 +0900
+
+    Delete src/test/java/com/example/moneyway/config/jwt directory
+
+[33mcommit 331aec0dba25441082941fb6d80328f81cbeb41f[m
+Merge: 7d5599e 0a3389a
+Author:     khlee <ka09068@gmail.com>
+AuthorDate: Fri Jun 20 12:29:32 2025 +0900
+Commit:     GitHub <noreply@github.com>
+CommitDate: Fri Jun 20 12:29:32 2025 +0900
+
+    Merge pull request #1 from jaemin-devlog/feature/kanghyun
+    
+    Feature/kanghyun
+
+[33mcommit 7d5599e61427ba6fec4269f065fb30d3afee3f1f[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Fri Jun 20 10:50:27 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Fri Jun 20 10:50:27 2025 +0900
+
+    .yml -> local.yml gitignore 설정변경
+
+[33mcommit 6f68c24940b17fdf71736e6dfa80471c0d467eb1[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Thu Jun 19 22:17:18 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Thu Jun 19 22:17:18 2025 +0900
+
+    Production 삭제
+
+[33mcommit 64cc77f39888792addbc4ea0291e37329c0247e0[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Thu Jun 19 21:53:18 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Thu Jun 19 21:53:18 2025 +0900
+
+    RAILWAY용 YML커밋
+
+[33mcommit 5faccae3adf415990732d364c6aede1d7335393b[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Thu Jun 19 21:42:31 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Thu Jun 19 21:42:31 2025 +0900
+
+    RAILWAY용 YML커밋
+
+[33mcommit cebc3214a14587cb04188e9e4c1b3a9597802e68[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Thu Jun 19 21:24:49 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Thu Jun 19 21:24:49 2025 +0900
+
+    RAILWAY용 YML커밋
+
+[33mcommit 07d228c67a1284818416ddda51b9c4d5038f1946[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Thu Jun 19 21:00:43 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Thu Jun 19 21:00:43 2025 +0900
+
+    RAILWAY용 YML커밋
+
+[33mcommit 5577fd17f390abf80abf26edbdc6343175586517[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Thu Jun 19 20:52:12 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Thu Jun 19 20:52:12 2025 +0900
+
+    RAILWAY용 YML커밋
+
+[33mcommit 775bea18707303c54ddaf940df6f81e84f8c8124[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Thu Jun 19 19:53:28 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Thu Jun 19 19:53:28 2025 +0900
+
+    port 8080
+
+[33mcommit 97dc36dc2020259a1c6ea356ff970d89af5ec9c1[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Thu Jun 19 19:13:08 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Thu Jun 19 19:13:08 2025 +0900
+
+    port 8081
+
+[33mcommit 0d32ba175f0b8189907a2fc20f3174a91d4fb7a3[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Thu Jun 19 18:54:48 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Thu Jun 19 18:54:48 2025 +0900
+
+    RailWay를 위한 toolchain 제거
+
+[33mcommit 70188eb96d1101430963d8c935b795d4a0835124[m
+Author:     재민 <jjm0203311@naver.com>
+AuthorDate: Thu Jun 19 17:34:32 2025 +0900
+Commit:     재민 <jjm0203311@naver.com>
+CommitDate: Thu Jun 19 17:34:32 2025 +0900
+
+    로그삭제
