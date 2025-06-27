@@ -65,4 +65,22 @@ public class TourPlace {
     private Integer roomoffseasonminfee2;
     private Integer roompeakseasonminfee1;
     private Integer roompeakseasonminfee2;
+
+    @Column(columnDefinition = "TEXT")
+    private String overview; // 관광지 설명
+
+    @Column(columnDefinition = "TEXT")
+    private String infoCenter; // 관광안내소 전화번호
+
+    @Column(columnDefinition = "TEXT")
+    private String useTime; // 운영 시간
+
+    @Column(columnDefinition = "TEXT")
+    private String restDate; // 휴무일
+
+    @Column(columnDefinition = "TEXT")
+    private String useFee; // 이용요금
+
+    @Column(columnDefinition = "TEXT")
+    private String useTimeCulture; // 이용시간 (문화)
 }
