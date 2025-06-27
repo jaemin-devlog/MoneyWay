@@ -1,4 +1,4 @@
-package com.example.moneyway.review.dto.response;
+package com.example.moneyway.community.dto.response;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -7,7 +7,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class ReviewListResponse {
+public class PostSummaryResponse {
     private Long id;
     private Long planId;
     private Long userId;
