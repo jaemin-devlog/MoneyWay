@@ -1,4 +1,4 @@
-package com.example.moneyway.review.dto.request;
+package com.example.moneyway.community.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -6,9 +6,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ReviewWriteRequest {
-    private Long plan_id;
-    private Long user_id;
+public class PostCreateRequest {
+    private Long planId;
+    private Long userId;
     private String content;
     private Integer total_cost;     // int → Integer
 }
