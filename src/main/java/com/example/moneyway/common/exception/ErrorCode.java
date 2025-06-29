@@ -39,7 +39,7 @@ public enum ErrorCode {
     EMAIL_CHECK_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "이메일 중복 확인 중 오류가 발생했습니다."),
     NICKNAME_CHECK_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "닉네임 중복 확인 중 오류가 발생했습니다."),
     EMPTY_EMAIL_FOR_CHECK(HttpStatus.BAD_REQUEST, "중복 확인할 이메일을 입력해주세요."),
-    EMPTY_NICKNAME_FOR_CHECK(HttpStatus.BAD_REQUEST, "중복 확인할 닉네임을 입력해주세요."),
+    EMPTY_NICKNAME_FOR_CHECK(HttpStatus.BAD_REQUEST, "중복 확인할 닉네임을 입력해주세요."),:wq
 
     // ================= USER: 인증 관련 =================
     JWT_EXPIRED(HttpStatus.UNAUTHORIZED, "로그인 정보가 만료되었습니다. 다시 로그인해주세요."),
