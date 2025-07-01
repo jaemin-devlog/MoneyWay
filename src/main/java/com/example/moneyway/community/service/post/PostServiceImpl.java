@@ -164,7 +164,7 @@ public class PostServiceImpl implements PostService {
                 .thumbnailUrl(post.getThumbnailUrl())         // 썸네일 이미지
                 .imageUrls(imageUrls)                         // 첨부 이미지 리스트
                 .likeCount(postLikeRepository.countByPostId(postId))     // 좋아요 수
-                .commentCount(commentRepository.countByPostId(postId))   // 댓글 수
+                .commentCount(commentRepository.countByPostIdAndIsDeletedFalse(postId))// 댓글 수
                 .scrapCount(postScrapRepository.countByPostId(postId))   // 스크랩 수
                 .viewCount(postViewRepository.countByPostId(postId))     // 조회 수
                 .createdAt(post.getCreatedAt())               // 작성 시간
