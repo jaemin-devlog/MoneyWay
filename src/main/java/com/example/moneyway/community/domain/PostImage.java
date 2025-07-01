@@ -15,18 +15,16 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@Table(name = "post_image")
+@Table(name = "post_image", uniqueConstraints = @UniqueConstraint(columnNames = {"postId", "imageUrl"}))
 public class PostImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // 이미지 ID
+    private Long id;
 
     @Column(nullable = false)
-    private Long postId; // 연결된 게시글 ID
+    private Long postId;
 
     @Column(nullable = false)
-    private String imageUrl; // 이미지 URL 경로
-
-    private Boolean isThumbnail = false; // 대표 이미지 여부 (기본 false)
+    private String imageUrl;
 }
