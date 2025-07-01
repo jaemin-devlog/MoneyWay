@@ -3,35 +3,41 @@ FROM gradle:8.7.0-jdk21-alpine AS builder
 
 WORKDIR /app
 
-# 종속성 캐시를 위해 먼저 gradle 파일들만 복사
-COPY build.gradle settings.gradle gradlew ./
-COPY gradle ./gradle
+# Gradle Wrapper 및 설정 파일 복사 (종속성 캐싱을 위해)
+COPY gradlew .
+COPY gradle gradle/
+COPY build.gradle settings.gradle ./
 
-# 종속성만 미리 다운받아서 캐시 사용
-RUN chmod +x gradlew && ./gradlew dependencies
+# Gradle 종속성 다운로드 및 캐싱
+# chmod +x gradlew는 Dockerfile 내부에서 한 번만 실행해도 됩니다.
+RUN chmod +x gradlew && ./gradlew dependencies --no-daemon
 
 # 전체 소스 복사
 COPY src ./src
 
-# 실행 JAR 파일명을 고정시키면 Dockerfile이 깔끔해짐
-RUN ./gradlew clean bootJar -x test
+# 실행 가능한 JAR 파일 빌드
+# build.gradle에서 archiveFileName을 "app.jar"로 설정했으므로, 이 이름으로 JAR가 생성됩니다.
+RUN ./gradlew clean bootJar -x test --no-daemon
 
 # 🔧 2단계: 경량 런타임 이미지 (JRE only)
-FROM eclipse-temurin:21-jdk-alpine
+# 빌드된 JAR 파일을 실행하기 위한 최소한의 환경을 제공합니다.
+FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-# Spring profile 고정
+# Spring profile 설정 (환경 변수로)
 ENV SPRING_PROFILES_ACTIVE=production
 
-# JAR 복사 (JAR 이름 고정했으면 단순하게 가능)
-COPY --from=builder /app/build/libs/MoneyWay-0.0.1-SNAPSHOT.jar app.jar
+# 빌더 스테이지에서 생성된 JAR 파일 복사
+# build/libs/app.jar로 생성되었음을 확인했으므로 해당 경로를 사용합니다.
+COPY --from=builder /app/build/libs/app.jar app.jar
 
-# 포트 노출
+# 애플리케이션 포트 노출
 EXPOSE 8080
 
-# 헬스체크 (Spring Boot actuator를 사용하는 경우)
-# HEALTHCHECK --interval=30s --timeout=5s CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
-
-# 실행 명령
+# 애플리케이션 실행 명령
+# java -jar 명령으로 Spring Boot 애플리케이션을 실행합니다.
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# 헬스체크 (선택 사항 - Spring Boot Actuator를 사용하는 경우 활성화)
+# HEALTHCHECK --interval=30s --timeout=5s CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
