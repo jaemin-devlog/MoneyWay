@@ -7,9 +7,8 @@ import java.util.List;
 
 public interface PostScrapRepository extends JpaRepository<PostScrap, Long> {
 
-    boolean existsByPostIdAndUserId(Long postId, Long userId); // 사용자가 스크랩했는지 여부 확인
-
-    void deleteByPostIdAndUserId(Long postId, Long userId);    // 스크랩 취소
-
-    List<PostScrap> findAllByUserId(Long userId);              // 사용자의 모든 스크랩 게시글 조회
+    boolean existsByPostIdAndUserId(Long postId, Long userId);   // 스크랩 여부 확인
+    void deleteByPostIdAndUserId(Long postId, Long userId);      // 스크랩 취소
+    List<PostScrap> findAllByUserId(Long userId);                // 사용자 스크랩 목록
+    int countByPostId(Long postId);
 }
