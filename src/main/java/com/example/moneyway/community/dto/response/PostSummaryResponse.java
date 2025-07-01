@@ -25,6 +25,5 @@ public class PostSummaryResponse {
     private Integer scrapCount;        // 스크랩 수
 
     private String writerNickname;     // 작성자 닉네임
-    private String writerProfileUrl;   // 작성자 프로필 이미지 URL
     private LocalDateTime createdAt;   // 작성 시간
 }
