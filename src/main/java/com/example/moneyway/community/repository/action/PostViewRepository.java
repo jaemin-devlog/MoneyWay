@@ -15,7 +15,4 @@ public interface PostViewRepository extends JpaRepository<PostView, Long> {
     int countByPostId(Long postId);                                                  // 게시글 총 조회수
 
     int countByUserId(Long userId);                                                  // 특정 유저가 조회한 게시글 수
-
-    boolean existsByPostIdAndUserIdAndViewedAtAfter(Long postId, Long userId, LocalDateTime after);
-    // 일정 시간 이내에 조회했는지 확인 (중복 조회 방지용)
 }
