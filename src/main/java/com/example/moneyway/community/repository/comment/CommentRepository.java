@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
 
-    List<Comment> findByPostId(Long postId);           // 게시글 댓글 조회
-    int countByPostId(Long postId);                    // 댓글 수 계산
+    List<Comment> findByPostIdAndIsDeletedFalse(Long postId);//게시글 ID로 삭제되지 않은 댓글 목록 조회
+
+    int countByPostIdAndIsDeletedFalse(Long postId); //게시글 ID로 삭제되지 않은 댓글 개수 조회
 }

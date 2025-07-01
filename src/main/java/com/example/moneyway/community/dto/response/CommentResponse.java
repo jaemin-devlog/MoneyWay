@@ -18,6 +18,5 @@ public class CommentResponse {
     private Long commentId;            // 댓글 ID
     private String content;            // 댓글 내용
     private String writerNickname;     // 작성자 닉네임
-    private String writerProfileUrl;   // 작성자 프로필 이미지 URL
     private LocalDateTime createdAt;   // 작성 시간
 }

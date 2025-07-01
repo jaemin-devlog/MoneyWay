@@ -72,7 +72,14 @@ public enum ErrorCode {
     POST_IMAGE_URL_INVALID(HttpStatus.BAD_REQUEST, "잘못된 이미지 URL 형식입니다."),
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글이 존재하지 않습니다."),
     POST_FORBIDDEN_UPDATE(HttpStatus.FORBIDDEN, "작성자만 해당 게시글을 수정할 수 있습니다."),
-    POST_FORBIDDEN_DELETE(HttpStatus.FORBIDDEN, "작성자만 해당 게시글을 삭제할 수 있습니다.");
+    POST_FORBIDDEN_DELETE(HttpStatus.FORBIDDEN, "작성자만 해당 게시글을 삭제할 수 있습니다."),
+
+    // ================== COMMUNITY: COMMENT ==================
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글이 존재하지 않습니다."),
+    COMMENT_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 생성에 실패했습니다."),
+    COMMENT_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다."),
+    COMMENT_FORBIDDEN_DELETE(HttpStatus.FORBIDDEN, "작성자만 해당 댓글을 삭제할 수 있습니다."),
+    COMMENT_INVALID_INPUT(HttpStatus.BAD_REQUEST, "댓글 입력 값이 올바르지 않습니다.");
 
     private final HttpStatus status;
     private final String message;
