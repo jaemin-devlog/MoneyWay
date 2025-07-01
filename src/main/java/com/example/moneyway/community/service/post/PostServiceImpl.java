@@ -29,19 +29,20 @@ public class PostServiceImpl implements PostService {
      */
     @Override
     public Long createPost(Long userId, CreatePostRequest request) {
+        // 게시글 생성
         Post post = Post.builder()
                 .userId(userId)
                 .title(request.getTitle())
                 .content(request.getContent())
-                .category(request.getCategory())
-                .build();
+                .build(); // category 제거됨
 
         postRepository.save(post);
 
+        // 이미지가 있을 경우, PostImage 리스트 생성 후 저장
         if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
             List<PostImage> images = request.getImageUrls().stream()
                     .map(url -> PostImage.builder()
-                            .post(post)
+                            .postId(post.getId())  // 연관관계 대신 postId 직접 지정
                             .imageUrl(url)
                             .build())
                     .toList();
@@ -51,6 +52,7 @@ public class PostServiceImpl implements PostService {
 
         return post.getId();
     }
+
 
     // 나머지 메서드는 아래에서 점진적으로 구현 예정
     @Override
