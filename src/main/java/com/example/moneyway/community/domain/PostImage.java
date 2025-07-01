@@ -1,8 +1,7 @@
 package com.example.moneyway.community.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * 게시글 이미지 도메인
@@ -13,18 +12,21 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 @Table(name = "post_image")
 public class PostImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // 이미지 ID
 
     @Column(nullable = false)
-    private Long postId;
+    private Long postId; // 연결된 게시글 ID
 
     @Column(nullable = false)
-    private String imageUrl;
+    private String imageUrl; // 이미지 URL 경로
 
-    private Boolean isThumbnail = false;
+    private Boolean isThumbnail = false; // 대표 이미지 여부 (기본 false)
 }

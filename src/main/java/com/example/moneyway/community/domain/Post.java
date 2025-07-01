@@ -1,8 +1,7 @@
 package com.example.moneyway.community.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -15,37 +14,40 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 @Table(name = "post")
 public class Post {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // 게시글 ID
 
     @Column(nullable = false)
-    private Long userId;
+    private Long userId; // 게시글 작성자 ID
 
     @Column(nullable = false, length = 100)
-    private String title;
+    private String title; // 제목
 
     @Lob
     @Column(nullable = false)
-    private String content;
+    private String content; // 본문 내용
 
-    private Integer totalCost;          // 총 비용
+    private Integer totalCost; // 총 지출 비용 (예산 기반)
 
-    private Boolean isChallenge = false;
+    private Boolean isChallenge = false; // 챌린지 참여 여부
 
-    private Integer likeCount = 0;
-    private Integer viewCount = 0;
-    private Integer commentCount = 0;
+    private Integer likeCount = 0; // 좋아요 수
 
-    private LocalDateTime createdAt;
+    private Integer viewCount = 0; // 조회수
+
+    private Integer commentCount = 0; // 댓글 수
+
+    private LocalDateTime createdAt; // 생성 시간
 
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
 }
-
-

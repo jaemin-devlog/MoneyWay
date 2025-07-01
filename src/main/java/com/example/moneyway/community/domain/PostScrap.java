@@ -1,8 +1,7 @@
 package com.example.moneyway.community.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * 게시글 스크랩(PostScrap) 도메인 클래스
@@ -13,6 +12,9 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 @Table(name = "post_scrap",
         uniqueConstraints = {@UniqueConstraint(columnNames = {"postId", "userId"})},
         indexes = {@Index(columnList = "userId")}
@@ -21,12 +23,13 @@ public class PostScrap {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // 스크랩 ID
 
     @Column(nullable = false)
-    private Long postId;
+    private Long postId; // 스크랩한 게시글 ID
 
     @Column(nullable = false)
-    private Long userId;
+    private Long userId; // 스크랩한 사용자 ID
 }
+
 

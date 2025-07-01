@@ -1,8 +1,7 @@
 package com.example.moneyway.community.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 /**
  * 게시글 좋아요 도메인
@@ -13,6 +12,9 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 @Table(uniqueConstraints = {
         @UniqueConstraint(columnNames = {"postId", "userId"})
 })
@@ -22,7 +24,7 @@ public class PostLike {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id; // 좋아요 ID
 
-    private Long postId; // 대상 게시글 ID
+    private Long postId; // 좋아요 대상 게시글 ID
 
-    private Long userId; // 좋아요 누른 사용자 ID
+    private Long userId; // 좋아요를 누른 사용자 ID
 }

@@ -1,8 +1,7 @@
 package com.example.moneyway.community.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -20,6 +19,9 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 @Table(name = "post_view",
         indexes = {
                 @Index(name = "idx_post_user", columnList = "postId, userId"),
@@ -30,19 +32,12 @@ public class PostView {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // 조회 기록 ID
 
     @Column(nullable = false)
-    private Long postId;
+    private Long postId; // 조회된 게시글 ID
 
-    private Long userId;      // 로그인 유저용
+    private Long userId; // 조회한 사용자 ID (로그인 사용자)
 
-    private String ipAddress; // 비로그인 유저용
-
-    private LocalDateTime viewedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.viewedAt = LocalDateTime.now();
-    }
+    private String ipAddress; // 조회한 사용자의 IP (비로그인 사용자)
 }

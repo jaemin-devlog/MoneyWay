@@ -56,6 +56,45 @@ public class TourApiClient {
         }
     }
 
+    public String getDetailInfo(String contentId, String contentTypeId) {
+        String url = "http://apis.data.go.kr/B551011/KorService2/detailInfo2"
+                + "?serviceKey=" + serviceKey
+                + "&MobileOS=ETC"
+                + "&MobileApp=AppTest"
+                + "&_type=json"
+                + "&contentId=" + contentId
+                + "&contentTypeId=" + contentTypeId;
+        try {
+            URI uri = new URI(url);
+            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
+            return response.getBody();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public String getDetailIntro(String contentId, String contentTypeId) {
+        try {
+            String url = "http://apis.data.go.kr/B551011/KorService2/detailIntro2"
+                    + "?serviceKey=" + serviceKey
+                    + "&MobileOS=ETC"
+                    + "&MobileApp=AppTest"
+                    + "&_type=json"
+                    + "&contentId=" + contentId
+                    + "&contentTypeId=" + contentTypeId;
+
+            URI uri = new URI(url);
+            ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
+            return response.getBody();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+
 
 
 }
