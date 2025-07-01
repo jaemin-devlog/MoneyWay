@@ -45,4 +45,7 @@ public class TourPlaceService {
                 })
                 .collect(Collectors.toList());
     }
+    public List<TourPlace> findAllJejuPlaces() {
+        return tourPlaceRepository.findByAreacode("39");
+    }
 }
