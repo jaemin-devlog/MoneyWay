@@ -2,15 +2,14 @@ server:
   port: 8080
 
   datasource:
-    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?serverTimezone=Asia/Seoul
+    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
     username: ${MYSQLUSER}
     password: ${MYSQLPASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   data:
     redis:
-      host: ${REDISHOST}
-      port: ${REDISPORT}
+      url: redis://:${REDISPASSWORD}@${REDISHOST}:${REDISPORT}
 
   mail:
     host: smtp.gmail.com

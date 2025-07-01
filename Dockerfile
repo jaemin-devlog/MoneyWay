@@ -1,20 +1,28 @@
-# Java 21 JDK 이미지로 빌드
-FROM eclipse-temurin:21-jdk as builder
+# 🔧 1단계: Gradle 빌드용 컨테이너
+FROM gradle:8.7.0-jdk21-alpine AS builder
 
 WORKDIR /app
 
-COPY . /app
+# 프로젝트 관련 파일 복사
+COPY gradle ./gradle
+COPY gradlew ./gradlew
+COPY build.gradle ./build.gradle
+COPY settings.gradle ./settings.gradle
+COPY src ./src
 
-RUN chmod +x ./gradlew
-RUN ./gradlew clean build -x test -x check
+# gradlew 실행 권한 추가 (Windows에선 필수)
+RUN chmod +x gradlew
 
-# 실행 환경은 JRE로 가볍게
-FROM eclipse-temurin:21-jre
+# 종속성 미리 다운 (캐시 활용) + 테스트 제외
+RUN ./gradlew build -x test
+
+# 🔧 2단계: 런타임 이미지
+FROM eclipse-temurin:21-jdk-alpine
 
 WORKDIR /app
 
+# 위에서 만든 JAR 복사
 COPY --from=builder /app/build/libs/*.jar app.jar
 
-EXPOSE 8080
-
+# 실행
 ENTRYPOINT ["java", "-jar", "app.jar"]
