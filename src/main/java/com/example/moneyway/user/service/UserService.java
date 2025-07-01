@@ -34,6 +34,9 @@ public class UserService {
         return userRepository.findById(id)
                 .orElseThrow(() -> new CustomUserException(ErrorCode.USER_NOT_FOUND));
     }
+    public String getNicknameById(Long userId) {
+        return findById(userId).getNickname(); // 위에서 정의한 findById 재활용
+    }
 }
 
 /**

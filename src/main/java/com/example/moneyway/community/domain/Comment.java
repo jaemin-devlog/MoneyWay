@@ -35,6 +35,12 @@ public class Comment {
 
     private LocalDateTime createdAt; // 생성 시간
 
+    @Column(nullable = false)
+    private String writerNickname = "익명";
+
+    @Column(nullable = false)
+    private Boolean isDeleted = false; // 댓글 삭제 여부 (소프트 삭제 용도)
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();

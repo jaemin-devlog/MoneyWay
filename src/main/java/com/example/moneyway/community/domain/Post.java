@@ -27,6 +27,10 @@ public class Post {
     @Column(nullable = false)
     private Long userId;                      // 작성자 ID
 
+    @Column(nullable = false)
+    private String writerNickname = "익명";
+
+
     @Column(nullable = false, length = 100)
     private String title;                     // 제목
 
@@ -55,4 +59,5 @@ public class Post {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now(); // 저장 시 자동 생성
     }
+
 }
