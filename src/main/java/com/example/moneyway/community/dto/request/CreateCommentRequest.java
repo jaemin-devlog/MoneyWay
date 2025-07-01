@@ -11,6 +11,5 @@ import lombok.Setter;
 @Setter
 public class CreateCommentRequest {
     private Long postId;       // 댓글이 달릴 대상 게시글 ID
-    private Long parentId;     // 부모 댓글 ID (null이면 최상위 댓글)
     private String content;    // 댓글 내용
 }

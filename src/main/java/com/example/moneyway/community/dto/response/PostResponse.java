@@ -23,5 +23,4 @@ public class PostResponse {
     private int scrapCount;                  // 스크랩 수
     private int viewCount;                   // 조회 수
     private LocalDateTime createdAt;         // 게시글 생성 시간
-    private LocalDateTime updatedAt;         // 게시글 수정 시간
 }

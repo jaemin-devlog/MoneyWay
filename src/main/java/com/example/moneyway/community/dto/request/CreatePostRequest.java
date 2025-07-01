@@ -12,8 +12,10 @@ import java.util.List;
 @Getter
 @Setter
 public class CreatePostRequest {
-    private String title;                // 게시글 제목
-    private String content;             // 게시글 본문 내용
-    private List<String> imageUrls;     // 프론트엔드에서 업로드한 이미지 URL 리스트
-    private String thumbnailUrl;        // 썸네일 이미지 URL (imageUrls 중 하나)
+    private String title;           // 게시글 제목
+    private String content;         // 게시글 내용
+    private Integer totalCost;      // 총 지출 비용
+    private Boolean isChallenge;    // 챌린지 여부
+    private String thumbnailUrl;    // 썸네일 이미지 URL
+    private List<String> imageUrls; // 본문에 첨부된 이미지들
 }
