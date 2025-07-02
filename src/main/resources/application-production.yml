@@ -52,7 +52,7 @@ spring:
             user-name-attribute: id
 
 openai:
-  key: ${OpenAI_Key}
+  key: ${openai.api.key}
 
 tourapi:
   service-key: ${TOUR_API_KEY}
