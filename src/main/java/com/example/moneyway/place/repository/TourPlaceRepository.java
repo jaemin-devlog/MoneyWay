@@ -20,5 +20,6 @@ public interface TourPlaceRepository extends JpaRepository<TourPlace, String> {
 
 //    List<TourPlace> findByCategory(String category);
 
+    List<TourPlace> findByAreacodeAndCat1(String areacode, String cat1);
 
 }
