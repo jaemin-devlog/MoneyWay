@@ -1,7 +1,7 @@
 package com.example.moneyway.place.service;
 
 import com.example.moneyway.place.dto.GetJejuRestaurantDto;
-import com.example.moneyway.place.dto.RestaurantJeju;
+import com.example.moneyway.place.domain.RestaurantJeju;
 import com.example.moneyway.place.repository.RestaurantJejuRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

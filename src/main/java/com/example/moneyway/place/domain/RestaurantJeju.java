@@ -1,4 +1,4 @@
-package com.example.moneyway.place.dto;
+package com.example.moneyway.place.domain;
 
 import jakarta.persistence.*;
 import lombok.Getter;
