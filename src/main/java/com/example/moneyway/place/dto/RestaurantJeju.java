@@ -4,22 +4,22 @@ import jakarta.persistence.*;
 import lombok.Getter;
 
 @Entity
-@Table(name = "restaurants_jeju")
+@Table(name = "jeju_restaurants")
 @Getter
 public class RestaurantJeju {
 
     @Id
-    @Column(name = "name")
-    private String name;
+    @Column(name = "title")
+    private String title;
 
-    private String rating;
+    private String score;
 
-    @Column(name = "review_count")
-    private String reviewCount;
+    @Column(name = "review")
+    private String review;
 
     private String address;
 
-    private String phone;
+    private String tel;
 
     @Column(columnDefinition = "TEXT")
     private String menu;

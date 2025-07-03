@@ -24,6 +24,14 @@ public class TourDetailService {
         List<TourPlace> all = tourPlaceRepository.findAll();
 
         for (TourPlace place : all) {
+            try {
+                // 요청 간 딜레이 추가 (0.3초 = 초당 약 3.3건)
+                Thread.sleep(300);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                return; // 강제 중단된 경우 빠져나감
+            }
+
             String contentId = place.getContentid();
             String contentTypeId = place.getContenttypeid();
 
@@ -57,6 +65,7 @@ public class TourDetailService {
             }
         }
     }
+
 
     private Integer parseInt(Object obj) {
         try {
