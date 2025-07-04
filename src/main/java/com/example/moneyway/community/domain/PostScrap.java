@@ -1,20 +1,20 @@
 package com.example.moneyway.community.domain;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 /**
- * 게시글 스크랩(PostScrap) 도메인 클래스
+ * 게시글 스크랩(PostScrap) 도메인
  *
- * 사용자가 게시글(Post)을 스크랩하여 마이페이지 또는 개인 북마크 공간에 저장한 이력을 나타냅니다.
- * 한 사용자가 같은 게시글을 여러 번 스크랩하지 못하도록 postId + userId에 유니크 제약을 둡니다.
+ * 사용자가 게시글을 스크랩한 이력을 나타냅니다.
+ * 불변 객체로 설계하여 데이터의 신뢰성을 보장합니다.
  */
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 @Table(name = "post_scrap",
         uniqueConstraints = {@UniqueConstraint(columnNames = {"postId", "userId"})},
         indexes = {@Index(columnList = "userId")}
@@ -23,13 +23,17 @@ public class PostScrap {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // 스크랩 ID
+    private Long id;
 
     @Column(nullable = false)
-    private Long postId; // 스크랩한 게시글 ID
+    private Long postId;
 
     @Column(nullable = false)
-    private Long userId; // 스크랩한 사용자 ID
+    private Long userId;
+
+    @Builder
+    public PostScrap(Long postId, Long userId) {
+        this.postId = postId;
+        this.userId = userId;
+    }
 }
-
-
