@@ -6,17 +6,24 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 /**
- * 게시글 목록 조회용 응답 DTO
- * 목록 형태로 요약된 게시글 정보 전달
+ * 게시글 목록 요약 응답 DTO
+ *
+ * - 게시글 리스트에서 간단히 보여줄 정보를 담습니다.
+ * - 썸네일, 제목, 작성자 정보, 집계 필드 중심 구성입니다.
  */
 @Getter
 @Builder
 public class PostSummaryResponse {
-    private Long id;                     // 게시글 ID
-    private String title;                // 게시글 제목
-    private AuthorDto author;            // 작성자 정보
-    private String thumbnailUrl;         // 썸네일 이미지 URL
-    private int likeCount;               // 좋아요 수
-    private int commentCount;            // 댓글 수
-    private LocalDateTime createdAt;     // 게시글 작성일
+
+    private Long postId;               // 게시글 ID
+    private String title;              // 제목
+    private String thumbnailUrl;       // 썸네일 이미지 URL
+    private Boolean isChallenge;       // 챌린지 여부 (챌린지 탭 필터링용)
+
+    private Integer likeCount;         // 좋아요 수
+    private Integer commentCount;      // 댓글 수
+    private Integer scrapCount;        // 스크랩 수
+
+    private String writerNickname;     // 작성자 닉네임
+    private LocalDateTime createdAt;   // 작성 시간
 }

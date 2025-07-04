@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TourPlaceRepository extends JpaRepository<TourPlace, String> {
@@ -14,4 +15,11 @@ public interface TourPlaceRepository extends JpaRepository<TourPlace, String> {
 
     // ✅ 제주 지역 장소 조회용
     List<TourPlace> findByAreacode(String areacode);
+
+    Optional<TourPlace> findByContentid(String contentid);
+
+//    List<TourPlace> findByCategory(String category);
+
+    List<TourPlace> findByAreacodeAndCat1(String areacode, String cat1);
+
 }

@@ -4,6 +4,7 @@ import com.example.moneyway.common.exception.CustomException.CustomUserException
 import com.example.moneyway.common.exception.ErrorCode;
 import com.example.moneyway.user.domain.User;
 import com.example.moneyway.user.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +35,32 @@ public class UserService {
         return userRepository.findById(id)
                 .orElseThrow(() -> new CustomUserException(ErrorCode.USER_NOT_FOUND));
     }
+
+    public User findActiveById(Long id) {
+        return userRepository.findById(id)
+                .filter(user -> !user.isDeleted())
+                .orElseThrow(() -> new CustomUserException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    public String getNicknameById(Long userId) {
+        return findById(userId).getNickname(); // 위에서 정의한 findById 재활용
+    }
+
+    public void withdrawUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomUserException(ErrorCode.USER_NOT_FOUND));
+
+        if (user.isDeleted()) {
+            throw new CustomUserException(ErrorCode.ALREADY_WITHDRAWN);
+        }
+
+        user.setDeleted(true);
+        userRepository.save(user);
+    }
+
+
+
+
 }
 
 /**

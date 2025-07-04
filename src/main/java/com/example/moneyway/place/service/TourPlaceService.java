@@ -45,4 +45,11 @@ public class TourPlaceService {
                 })
                 .collect(Collectors.toList());
     }
+    public List<TourPlace> findAllJejuPlaces() {
+        return tourPlaceRepository.findByAreacode("39");
+    }
+
+    public List<TourPlace> findByCat1(String cat1) {
+        return tourPlaceRepository.findByAreacodeAndCat1("39", cat1);
+    }
 }

@@ -9,6 +9,7 @@ import lombok.Getter;
  * 필드: email, code → 인증코드 확인에 사용
  */
 @Getter
+
 public class EmailCodeRequest {
 
     @NotBlank(message = "이메일은 필수 입력값입니다.")

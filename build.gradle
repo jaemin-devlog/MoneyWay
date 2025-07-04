@@ -1,3 +1,4 @@
+
 plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.5'
@@ -55,9 +56,13 @@ dependencies {
 
 }
 
-
-
+bootJar {
+    archiveFileName = 'app.jar'
+}
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+springBoot {
+    mainClass = 'com.example.moneyway.MoneyWayApplication'
 }

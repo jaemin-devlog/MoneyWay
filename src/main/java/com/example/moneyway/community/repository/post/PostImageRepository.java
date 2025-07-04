@@ -7,7 +7,6 @@ import java.util.List;
 
 public interface PostImageRepository extends JpaRepository<PostImage, Long> {
 
-    List<PostImage> findByPostId(Long postId);       // 게시글 ID로 모든 이미지 조회
-
-    void deleteAllByPostId(Long postId);             // 게시글 ID 기준으로 모든 이미지 삭제
+    List<PostImage> findByPostId(Long postId);         // 게시글 이미지 조회
+    void deleteAllByPostId(Long postId);               // 게시글 삭제 시 이미지 일괄 삭제
 }

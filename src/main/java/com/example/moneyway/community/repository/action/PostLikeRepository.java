@@ -5,9 +5,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
 
-    boolean existsByPostIdAndUserId(Long postId, Long userId); // 특정 사용자가 좋아요 눌렀는지 확인
+    boolean existsByPostIdAndUserId(Long postId, Long userId);   // 좋아요 여부 확인
+    void deleteByPostIdAndUserId(Long postId, Long userId);      // 좋아요 취소
+    int countByPostId(Long postId);                              // 좋아요 수
+    void deleteAllByPostId(Long postId);
 
-    void deleteByPostIdAndUserId(Long postId, Long userId);    // 좋아요 취소 (삭제)
-
-    int countByPostId(Long postId);                            // 게시글 좋아요 수 조회
 }

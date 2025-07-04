@@ -21,6 +21,10 @@ public enum ErrorCode {
     KAKAO_ACCOUNT_LOGIN(HttpStatus.BAD_REQUEST, "해당 이메일은 카카오 로그인 전용 계정입니다. 카카오 로그인을 이용해주세요."),
     EMPTY_LOGIN_FIELD(HttpStatus.BAD_REQUEST, "이메일과 비밀번호를 모두 입력해주세요."),
 
+    // ================= USER: 탈퇴 =================
+    ALREADY_WITHDRAWN(HttpStatus.BAD_REQUEST, "이미 탈퇴한 계정입니다."),
+    USER_WITHDRAWN(HttpStatus.FORBIDDEN, "탈퇴한 사용자는 접근할 수 없습니다."),
+
     // ================= USER: 내 정보 =================
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다."),
     UNAUTHORIZED_USER(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다. 로그인 후 다시 시도해주세요."),
@@ -61,23 +65,25 @@ public enum ErrorCode {
 
 
 
-    // ================= REVIEW =================
-    REVIEW_NOT_FOUND(HttpStatus.NOT_FOUND, "리뷰를 찾을 수 없습니다."),
-    UNAUTHORIZED_REVIEW_ACCESS(HttpStatus.FORBIDDEN, "해당 리뷰에 대한 권한이 없습니다."),
-    DUPLICATE_REVIEW(HttpStatus.BAD_REQUEST, "이미 리뷰를 작성했습니다."),
+    // ================== COMMUNITY: POST ==================
+    UNAUTHORIZED_POST_ACCESS(HttpStatus.FORBIDDEN, "게시글에 대한 접근 권한이 없습니다."),
+    POST_IMAGE_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "게시글 이미지 저장에 실패했습니다."),
+    POST_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "게시글 생성에 실패했습니다."),
+    POST_UPDATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "게시글 수정에 실패했습니다."),
+    POST_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "게시글 삭제에 실패했습니다."),
+    INVALID_POST_INPUT(HttpStatus.BAD_REQUEST, "게시글 입력 값이 올바르지 않습니다."),
+    USER_NICKNAME_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자의 닉네임을 찾을 수 없습니다."),
+    POST_IMAGE_URL_INVALID(HttpStatus.BAD_REQUEST, "잘못된 이미지 URL 형식입니다."),
+    POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글이 존재하지 않습니다."),
+    POST_FORBIDDEN_UPDATE(HttpStatus.FORBIDDEN, "작성자만 해당 게시글을 수정할 수 있습니다."),
+    POST_FORBIDDEN_DELETE(HttpStatus.FORBIDDEN, "작성자만 해당 게시글을 삭제할 수 있습니다."),
 
-    // ================= PLAN =================
-    PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "여행 계획을 찾을 수 없습니다."),
-    INVALID_PLAN_ACCESS(HttpStatus.FORBIDDEN, "이 계획에 접근할 수 없습니다."),
-
-    // ================= PLACE =================
-    PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "장소 정보를 찾을 수 없습니다."),
-    DUPLICATE_PLACE(HttpStatus.BAD_REQUEST, "이미 등록된 장소입니다."),
-
-    // ================= COMMON =================
-    INVALID_INPUT(HttpStatus.BAD_REQUEST, "입력값이 올바르지 않습니다."),
-    METHOD_NOT_ALLOWED(HttpStatus.METHOD_NOT_ALLOWED, "지원하지 않는 HTTP 메서드입니다."),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다.");
+    // ================== COMMUNITY: COMMENT ==================
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글이 존재하지 않습니다."),
+    COMMENT_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 생성에 실패했습니다."),
+    COMMENT_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다."),
+    COMMENT_FORBIDDEN_DELETE(HttpStatus.FORBIDDEN, "작성자만 해당 댓글을 삭제할 수 있습니다."),
+    COMMENT_INVALID_INPUT(HttpStatus.BAD_REQUEST, "댓글 입력 값이 올바르지 않습니다.");
 
     private final HttpStatus status;
     private final String message;
