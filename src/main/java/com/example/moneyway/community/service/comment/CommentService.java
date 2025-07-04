@@ -7,10 +7,10 @@ import java.util.List;
 
 public interface CommentService {
 
-    Long createComment(Long userId, CreateCommentRequest request); // 댓글 생성
+    Long createComment(Long userId, CreateCommentRequest request);
 
-    void deleteComment(Long commentId, Long userId); // 댓글 삭제 (소프트 삭제)
+    void deleteComment(Long commentId, Long userId);
 
-    List<CommentResponse> getCommentsByPostId(Long postId); // 게시글 ID로 댓글 목록 조회
+    // [반영] 메서드 이름 변경
+    List<CommentResponse> getActiveCommentsByPostId(Long postId);
 }
-

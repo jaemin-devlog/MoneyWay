@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "users")
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -87,6 +88,9 @@ public class User {
         return this;
     }
 
+    @Column(name = "is_deleted", nullable = false)
+    private boolean isDeleted = false; // 기본값: false (탈퇴하지 않음)
+
     /**
      * ✅ 비밀번호 재설정 로직
      */
@@ -103,4 +107,9 @@ public class User {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void withdraw() {
+        this.isDeleted = true;
+    }
+
 }

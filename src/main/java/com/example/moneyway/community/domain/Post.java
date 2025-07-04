@@ -1,63 +1,118 @@
 package com.example.moneyway.community.domain;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
-/**
- * 커뮤니티 게시글 도메인
- *
- * 여행 후기 또는 챌린지 참여 글을 저장하는 핵심 엔티티입니다.
- * 좋아요, 댓글 수, 스크랩 수 등 집계 데이터를 함께 관리합니다.
- */
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "post")
 public class Post {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;                          // 게시글 ID
+    private Long id;
 
     @Column(nullable = false)
-    private Long userId;                      // 작성자 ID
+    private Long userId;
 
     @Column(nullable = false)
-    private String writerNickname = "익명";
+    private String writerNickname;
 
+    @Column(nullable = false, length = 20)
+    private String title;
 
-    @Column(nullable = false, length = 100)
-    private String title;                     // 제목
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
 
-    @Lob
+    // [반영] nullable=false 제약조건 추가
     @Column(nullable = false)
-    private String content;                   // 본문 내용 (긴 글도 가능)
+    private Integer totalCost;
 
-    private Integer totalCost;                // 총 지출 비용 (nullable 허용)
-
-    private Boolean isChallenge = false;      // 챌린지 참여 여부
-
-    private Integer likeCount = 0;            // 좋아요 수
-
-    private Integer commentCount = 0;         // 댓글 수
-
-    private Integer scrapCount = 0;           // 스크랩 수
-
-    private Integer viewCount = 0;            // 조회수
+    // [반영] primitive type 'boolean'으로 변경하여 null 가능성 원천 차단
+    @Column(nullable = false)
+    private boolean isChallenge;
 
     @Column(nullable = false)
-    private String thumbnailUrl;              // 썸네일 이미지 URL (별도 첨부된 이미지)
+    private Integer likeCount;
 
-    private LocalDateTime createdAt;          // 생성일시
+    @Column(nullable = false)
+    private Integer commentCount;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now(); // 저장 시 자동 생성
+    @Column(nullable = false)
+    private Integer scrapCount;
+
+    @Column(nullable = false)
+    private Integer viewCount;
+
+    @Column(nullable = false)
+    private String thumbnailUrl;
+
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Builder
+    public Post(Long userId, String writerNickname, String title, String content,
+                Integer totalCost, Boolean isChallenge, String thumbnailUrl) {
+        this.userId = userId;
+        this.writerNickname = writerNickname;
+        this.title = title;
+        this.content = content;
+        this.thumbnailUrl = thumbnailUrl;
+        // [반영] totalCost가 null일 경우 0으로 초기화하여 제약조건 위반 방지
+        this.totalCost = totalCost != null ? totalCost : 0;
+        // [반영] isChallenge가 null일 경우 false로 초기화
+        this.isChallenge = isChallenge != null ? isChallenge : false;
+        // count 필드들의 초기값을 0으로 보장
+        this.likeCount = 0;
+        this.commentCount = 0;
+        this.scrapCount = 0;
+        this.viewCount = 0;
     }
 
+    //== 비즈니스 로직 (상태 변경 메서드) ==//
+
+    public void updatePost(String title, String content, Integer totalCost, String thumbnailUrl) {
+        this.title = title;
+        this.content = content;
+        this.totalCost = totalCost;
+        this.thumbnailUrl = thumbnailUrl;
+    }
+
+    public void increaseViewCount() {
+        this.viewCount++;
+    }
+
+    public void increaseCommentCount() {
+        this.commentCount++;
+    }
+
+    public void decreaseCommentCount() {
+        this.commentCount = Math.max(0, this.commentCount - 1);
+    }
+
+    public void increaseLikeCount() {
+        this.likeCount++;
+    }
+
+    public void decreaseLikeCount() {
+        this.likeCount = Math.max(0, this.likeCount - 1);
+    }
+
+    public void increaseScrapCount() {
+        this.scrapCount++;
+    }
+
+    public void decreaseScrapCount() {
+        this.scrapCount = Math.max(0, this.scrapCount - 1);
+    }
 }

@@ -14,7 +14,7 @@ import java.util.List;
 public abstract class BasePostRequest {
 
     @NotBlank(message = "제목은 필수입니다.")
-    @Size(max = 100, message = "제목은 100자 이하로 작성해주세요.")
+    @Size(max = 20, message = "제목은 20자 이하로 작성해주세요.")
     protected String title; // 게시글 제목
 
     @NotBlank(message = "본문 내용은 필수입니다.")
@@ -25,5 +25,6 @@ public abstract class BasePostRequest {
     @NotBlank(message = "썸네일 이미지는 필수입니다.")
     protected String thumbnailUrl; // 썸네일 이미지 URL
 
-    protected List<String> imageUrls; // 첨부 이미지 URL 목록
+    @Size(max = 10, message = "첨부 이미지는 최대 10개까지만 등록할 수 있습니다.")
+    protected List<String> imageUrls;
 }

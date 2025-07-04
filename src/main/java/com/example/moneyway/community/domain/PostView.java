@@ -2,6 +2,8 @@ package com.example.moneyway.community.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
@@ -18,7 +20,7 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Getter
-@Setter
+// @Setter는 불변성을 위해 제거하고, 빌더를 통해 생성하는 것을 권장합니다.
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
@@ -28,16 +30,23 @@ import java.time.LocalDateTime;
                 @Index(name = "idx_post_ip", columnList = "postId, ipAddress")
         }
 )
+// JPA Auditing을 사용해 생성 시각을 자동으로 기록할 수 있습니다.
+@EntityListeners(AuditingEntityListener.class)
 public class PostView {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // 조회 기록 ID
+    private Long id;
 
     @Column(nullable = false)
-    private Long postId; // 조회된 게시글 ID
+    private Long postId;
 
-    private Long userId; // 조회한 사용자 ID (로그인 사용자)
+    private Long userId;
 
-    private String ipAddress; // 조회한 사용자의 IP (비로그인 사용자)
+    private String ipAddress;
+
+    // 조회 시각을 기록하기 위한 필드
+    @CreatedDate
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime viewedAt;
 }

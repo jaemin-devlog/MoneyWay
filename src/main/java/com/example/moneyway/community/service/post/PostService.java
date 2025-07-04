@@ -29,4 +29,6 @@ public interface PostService {
 
     // 사용자 작성 게시글 목록 조회
     List<PostSummaryResponse> getUserPosts(Long userId);
+
+    void increaseViewCount(Long postId, Long viewerId, String ipAddress);
 }
