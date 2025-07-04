@@ -21,16 +21,25 @@ public class TourPlaceController {
     private final TourPlaceService tourPlaceService;
 
     @Operation(summary = "장소 전체 조회", description = "제주 지역의 모든 장소 데이터를 반환합니다.")
-    @GetMapping
-    public ResponseEntity<List<TourPlace>> getAllJejuTourPlaces() {
+    @GetMapping(params = "!cat1")
+        public ResponseEntity<List<TourPlace>> getAllJejuTourPlaces() {
         List<TourPlace> places = tourPlaceService.findAllJejuPlaces();
         return ResponseEntity.ok(places);
     }
 
     private final TourPlaceRepository tourPlaceRepository;
 
-//    @GetMapping("/category")
-//    public List<TourPlace> getPlacesByCategory(@RequestParam("category") String category) {
-//        return tourPlaceRepository.findByCategory(category);
-//    }
+    @GetMapping(params = "cat1")
+    public ResponseEntity<List<TourPlace>> getJejuTourPlaces(
+            @RequestParam(value = "cat1", required = false) String cat1) {
+
+        List<TourPlace> places;
+        if (cat1 == null || cat1.isBlank()) {
+            places = tourPlaceService.findAllJejuPlaces(); // 전체
+        } else {
+            places = tourPlaceService.findByCat1(cat1); // cat1 필터링
+        }
+
+        return ResponseEntity.ok(places);
+    }
 }

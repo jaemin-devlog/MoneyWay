@@ -1,6 +1,6 @@
 package com.example.moneyway.place.repository;
 
-import com.example.moneyway.place.dto.RestaurantJeju;
+import com.example.moneyway.place.domain.RestaurantJeju;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

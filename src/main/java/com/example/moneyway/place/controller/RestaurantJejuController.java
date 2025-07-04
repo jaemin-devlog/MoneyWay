@@ -1,26 +1,35 @@
 package com.example.moneyway.place.controller;
 
-import com.example.moneyway.place.dto.RestaurantJeju;
-import com.example.moneyway.place.repository.RestaurantJejuRepository;
-import org.springframework.web.bind.annotation.*;
+import com.example.moneyway.place.dto.GetJejuRestaurantDto;
+import com.example.moneyway.place.service.RestaurantJejuService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/restaurants-jeju")
+@RequestMapping("/api/restaurant")
+@RequiredArgsConstructor
 public class RestaurantJejuController {
 
-    private final RestaurantJejuRepository repository;
-
-    public RestaurantJejuController(RestaurantJejuRepository repository) {
-        this.repository = repository;
-    }
+    private final RestaurantJejuService restaurantJejuService;
 
     @GetMapping
-    public List<RestaurantJeju> getRestaurants(@RequestParam(required = false) String category) {
-        if (category != null) {
-            return repository.findByCategoryCode(category);
+    public ResponseEntity<List<GetJejuRestaurantDto>> getRestaurantsByCategory(
+            @RequestParam(value = "categoryCode", required = false) String categoryCode) {
+
+        List<GetJejuRestaurantDto> result;
+
+        if (categoryCode == null || categoryCode.isBlank()) {
+            result = restaurantJejuService.getAllRestaurants();
+        } else {
+            result = restaurantJejuService.getByCategoryCode(categoryCode);
         }
-        return repository.findAll();
+
+        return ResponseEntity.ok(result);
     }
 }
