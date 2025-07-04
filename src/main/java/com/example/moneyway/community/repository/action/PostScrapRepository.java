@@ -11,4 +11,6 @@ public interface PostScrapRepository extends JpaRepository<PostScrap, Long> {
     void deleteByPostIdAndUserId(Long postId, Long userId);      // 스크랩 취소
     List<PostScrap> findAllByUserId(Long userId);                // 사용자 스크랩 목록
     int countByPostId(Long postId);
+    void deleteAllByPostId(Long postId);
+
 }
