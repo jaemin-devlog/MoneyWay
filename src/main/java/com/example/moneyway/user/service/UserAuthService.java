@@ -40,7 +40,9 @@ public class UserAuthService {
     public AuthResponse signup(SignupRequest request) {
         User user = userService.createEmailUser(request.getEmail(), request.getPassword(), request.getNickname());
         TokenInfo tokenInfo = generateTokens(user);
-        saveOrUpdateRefreshToken(user, tokenInfo.getRefreshToken());
+
+        // [수정] record의 접근자 메서드(refreshToken()) 사용
+        saveOrUpdateRefreshToken(user, tokenInfo.refreshToken());
 
         return AuthResponse.builder()
                 .tokenInfo(tokenInfo)
@@ -51,7 +53,6 @@ public class UserAuthService {
     /**
      * 이메일 기반 로그인을 처리하고, 토큰과 사용자 정보를 반환합니다.
      */
-    @Transactional
     public AuthResponse login(LoginRequest request) {
         User user = userService.findByEmail(request.getEmail());
 
@@ -60,7 +61,8 @@ public class UserAuthService {
         }
 
         TokenInfo tokenInfo = generateTokens(user);
-        saveOrUpdateRefreshToken(user, tokenInfo.getRefreshToken());
+        // [수정] record의 접근자 메서드(refreshToken()) 사용
+        saveOrUpdateRefreshToken(user, tokenInfo.refreshToken());
 
         return AuthResponse.builder()
                 .tokenInfo(tokenInfo)
@@ -106,11 +108,8 @@ public class UserAuthService {
         String accessToken = tokenProvider.generateToken(user, Duration.ofHours(1));
         String refreshToken = tokenProvider.generateToken(user, Duration.ofDays(14));
 
-        return TokenInfo.builder()
-                .grantType("Bearer")
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
+        // [수정] record는 builder 대신 생성자를 직접 호출
+        return new TokenInfo("Bearer", accessToken, refreshToken);
     }
 
     /**
