@@ -1,18 +1,19 @@
 package com.example.moneyway.user.service;
 
+import com.example.moneyway.auth.dto.TokenInfo;
 import com.example.moneyway.auth.jwt.JwtTokenProvider;
 import com.example.moneyway.auth.token.domain.RefreshToken;
 import com.example.moneyway.auth.token.repository.RefreshTokenRepository;
 import com.example.moneyway.common.exception.CustomException.CustomUserException;
 import com.example.moneyway.common.exception.ErrorCode;
-import com.example.moneyway.common.util.CookieUtil;
 import com.example.moneyway.user.domain.LoginType;
 import com.example.moneyway.user.domain.User;
-import com.example.moneyway.user.dto.request.*;
+import com.example.moneyway.user.dto.request.FindPasswordRequest;
+import com.example.moneyway.user.dto.request.LoginRequest;
+import com.example.moneyway.user.dto.request.ResetPasswordRequest;
+import com.example.moneyway.user.dto.request.SignupRequest;
+import com.example.moneyway.user.dto.response.AuthResponse;
 import com.example.moneyway.user.dto.response.UserResponse;
-import com.example.moneyway.user.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -20,100 +21,59 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 
+/**
+ * 회원가입, 로그인, 비밀번호 재설정 등 사용자 인증 흐름을 전담하는 서비스
+ */
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class UserAuthService {
 
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider jwtTokenProvider;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final UserService userService;
+    private final JwtTokenProvider tokenProvider;
+    private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    // ========================== 회원가입 ==========================
-    public UserResponse signup(SignupRequest request, HttpServletResponse response) {
-        // [개선] 기본적인 필드 유효성 검사는 Controller의 @Valid에 위임
-        // 비즈니스 규칙(중복, 비밀번호 정책) 검증에 집중
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new CustomUserException(ErrorCode.DUPLICATE_EMAIL);
-        }
-        if (userRepository.existsByNickname(request.getNickname())) {
-            throw new CustomUserException(ErrorCode.DUPLICATE_NICKNAME);
-        }
-        if (request.getPassword().length() < 8) {
-            throw new CustomUserException(ErrorCode.WEAK_PASSWORD);
-        }
+    /**
+     * 이메일 기반 회원가입을 처리하고, 토큰과 사용자 정보를 반환합니다.
+     */
+    public AuthResponse signup(SignupRequest request) {
+        User user = userService.createEmailUser(request.getEmail(), request.getPassword(), request.getNickname());
+        TokenInfo tokenInfo = generateTokens(user);
+        saveOrUpdateRefreshToken(user, tokenInfo.getRefreshToken());
 
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
-        User user = User.ofEmail(request.getEmail(), encodedPassword, request.getNickname());
-        userRepository.save(user);
-
-        // 토큰 생성 및 쿠키 추가 로직은 공통 메서드로 분리 가능
-        addTokensToCookie(user, response);
-
-        return UserResponse.from(user);
+        return AuthResponse.builder()
+                .tokenInfo(tokenInfo)
+                .userInfo(UserResponse.from(user))
+                .build();
     }
 
-    // ========================== 로그인 ==========================
-    @Transactional(readOnly = true)
-    public UserResponse login(LoginRequest request, HttpServletResponse response) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new CustomUserException(ErrorCode.EMAIL_NOT_FOUND));
-
-        if (user.getLoginType() != LoginType.EMAIL) {
-            throw new CustomUserException(ErrorCode.KAKAO_ACCOUNT_LOGIN);
-        }
+    /**
+     * 이메일 기반 로그인을 처리하고, 토큰과 사용자 정보를 반환합니다.
+     */
+    @Transactional
+    public AuthResponse login(LoginRequest request) {
+        User user = userService.findByEmail(request.getEmail());
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new CustomUserException(ErrorCode.INVALID_PASSWORD);
         }
 
-        addTokensToCookie(user, response);
-        return UserResponse.from(user);
+        TokenInfo tokenInfo = generateTokens(user);
+        saveOrUpdateRefreshToken(user, tokenInfo.getRefreshToken());
+
+        return AuthResponse.builder()
+                .tokenInfo(tokenInfo)
+                .userInfo(UserResponse.from(user))
+                .build();
     }
 
-    // ========================== 로그아웃 ==========================
     /**
-     * [수정] HttpServletRequest 대신 userId를 직접 받아 처리
+     * 비밀번호 재설정 자격(이메일-닉네임 일치)을 확인합니다.
      */
-    public void logout(Long userId, HttpServletRequest request, HttpServletResponse response) {
-        User user = userService.findActiveById(userId); // 활성화된 유저인지 확인
-        refreshTokenRepository.findByUser(user).ifPresent(refreshTokenRepository::delete);
-
-        CookieUtil.deleteCookie(request, response, "access_token");
-        CookieUtil.deleteCookie(request, response, "refresh_token");
-    }
-
-    // ========================== 닉네임 변경 ==========================
-    /**
-     * [수정] HttpServletRequest 대신 userId를 직접 받아 처리
-     */
-    public void updateNickname(Long userId, UpdateNicknameRequest request) {
-        // 닉네임 중복 검사
-        if (userRepository.existsByNickname(request.getNewNickname())) {
-            throw new CustomUserException(ErrorCode.DUPLICATE_NICKNAME);
-        }
-        // 사용자 조회 및 닉네임 변경
-        User user = userService.findActiveById(userId);
-        user.update(request.getNewNickname());
-        // @Transactional에 의해 변경 감지(dirty checking)되어 자동으로 DB에 반영
-    }
-
-    // ========================== 회원 탈퇴 ==========================
-    /**
-     * [수정] HttpServletRequest 대신 userId를 직접 받아 처리
-     */
-    public void withdrawUser(Long userId) {
-        // 실제 탈퇴 로직은 UserService에 위임되어 있으므로 호출만 수행
-        userService.withdrawUser(userId);
-    }
-
-    // ========================== 비밀번호 재설정 ==========================
     @Transactional(readOnly = true)
     public void checkPasswordResetEligibility(FindPasswordRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new CustomUserException(ErrorCode.PASSWORD_RESET_EMAIL_NOT_FOUND));
+        User user = userService.findByEmail(request.getEmail());
 
         if (!user.getNickname().equals(request.getNickname())) {
             throw new CustomUserException(ErrorCode.PASSWORD_RESET_NAME_MISMATCH);
@@ -123,43 +83,44 @@ public class UserAuthService {
         }
     }
 
+    /**
+     * 실제 비밀번호를 재설정합니다.
+     */
     public void resetPassword(ResetPasswordRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new CustomUserException(ErrorCode.PASSWORD_RESET_EMAIL_NOT_FOUND));
+        User user = userService.findByEmail(request.getEmail());
 
         if (user.getLoginType() != LoginType.EMAIL) {
             throw new CustomUserException(ErrorCode.KAKAO_ACCOUNT_LOGIN);
-        }
-        if (request.getNewPassword().length() < 8) {
-            throw new CustomUserException(ErrorCode.WEAK_PASSWORD);
         }
         if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
             throw new CustomUserException(ErrorCode.PASSWORD_SAME_AS_BEFORE);
         }
 
-        user.resetPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.updatePassword(passwordEncoder.encode(request.getNewPassword()));
     }
 
-    // ========================== 중복 확인 ==========================
-    @Transactional(readOnly = true)
-    public boolean checkEmailExists(String email) {
-        return userRepository.existsByEmail(email);
+    /**
+     * 사용자에 대한 AccessToken과 RefreshToken을 생성합니다. (private)
+     */
+    private TokenInfo generateTokens(User user) {
+        String accessToken = tokenProvider.generateToken(user, Duration.ofHours(1));
+        String refreshToken = tokenProvider.generateToken(user, Duration.ofDays(14));
+
+        return TokenInfo.builder()
+                .grantType("Bearer")
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 
-    @Transactional(readOnly = true)
-    public boolean checkNicknameExists(String nickname) {
-        return userRepository.existsByNickname(nickname);
-    }
+    /**
+     * 사용자의 RefreshToken을 DB에 저장하거나 업데이트합니다. (private)
+     */
+    private void saveOrUpdateRefreshToken(User user, String newRefreshToken) {
+        RefreshToken refreshToken = refreshTokenRepository.findByUserId(user.getId())
+                .map(token -> token.update(newRefreshToken))
+                .orElse(new RefreshToken(user, newRefreshToken));
 
-    // ========================== Helper 메서드 ==========================
-    private void addTokensToCookie(User user, HttpServletResponse response) {
-        String accessToken = jwtTokenProvider.generateToken(user, Duration.ofHours(1));
-        String refreshToken = jwtTokenProvider.generateToken(user, Duration.ofDays(14));
-
-        refreshTokenRepository.findByUser(user).ifPresent(refreshTokenRepository::delete);
-        refreshTokenRepository.save(new RefreshToken(user, refreshToken));
-
-        CookieUtil.addCookie(response, "access_token", accessToken, 3600);
-        CookieUtil.addCookie(response, "refresh_token", refreshToken, 14 * 24 * 60 * 60);
+        refreshTokenRepository.save(refreshToken);
     }
 }
