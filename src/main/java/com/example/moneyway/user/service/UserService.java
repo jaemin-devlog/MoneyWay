@@ -4,23 +4,51 @@ import com.example.moneyway.common.exception.CustomException.CustomUserException
 import com.example.moneyway.common.exception.ErrorCode;
 import com.example.moneyway.user.domain.User;
 import com.example.moneyway.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 사용자 조회 전용 서비스
- * 역할: 사용자 ID 또는 이메일로 사용자 정보 조회 + 유효성 검증
+ * 사용자 데이터 CRUD 및 비즈니스 로직을 담당하는 서비스
+ * (인증/토큰 관련 로직은 포함하지 않음)
  */
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     /**
-     * ✅ 이메일 기반 사용자 조회
-     * 사용처: 로그인, 비밀번호 재설정, Kakao OAuth2 로그인 후 사용자 확인
+     * 이메일 기반 신규 사용자를 생성합니다. (비밀번호 암호화 포함)
+     */
+    @Transactional
+    public User createEmailUser(String email, String rawPassword, String nickname) {
+        if (userRepository.existsByEmail(email)) {
+            throw new CustomUserException(ErrorCode.DUPLICATE_EMAIL);
+        }
+        if (userRepository.existsByNickname(nickname)) {
+            throw new CustomUserException(ErrorCode.DUPLICATE_NICKNAME);
+        }
+
+        String encryptedPassword = passwordEncoder.encode(rawPassword);
+        User user = User.createEmailUser(email, encryptedPassword, nickname);
+        return userRepository.save(user);
+    }
+
+    /**
+     * ID로 활성화된 사용자를 조회합니다.
+     */
+    public User findActiveUserById(Long id) {
+        return userRepository.findById(id)
+                .filter(user -> !user.isDeleted())
+                .orElseThrow(() -> new CustomUserException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    /**
+     * 이메일로 사용자를 조회합니다.
      */
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
@@ -28,47 +56,37 @@ public class UserService {
     }
 
     /**
-     * ✅ ID 기반 사용자 조회
-     * 사용처: JWT에서 userId 추출 후 사용자 정보 조회할 때 사용
+     * 사용자 닉네임을 변경합니다.
      */
-    public User findById(Long id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new CustomUserException(ErrorCode.USER_NOT_FOUND));
-    }
-
-    public User findActiveById(Long id) {
-        return userRepository.findById(id)
-                .filter(user -> !user.isDeleted())
-                .orElseThrow(() -> new CustomUserException(ErrorCode.USER_NOT_FOUND));
-    }
-
-    public String getNicknameById(Long userId) {
-        return findById(userId).getNickname(); // 위에서 정의한 findById 재활용
-    }
-
-    public void withdrawUser(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomUserException(ErrorCode.USER_NOT_FOUND));
-
-        if (user.isDeleted()) {
-            throw new CustomUserException(ErrorCode.ALREADY_WITHDRAWN);
+    @Transactional
+    public void updateNickname(Long userId, String newNickname) {
+        if (userRepository.existsByNickname(newNickname)) {
+            throw new CustomUserException(ErrorCode.DUPLICATE_NICKNAME);
         }
-
-        user.setDeleted(true);
-        userRepository.save(user);
+        User user = findActiveUserById(userId);
+        user.updateProfile(newNickname, user.getProfileImageUrl());
     }
 
+    /**
+     * 사용자를 탈퇴 처리합니다.
+     */
+    @Transactional
+    public void withdrawUser(Long userId) {
+        User user = findActiveUserById(userId);
+        user.withdraw(); // User 엔티티의 비즈니스 메서드 호출
+    }
 
+    /**
+     * 이메일 중복 여부를 확인합니다.
+     */
+    public boolean checkEmailExists(String email) {
+        return userRepository.existsByEmail(email);
+    }
 
-
+    /**
+     * 닉네임 중복 여부를 확인합니다.
+     */
+    public boolean checkNicknameExists(String nickname) {
+        return userRepository.existsByNickname(nickname);
+    }
 }
-
-/**
- * ✅ 전체 동작 흐름 요약
- *
- * 1. 이메일/ID를 기반으로 사용자 존재 여부 확인
- * 2. 존재하지 않으면 USER_NOT_FOUND 예외 발생
- * 3. 존재하면 User 엔티티 반환하여 인증/조회 흐름에 연결
- *
- * → 사용자 정보 식별 → DB 조회 → 예외 또는 반환
- */

@@ -1,30 +1,32 @@
 package com.example.moneyway.community.domain;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-/**
- * 게시글 이미지 도메인
- *
- * 프론트엔드에서 생성하거나 업로드한 이미지의 URL을
- * 그대로 저장합니다. 외부 저장소(S3 등)는 사용하지 않습니다.
- */
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
-@Table(name = "post_image", uniqueConstraints = @UniqueConstraint(columnNames = {"postId", "imageUrl"}))
+@Table(name = "post_image")
 public class PostImage {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long postId;
+    // [수정] Post 객체와 직접 연관
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "post_id", nullable = false)
+    private Post post;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String imageUrl;
+
+    @Builder
+    public PostImage(Post post, String imageUrl) {
+        this.post = post;
+        this.imageUrl = imageUrl;
+    }
 }
