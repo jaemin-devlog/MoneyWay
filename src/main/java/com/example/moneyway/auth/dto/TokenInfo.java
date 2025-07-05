@@ -1,15 +1,10 @@
 package com.example.moneyway.auth.dto;
 
-import lombok.Builder;
-import lombok.Getter;
-
 /**
  * JWT 토큰(Access, Refresh) 정보를 담는 DTO
+ * @param grantType 토큰 타입 (e.g., "Bearer")
+ * @param accessToken 사용자인증 및 인가에 사용되는 토큰
+ * @param refreshToken AccessToken 재발급에 사용되는 토큰
  */
-@Getter
-@Builder
-public class TokenInfo {
-    private final String grantType;
-    private final String accessToken;
-    private final String refreshToken;
+public record TokenInfo(String grantType, String accessToken, String refreshToken) {
 }

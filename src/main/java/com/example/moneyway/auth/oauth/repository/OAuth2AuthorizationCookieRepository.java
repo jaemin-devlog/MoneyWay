@@ -21,7 +21,7 @@ public class OAuth2AuthorizationCookieRepository implements AuthorizationRequest
     private static final int COOKIE_EXPIRE_SECONDS = 3600;
 
 
-    /**
+    /**e
      * ✅ OAuth2AuthorizationRequest를 쿠키에 직렬화하여 저장하는 메서드
      * 역할 : 로그인 시작 시 상태 정보를 쿠키에 안전하게 보관함
      */
