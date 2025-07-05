@@ -7,11 +7,13 @@ import com.example.moneyway.community.dto.request.CreatePostRequest;
 import com.example.moneyway.community.dto.request.PostUpdateRequest;
 import com.example.moneyway.community.dto.response.PostDetailResponse;
 import com.example.moneyway.community.dto.response.PostSummaryResponse;
+import com.example.moneyway.community.dto.response.common.WriterInfo;
 import com.example.moneyway.community.repository.action.*;
 import com.example.moneyway.community.repository.comment.CommentRepository;
 import com.example.moneyway.community.repository.post.PostImageRepository;
 import com.example.moneyway.community.repository.post.PostRepository;
 import com.example.moneyway.community.type.PostSortType;
+import com.example.moneyway.user.domain.User;
 import com.example.moneyway.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
@@ -20,10 +22,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
-@Transactional // Apply transactionality at the class level for cleaner code
+@Transactional
 public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
@@ -36,14 +39,10 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public Long createPost(Long userId, CreatePostRequest request) {
-        String writerNickname = userService.getNicknameById(userId);
-        if (writerNickname == null || writerNickname.isBlank()) {
-            throw new CustomPostException(ErrorCode.USER_NICKNAME_NOT_FOUND);
-        }
+        User user = userService.findActiveUserById(userId);
 
         Post post = Post.builder()
-                .userId(userId)
-                .writerNickname(writerNickname)
+                .user(user)
                 .title(request.getTitle())
                 .content(request.getContent())
                 .totalCost(request.getTotalCost())
@@ -52,7 +51,7 @@ public class PostServiceImpl implements PostService {
                 .build();
         postRepository.save(post);
 
-        savePostImages(post.getId(), request.getImageUrls());
+        savePostImages(post, request.getImageUrls());
 
         return post.getId();
     }
@@ -62,7 +61,7 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomPostException(ErrorCode.POST_NOT_FOUND));
 
-        if (!post.getUserId().equals(userId)) {
+        if (!post.getUser().getId().equals(userId)) {
             throw new CustomPostException(ErrorCode.POST_FORBIDDEN_UPDATE);
         }
 
@@ -73,9 +72,8 @@ public class PostServiceImpl implements PostService {
                 request.getThumbnailUrl()
         );
 
-        // Update images by deleting old ones and adding new ones
-        postImageRepository.deleteAllByPostId(postId);
-        savePostImages(postId, request.getImageUrls());
+        postImageRepository.deleteAllByPost(post);
+        savePostImages(post, request.getImageUrls());
     }
 
     @Override
@@ -83,40 +81,17 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomPostException(ErrorCode.POST_NOT_FOUND));
 
-        if (!post.getUserId().equals(userId)) {
+        if (!post.getUser().getId().equals(userId)) {
             throw new CustomPostException(ErrorCode.POST_FORBIDDEN_UPDATE);
         }
 
-        // Delete all related data to maintain data integrity
-        postImageRepository.deleteAllByPostId(postId);
-        commentRepository.deleteAllByPostId(postId);
-        postLikeRepository.deleteAllByPostId(postId);
-        postScrapRepository.deleteAllByPostId(postId);
-        postViewRepository.deleteAllByPostId(postId);
+        postImageRepository.deleteAllByPost(post);
+        commentRepository.deleteAllByPost(post);
+        postLikeRepository.deleteAllByPost(post);
+        postScrapRepository.deleteAllByPost(post);
+        postViewRepository.deleteAllByPost(post);
 
         postRepository.delete(post);
-    }
-
-    @Override
-    public void increaseViewCount(Long postId, Long viewerId, String ipAddress) {
-        // [IMPROVEMENT] Ensure the post exists before performing any write operations.
-        Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new CustomPostException(ErrorCode.POST_NOT_FOUND));
-
-        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
-
-        boolean alreadyViewed = (viewerId != null)
-                ? postViewRepository.existsByPostIdAndUserIdAndViewedAtAfter(postId, viewerId, oneHourAgo)
-                : postViewRepository.existsByPostIdAndIpAddressAndViewedAtAfter(postId, ipAddress, oneHourAgo);
-
-        if (!alreadyViewed) {
-            postViewRepository.save(PostView.builder()
-                    .postId(postId)
-                    .userId(viewerId)
-                    .ipAddress(ipAddress)
-                    .build());
-            post.increaseViewCount();
-        }
     }
 
     @Override
@@ -125,65 +100,45 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomPostException(ErrorCode.POST_NOT_FOUND));
 
-        List<String> imageUrls = postImageRepository.findByPostId(postId).stream()
+        List<String> imageUrls = postImageRepository.findByPost(post).stream()
                 .map(PostImage::getImageUrl)
                 .toList();
 
-        return PostDetailResponse.builder()
-                .postId(post.getId())
-                .title(post.getTitle())
-                .content(post.getContent())
-                .totalCost(post.getTotalCost())
-                .isChallenge(post.getIsChallenge())
-                .thumbnailUrl(post.getThumbnailUrl())
-                .imageUrls(imageUrls)
-                .likeCount(post.getLikeCount())
-                .commentCount(post.getCommentCount())
-                .scrapCount(post.getScrapCount())
-                .viewCount(post.getViewCount())
-                .createdAt(post.getCreatedAt())
-                .writerNickname(post.getWriterNickname())
-                .build();
+        return toDetailResponse(post, viewerId, imageUrls);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Page<PostSummaryResponse> getPostList(PostSortType sort, Boolean challenge, Pageable pageable) {
-        Pageable sortedPageable = PageRequest.of(
-                pageable.getPageNumber(),
-                pageable.getPageSize(),
-                getSort(sort)
-        );
+    public Page<PostSummaryResponse> getPostList(PostSortType sort, Boolean challenge, Long viewerId, Pageable pageable) {
+        Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), getSort(sort));
 
         Page<Post> posts = (challenge != null && challenge)
                 ? postRepository.findByIsChallenge(true, sortedPageable)
                 : postRepository.findAll(sortedPageable);
 
-        // [IMPROVEMENT] Use the helper method to map DTOs.
-        return posts.map(this::toSummaryResponse);
+        return posts.map(post -> toSummaryResponse(post, viewerId));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<PostSummaryResponse> getUserPosts(Long userId) {
-        // [IMPROVEMENT] Use a more specific repository method that returns a List.
-        List<Post> userPosts = postRepository.findByUserId(userId);
+    public List<PostSummaryResponse> getUserPosts(Long userId, Long viewerId) {
+        User user = userService.findActiveUserById(userId);
+        List<Post> userPosts = postRepository.findByUser(user);
 
-        // [IMPROVEMENT] Use the helper method to map DTOs.
         return userPosts.stream()
-                .map(this::toSummaryResponse)
+                .map(post -> toSummaryResponse(post, viewerId))
                 .toList();
     }
 
     // ========================= Private Helper Methods =========================
 
-    private void savePostImages(Long postId, List<String> imageUrls) {
+    private void savePostImages(Post post, List<String> imageUrls) {
         if (imageUrls == null || imageUrls.isEmpty()) {
             return;
         }
         List<PostImage> postImages = imageUrls.stream()
                 .map(url -> PostImage.builder()
-                        .postId(postId)
+                        .post(post)
                         .imageUrl(url)
                         .build())
                 .toList();
@@ -202,21 +157,62 @@ public class PostServiceImpl implements PostService {
         };
     }
 
-    /**
-     * [NEW] A helper method to map a Post entity to a PostSummaryResponse DTO.
-     * This reduces code duplication and centralizes the mapping logic.
-     */
-    private PostSummaryResponse toSummaryResponse(Post post) {
+    private PostDetailResponse toDetailResponse(Post post, Long viewerId, List<String> imageUrls) {
+        boolean isLiked = false;
+        boolean isScrapped = false;
+
+        if (viewerId != null) {
+            isLiked = postLikeRepository.existsByPostAndUser_Id(post, viewerId);
+            isScrapped = postScrapRepository.existsByPostAndUser_Id(post, viewerId);
+        }
+
+        return PostDetailResponse.builder()
+                .postId(post.getId())
+                .title(post.getTitle())
+                .content(post.getContent())
+                .totalCost(post.getTotalCost())
+                .isChallenge(post.isChallenge())
+                .thumbnailUrl(post.getThumbnailUrl())
+                .imageUrls(imageUrls)
+                .likeCount(post.getLikeCount())
+                .commentCount(post.getCommentCount())
+                .scrapCount(post.getScrapCount())
+                .viewCount(post.getViewCount())
+                .createdAt(post.getCreatedAt())
+                .writerInfo(WriterInfo.builder()
+                        .userId(post.getUser().getId())
+                        .nickname(post.getUser().getNickname())
+                        .build())
+                .isMine(Objects.equals(post.getUser().getId(), viewerId))
+                .isLiked(isLiked)
+                .isScrapped(isScrapped)
+                .build();
+    }
+
+    private PostSummaryResponse toSummaryResponse(Post post, Long viewerId) {
+        boolean isLiked = false;
+        boolean isScrapped = false;
+
+        if (viewerId != null) {
+            isLiked = postLikeRepository.existsByPostAndUser_Id(post, viewerId);
+            isScrapped = postScrapRepository.existsByPostAndUser_Id(post, viewerId);
+        }
+
         return PostSummaryResponse.builder()
                 .postId(post.getId())
                 .title(post.getTitle())
                 .thumbnailUrl(post.getThumbnailUrl())
-                .isChallenge(post.getIsChallenge())
+                .isChallenge(post.isChallenge())
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getCommentCount())
                 .scrapCount(post.getScrapCount())
-                .writerNickname(post.getWriterNickname())
+                .writerInfo(WriterInfo.builder()
+                        .userId(post.getUser().getId())
+                        .nickname(post.getUser().getNickname())
+                        .build())
                 .createdAt(post.getCreatedAt())
+                .isLiked(isLiked)
+                .isScrapped(isScrapped)
                 .build();
     }
 }

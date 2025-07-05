@@ -1,16 +1,24 @@
 package com.example.moneyway.community.repository.action;
 
+import com.example.moneyway.community.domain.Post; // [추가]
 import com.example.moneyway.community.domain.PostScrap;
+import com.example.moneyway.user.domain.User; // [추가]
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PostScrapRepository extends JpaRepository<PostScrap, Long> {
 
-    boolean existsByPostIdAndUserId(Long postId, Long userId);   // 스크랩 여부 확인
-    void deleteByPostIdAndUserId(Long postId, Long userId);      // 스크랩 취소
-    List<PostScrap> findAllByUserId(Long userId);                // 사용자 스크랩 목록
-    int countByPostId(Long postId);
-    void deleteAllByPostId(Long postId);
+    boolean existsByPostAndUser_Id(Post post, Long userId);
 
+    void deleteByPostAndUser(Post post, User user);
+
+    List<PostScrap> findAllByUser(User user);
+
+    int countByPost(Post post);
+
+    void deleteAllByPost(Post post);
+
+    Optional<PostScrap> findByPostAndUser(Post post, User user);
 }
