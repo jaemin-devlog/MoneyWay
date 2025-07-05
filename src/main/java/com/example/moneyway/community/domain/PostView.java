@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  * 게시글 조회 기록(PostView) 도메인
  *
  * 사용자가 특정 게시글을 조회한 이력을 저장하여 중복 조회수 방지에 사용됩니다.
- * 불변 객체로 설계하여 데이터의 신뢰성을 보장합니다.
+ * 비회원은 IP로, 회원은 userId로 기록됩니다.
  */
 @Entity
 @Getter
@@ -30,20 +30,20 @@ public class PostView {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long id; // PK
 
     @Column(nullable = false)
-    private Long postId;
+    private Long postId; // 게시글 ID
 
-    // 비회원 조회도 기록할 수 있으므로 nullable
-    private Long userId;
+    @Column
+    private Long userId; // 회원일 경우 사용자 ID (nullable)
 
-    // IP 기반 조회를 위해 nullable
-    private String ipAddress;
+    @Column
+    private String ipAddress; // 비회원일 경우 IP 주소 기반 (nullable)
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
-    private LocalDateTime viewedAt;
+    private LocalDateTime viewedAt; // 조회 시각
 
     @Builder
     public PostView(Long postId, Long userId, String ipAddress) {
