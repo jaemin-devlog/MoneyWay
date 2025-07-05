@@ -16,7 +16,7 @@ public class PostImage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // [수정] Post 객체와 직접 연관
+    //Post 객체와 직접 연관
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;

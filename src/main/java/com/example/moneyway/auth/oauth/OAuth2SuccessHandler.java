@@ -30,53 +30,38 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     // ✅ 토큰과 쿠키 설정 관련 상수
     public static final String ACCESS_TOKEN_COOKIE_NAME = "access_token";
     public static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
-    public static final Duration ACCESS_TOKEN_DURATION = Duration.ofHours(1);  // 1시간
-    public static final Duration REFRESH_TOKEN_DURATION = Duration.ofDays(14); // 2주
+    public static final Duration ACCESS_TOKEN_DURATION = Duration.ofHours(1);
+    public static final Duration REFRESH_TOKEN_DURATION = Duration.ofDays(14);
     public static final String REDIRECT_PATH = "http://192.168.100.37:3000";
 
-    // ✅ 의존성 주입 객체들
     private final JwtTokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final OAuth2AuthorizationCookieRepository authorizationRequestRepository;
     private final UserService userService;
 
-    /**
-     * ✅ 인증 성공 시 실행되는 메서드
-     * 구조: OAuth2User → 이메일 추출 → DB에서 User 조회 → JWT 발급 → 쿠키 저장 → 리다이렉트
-     * 호출 위치: Spring Security가 OAuth2 로그인 성공 후 자동으로 이 메서드 호출
-     */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
 
-        // 1️⃣ 인증 객체에서 OAuth2User 정보 추출
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
         Map<String, Object> attributes = oAuth2User.getAttributes();
 
-        // 2️⃣ 사용자 email 추출 → 반드시 Kakao 로그인에서 보장된 구조 기준
         Map<String, Object> kakaoAccount = (Map<String, Object>) attributes.get("kakao_account");
         String email = (String) kakaoAccount.get("email");
 
-        // 3️⃣ 우리 시스템의 User 객체를 DB에서 조회 (존재 보장)
-        User user = userService.findByEmail(email); // ❗ 없을 경우 예외 처리 필요 (현재 구조에서는 KakaoOAuth2Service에서 생성되므로 null 가능성 없음)
+        User user = userService.findByEmail(email);
 
-        // 4️⃣ JWT 발급
         String refreshToken = tokenProvider.generateToken(user, REFRESH_TOKEN_DURATION);
         String accessToken = tokenProvider.generateToken(user, ACCESS_TOKEN_DURATION);
 
         // 5️⃣ RefreshToken을 DB에 저장 (기존 존재하면 업데이트)
-        saveRefreshToken(user.getId(), refreshToken);
+        saveRefreshToken(user, refreshToken); // [개선] user 객체를 직접 전달
 
-        // 6️⃣ RefreshToken 쿠키로 저장
         addCookie(request, response, REFRESH_TOKEN_COOKIE_NAME, refreshToken, (int) REFRESH_TOKEN_DURATION.toSeconds());
-
-        // 7️⃣ AccessToken 쿠키로 저장 (HttpOnly)
         addCookie(request, response, ACCESS_TOKEN_COOKIE_NAME, accessToken, (int) ACCESS_TOKEN_DURATION.toSeconds());
 
-        // 8️⃣ 인증 관련 쿠키 제거 (인가 요청 시 생성된 임시 쿠키 삭제)
         clearAuthenticationAttributes(request, response);
 
-        // 9️⃣ 최종 리다이렉트 (프론트엔드로 이동)
         getRedirectStrategy().sendRedirect(request, response, REDIRECT_PATH);
     }
 
@@ -84,32 +69,24 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
      * ✅ RefreshToken을 DB에 저장하거나 갱신하는 메서드
      * 구조: userId → RefreshToken 객체 생성 or 수정 → 저장
      */
-    private void saveRefreshToken(Long userId, String newRefreshToken) {
-        User user = userService.findById(userId);
-
-        RefreshToken refreshToken = refreshTokenRepository.findByUserId(userId)
+    private void saveRefreshToken(User user, String newRefreshToken) {
+        // 불필요한 DB 조회를 제거하고, 전달받은 user 객체를 바로 사용합니다.
+        RefreshToken refreshToken = refreshTokenRepository.findByUserId(user.getId())
                 .map(entity -> entity.update(newRefreshToken)) // 기존 엔티티 수정
                 .orElse(new RefreshToken(user, newRefreshToken)); // 신규 엔티티 생성
 
         refreshTokenRepository.save(refreshToken);
     }
 
-    /**
-     * ✅ 쿠키를 추가하는 메서드 (기존 쿠키 삭제 후 새로 추가)
-     * 구조: 기존 쿠키 삭제 → 새로 추가 → 응답 헤더에 Set-Cookie 추가
-     */
+    // ... (addCookie, clearAuthenticationAttributes 메서드는 동일) ...
     private void addCookie(HttpServletRequest request, HttpServletResponse response, String name, String value, int maxAge) {
         CookieUtil.deleteCookie(request, response, name);
         CookieUtil.addCookie(response, name, value, maxAge);
     }
 
-    /**
-     * ✅ OAuth2 로그인 시 생성된 인증 요청 쿠키를 제거하는 메서드
-     * 구조: super.clearAuthenticationAttributes() → 커스텀 쿠키 삭제
-     */
     private void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
-        super.clearAuthenticationAttributes(request); // Spring 내부 쿠키 제거
-        authorizationRequestRepository.removeAuthorizationRequestCookies(request, response); // 커스텀 쿠키 제거
+        super.clearAuthenticationAttributes(request);
+        authorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
     }
 }
 

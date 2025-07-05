@@ -6,14 +6,17 @@ import com.example.moneyway.community.domain.Comment;
 import com.example.moneyway.community.domain.Post;
 import com.example.moneyway.community.dto.request.CreateCommentRequest;
 import com.example.moneyway.community.dto.response.CommentResponse;
+import com.example.moneyway.community.dto.response.common.WriterInfo;
 import com.example.moneyway.community.repository.comment.CommentRepository;
 import com.example.moneyway.community.repository.post.PostRepository;
+import com.example.moneyway.user.domain.User;
 import com.example.moneyway.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -32,22 +35,16 @@ public class CommentServiceImpl implements CommentService {
         Post post = postRepository.findById(request.getPostId())
                 .orElseThrow(() -> new CustomPostException(ErrorCode.POST_NOT_FOUND));
 
-        String nickname = userService.getNicknameById(userId);
-        if (nickname == null || nickname.isBlank()) {
-            throw new CustomPostException(ErrorCode.USER_NICKNAME_NOT_FOUND);
-        }
+        User user = userService.findActiveUserById(userId);
 
         Comment comment = Comment.builder()
-                .postId(request.getPostId())
-                .userId(userId)
+                .post(post)
+                .user(user)
                 .content(request.getContent())
-                .writerNickname(nickname)
                 .build();
         commentRepository.save(comment);
 
-        // [반영] 게시글의 댓글 수를 증가시키고, 변경 사항을 명시적으로 저장합니다.
         post.increaseCommentCount();
-        postRepository.save(post);
 
         return comment.getId();
     }
@@ -60,44 +57,52 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new CustomPostException(ErrorCode.COMMENT_NOT_FOUND));
 
-        if (!comment.getUserId().equals(userId)) {
+        if (!comment.getUser().getId().equals(userId)) {
             throw new CustomPostException(ErrorCode.COMMENT_FORBIDDEN_DELETE);
         }
 
-        if (!comment.getIsDeleted()) {
-            comment.setIsDeleted(true);
-
-            // [반영] 연관된 게시글을 찾아 댓글 수를 감소시키고, 변경 사항을 명시적으로 저장합니다.
-            postRepository.findById(comment.getPostId()).ifPresent(post -> {
-                post.decreaseCommentCount();
-                postRepository.save(post);
-            });
+        if (!comment.isDeleted()) {
+            comment.delete();
+            Post post = comment.getPost();
+            post.decreaseCommentCount();
         }
     }
 
     /**
-     * [반영] "삭제되지 않은" 댓글 목록을 조회한다는 의미를 명확히 하기 위해 메서드 이름을 변경합니다.
+     * 삭제되지 않은 댓글 목록을 조회합니다.
      */
     @Override
     @Transactional(readOnly = true)
-    public List<CommentResponse> getActiveCommentsByPostId(Long postId) {
+    public List<CommentResponse> getActiveCommentsByPostId(Long postId, Long viewerId) {
         if (!postRepository.existsById(postId)) {
             throw new CustomPostException(ErrorCode.POST_NOT_FOUND);
         }
 
-        List<Comment> comments = commentRepository.findByPostIdAndIsDeletedFalse(postId);
+        List<Comment> comments = commentRepository.findByPost_IdAndDeletedFalseOrderByCreatedAtAsc(postId);
 
         return comments.stream()
-                .map(this::toCommentResponse)
+                .map(comment -> toCommentResponse(comment, viewerId)) // viewerId를 함께 전달
                 .toList();
     }
 
-    private CommentResponse toCommentResponse(Comment comment) {
+    /**
+     * Comment 엔티티를 CommentResponse DTO로 변환하는 헬퍼 메서드
+     */
+    private CommentResponse toCommentResponse(Comment comment, Long viewerId) {
+        User writer = comment.getUser();
+
+        // [개선] WriterInfo 공통 DTO를 사용하여 작성자 정보를 만듭니다.
+        WriterInfo writerInfo = WriterInfo.builder()
+                .userId(writer.getId())
+                .nickname(writer.getNickname())
+                .build();
+
         return CommentResponse.builder()
                 .commentId(comment.getId())
                 .content(comment.getContent())
-                .writerNickname(comment.getWriterNickname())
                 .createdAt(comment.getCreatedAt())
+                .writerInfo(writerInfo) // writerNickname 대신 writerInfo 객체 사용
+                .isMine(Objects.equals(writer.getId(), viewerId)) // [개선] 내가 쓴 댓글인지 여부 계산
                 .build();
     }
 }
