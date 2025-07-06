@@ -6,23 +6,23 @@ import com.example.moneyway.auth.token.domain.RefreshToken;
 import com.example.moneyway.auth.token.repository.RefreshTokenRepository;
 import com.example.moneyway.common.util.CookieUtil;
 import com.example.moneyway.user.domain.User;
-// import com.example.moneyway.user.service.UserService; // [제거] 더 이상 필요 없음
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
-// import org.springframework.security.oauth2.core.user.OAuth2User; // [제거] CustomOAuth2User 사용
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Optional;
-// import java.util.Map; // [제거]
 
+/**
+ * OAuth2 로그인 성공 후, JWT 토큰을 생성하여 쿠키에 담고 프론트엔드로 리다이렉트하는 핸들러.
+ */
+@Slf4j
 @RequiredArgsConstructor
 @Component
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -32,67 +32,66 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     public static final Duration ACCESS_TOKEN_DURATION = Duration.ofHours(1);
     public static final Duration REFRESH_TOKEN_DURATION = Duration.ofDays(14);
 
-    // [개선] 하드코딩된 리다이렉트 경로 대신, 설정 파일에서 기본 경로를 주입받음
     @Value("${oauth.default-redirect-uri}")
     private String defaultRedirectUri;
 
     private final JwtTokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     private final OAuth2AuthorizationCookieRepository authorizationRequestRepository;
-    // private final UserService userService; // [제거]
+    private final CookieUtil cookieUtil; // ✅ [추가] CookieUtil을 주입받습니다.
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
-
-        // [개선] Principal을 CustomOAuth2User로 캐스팅하여 User 엔티티를 직접 가져옴
+        // CustomOAuth2User에서 User 정보를 직접 가져와 불필요한 DB 조회를 방지합니다.
         CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
-        User user = oAuth2User.getUser(); // ❗️ DB 조회 없이 바로 User 객체 획득
+        User user = oAuth2User.getUser();
 
-        String refreshToken = tokenProvider.generateToken(user, REFRESH_TOKEN_DURATION);
+        // Access Token과 Refresh Token 생성
         String accessToken = tokenProvider.generateToken(user, ACCESS_TOKEN_DURATION);
+        String refreshToken = tokenProvider.generateToken(user, REFRESH_TOKEN_DURATION);
 
+        // Refresh Token을 DB에 저장 또는 업데이트
         saveRefreshToken(user, refreshToken);
 
-        addCookie(request, response, REFRESH_TOKEN_COOKIE_NAME, refreshToken, (int) REFRESH_TOKEN_DURATION.toSeconds());
-        addCookie(request, response, ACCESS_TOKEN_COOKIE_NAME, accessToken, (int) ACCESS_TOKEN_DURATION.toSeconds());
+        // 기존 쿠키를 삭제하고 새로운 토큰을 쿠키에 추가
+        addTokensToCookie(request, response, accessToken, refreshToken);
 
-        // [개선] 동적 리다이렉트 URI 결정
-        String targetUrl = determineTargetUrl(request);
-
+        // 인증 관련 임시 쿠키들을 정리
         clearAuthenticationAttributes(request, response);
 
+        // 설정된 프론트엔드 주소로 리다이렉트
+        String targetUrl = determineTargetUrl(request, response, authentication);
         getRedirectStrategy().sendRedirect(request, response, targetUrl);
-    }
-
-    /**
-     * [신규] 인증 요청 시 쿠키에 저장된 리다이렉트 URI를 가져오는 메서드.
-     * @return 쿠키에 저장된 URI가 있으면 해당 URI, 없으면 기본 URI 반환
-     */
-    private String determineTargetUrl(HttpServletRequest request) {
-        // [수정] loadAuthorizationRequest의 결과를 Optional.ofNullable로 감싸줍니다.
-        Optional<OAuth2AuthorizationRequest> authorizationRequest =
-                Optional.ofNullable(authorizationRequestRepository.loadAuthorizationRequest(request));
-
-        return authorizationRequest
-                .map(OAuth2AuthorizationRequest::getRedirectUri)
-                .orElse(defaultRedirectUri);
     }
 
     private void saveRefreshToken(User user, String newRefreshToken) {
         RefreshToken refreshToken = refreshTokenRepository.findByUserId(user.getId())
                 .map(entity -> entity.update(newRefreshToken))
                 .orElse(new RefreshToken(user, newRefreshToken));
-
         refreshTokenRepository.save(refreshToken);
     }
 
-    private void addCookie(HttpServletRequest request, HttpServletResponse response, String name, String value, int maxAge) {
-        CookieUtil.deleteCookie(request, response, name);
-        CookieUtil.addCookie(response, name, value, maxAge);
+    private void addTokensToCookie(HttpServletRequest request, HttpServletResponse response, String accessToken, String refreshToken) {
+        // ✅ [변경] 주입받은 cookieUtil 인스턴스를 통해 메서드를 호출합니다.
+        cookieUtil.deleteCookie(request, response, ACCESS_TOKEN_COOKIE_NAME);
+        cookieUtil.deleteCookie(request, response, REFRESH_TOKEN_COOKIE_NAME);
+
+        cookieUtil.addCookie(response, ACCESS_TOKEN_COOKIE_NAME, accessToken, (int) ACCESS_TOKEN_DURATION.toSeconds());
+        cookieUtil.addCookie(response, REFRESH_TOKEN_COOKIE_NAME, refreshToken, (int) REFRESH_TOKEN_DURATION.toSeconds());
     }
 
-    private void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
+    @Override
+    protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+        // UriComponentsBuilder를 사용하여 안전하게 URL을 생성합니다.
+        return UriComponentsBuilder.fromUriString(defaultRedirectUri)
+                .build().toUriString();
+    }
+
+    /**
+     * 인증 과정에서 사용된 임시 쿠키(OAuth2AuthorizationRequest)를 삭제합니다.
+     */
+    protected void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
         super.clearAuthenticationAttributes(request);
         authorizationRequestRepository.removeAuthorizationRequestCookies(request, response);
     }
