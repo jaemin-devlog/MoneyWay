@@ -46,7 +46,7 @@ public class CookieUtil {
                         .secure(isSecure)
                         .path("/")
                         .maxAge(0) // 쿠키 즉시 만료
-                        .sameSite("Lax")
+                        .sameSite("None")
                         .build();
                 response.addHeader("Set-Cookie", deleteCookie.toString());
             }
