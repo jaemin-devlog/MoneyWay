@@ -29,7 +29,7 @@ spring:
       # [매우 중요] 운영 환경에서는 'update' 대신 'validate'를 사용해야 합니다.
       # 'update'는 의도치 않은 DB 스키마 변경을 유발할 수 있어 위험합니다.
       # 'validate'는 코드와 DB 스키마가 일치하는지 검증만 합니다.
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
