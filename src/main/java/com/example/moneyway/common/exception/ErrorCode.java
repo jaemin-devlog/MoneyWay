@@ -21,6 +21,10 @@ public enum ErrorCode {
     KAKAO_ACCOUNT_LOGIN(HttpStatus.BAD_REQUEST, "해당 이메일은 카카오 로그인 전용 계정입니다. 카카오 로그인을 이용해주세요."),
     EMPTY_LOGIN_FIELD(HttpStatus.BAD_REQUEST, "이메일과 비밀번호를 모두 입력해주세요."),
 
+    // ================= USER: 탈퇴 =================
+    ALREADY_WITHDRAWN(HttpStatus.BAD_REQUEST, "이미 탈퇴한 계정입니다."),
+    USER_WITHDRAWN(HttpStatus.FORBIDDEN, "탈퇴한 사용자는 접근할 수 없습니다."),
+
     // ================= USER: 내 정보 =================
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다."),
     UNAUTHORIZED_USER(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다. 로그인 후 다시 시도해주세요."),

@@ -8,12 +8,8 @@ import lombok.Getter;
  * 서버가 새로 발급한 AccessToken 값을 클라이언트에게 전달하는 응답 DTO
  * 사용처: TokenApiController의 반환값
  */
-@Getter
-@AllArgsConstructor
-public class CreateAccessTokenResponse {
 
-    // ✅ 새로 발급된 액세스 토큰 문자열
-    private final String accessToken;
+public record CreateAccessTokenResponse(String accessToken) {
 }
 
 /**

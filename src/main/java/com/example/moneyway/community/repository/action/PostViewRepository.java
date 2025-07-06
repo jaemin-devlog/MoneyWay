@@ -1,13 +1,17 @@
 package com.example.moneyway.community.repository.action;
 
+import com.example.moneyway.community.domain.Post; // [추가]
 import com.example.moneyway.community.domain.PostView;
+import com.example.moneyway.user.domain.User; // [추가]
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.Optional;
+import java.time.LocalDateTime;
 
 public interface PostViewRepository extends JpaRepository<PostView, Long> {
 
-    Optional<PostView> findByPostIdAndUserId(Long postId, Long userId);          // 로그인 사용자 조회 기록
-    Optional<PostView> findByPostIdAndIpAddress(Long postId, String ipAddress);  // 비로그인 사용자 조회 기록
-    int countByPostId(Long postId);                                              // 조회수 계산
+    boolean existsByPostAndUserAndViewedAtAfter(Post post, User user, LocalDateTime afterTime);
+
+    boolean existsByPostAndIpAddressAndViewedAtAfter(Post post, String ipAddress, LocalDateTime afterTime);
+
+    void deleteAllByPost(Post post);
 }

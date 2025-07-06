@@ -1,63 +1,86 @@
 package com.example.moneyway.community.domain;
 
+import com.example.moneyway.common.domain.BaseTimeEntity; // createdAt, updatedAt 자동 관리를 위해 상속
+import com.example.moneyway.user.domain.User; // User 엔티티 임포트
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
-/**
- * 커뮤니티 게시글 도메인
- *
- * 여행 후기 또는 챌린지 참여 글을 저장하는 핵심 엔티티입니다.
- * 좋아요, 댓글 수, 스크랩 수 등 집계 데이터를 함께 관리합니다.
- */
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor
-@Builder
 @Table(name = "post")
-public class Post {
+public class Post extends BaseTimeEntity { // BaseTimeEntity 상속
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;                          // 게시글 ID
+    private Long id;
+
+    //User user (직접적인 객체 연관)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @Column(nullable = false, length = 50)
+    private String title;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
+    private String content;
 
     @Column(nullable = false)
-    private Long userId;                      // 작성자 ID
+    private Integer totalCost;
 
     @Column(nullable = false)
-    private String writerNickname = "익명";
+    private boolean isChallenge;
 
-
-    @Column(nullable = false, length = 100)
-    private String title;                     // 제목
-
-    @Lob
+    // 카운트 필드들은 성능을 위해 비정규화된 데이터로 유지하는 것이 좋음
     @Column(nullable = false)
-    private String content;                   // 본문 내용 (긴 글도 가능)
-
-    private Integer totalCost;                // 총 지출 비용 (nullable 허용)
-
-    private Boolean isChallenge = false;      // 챌린지 참여 여부
-
-    private Integer likeCount = 0;            // 좋아요 수
-
-    private Integer commentCount = 0;         // 댓글 수
-
-    private Integer scrapCount = 0;           // 스크랩 수
-
-    private Integer viewCount = 0;            // 조회수
+    private int likeCount = 0;
 
     @Column(nullable = false)
-    private String thumbnailUrl;              // 썸네일 이미지 URL (별도 첨부된 이미지)
+    private int commentCount = 0;
 
-    private LocalDateTime createdAt;          // 생성일시
+    @Column(nullable = false)
+    private int scrapCount = 0;
 
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now(); // 저장 시 자동 생성
+    @Column(nullable = false)
+    private int viewCount = 0;
+
+    @Column(columnDefinition = "TEXT")
+    private String thumbnailUrl;
+
+    @Builder
+    public Post(User user, String title, String content, Integer totalCost, Boolean isChallenge, String thumbnailUrl) {
+        this.user = user; // User 객체 할당
+        this.title = title;
+        this.content = content;
+        this.thumbnailUrl = thumbnailUrl;
+        this.totalCost = totalCost != null ? totalCost : 0;
+        this.isChallenge = isChallenge != null ? isChallenge : false;
     }
 
+    //== 비즈니스 로직 ==//
+
+    public void updatePost(String title, String content, Integer totalCost, String thumbnailUrl) {
+        this.title = title;
+        this.content = content;
+        this.totalCost = totalCost;
+        this.thumbnailUrl = thumbnailUrl;
+    }
+
+    // [추가] 편의를 위한 작성자 닉네임 조회 메서드
+    public String getWriterNickname() {
+        return this.user.getNickname();
+    }
+
+    // ... (카운트 증가/감소 관련 비즈니스 메서드들은 그대로 유지) ...
+    public void increaseViewCount() { this.viewCount++; }
+    public void increaseCommentCount() { this.commentCount++; }
+    public void decreaseCommentCount() { this.commentCount = Math.max(0, this.commentCount - 1); }
+    public void increaseLikeCount() { this.likeCount++; }
+    public void decreaseLikeCount() { this.likeCount = Math.max(0, this.likeCount - 1); }
+    public void increaseScrapCount() { this.scrapCount++; }
+    public void decreaseScrapCount() { this.scrapCount = Math.max(0, this.scrapCount - 1); }
 }
