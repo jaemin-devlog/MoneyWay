@@ -2,7 +2,7 @@
 # PRODUCTION-SPECIFIC PROPERTIES
 # ===================================================================
 # 이 파일은 운영 환경을 위한 설정입니다.
-# 민감한 정보(비밀번호, API 키 등)는 환경 변수를 통해 주입됩니다.
+# .env 파일에 정의된 환경 변수 이름을 직접 참조합니다.
 # ===================================================================
 
 server:
@@ -11,30 +11,28 @@ server:
 spring:
   # 운영 DB 연결 정보 (환경 변수 사용)
   datasource:
-    url: jdbc:mysql://${MYSQL_HOST}:${MYSQL_PORT}/${MYSQL_DATABASE}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
-    username: ${MYSQL_USER}
-    password: ${MYSQL_PASSWORD}
+    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    username: ${MYSQLUSER}
+    password: ${MYSQLPASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   # 운영 Redis 연결 정보 (환경 변수 사용)
   data:
     redis:
-      # Sentinel이나 Cluster를 사용하는 경우, 설정을 여기에 추가합니다.
-      # 단일 노드 예시:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-      password: ${REDIS_PASSWORD}
+      host: ${REDISHOST}
+      port: ${REDISPORT}
+      password: ${REDISPASSWORD}
 
   # JPA 및 Hibernate 설정
   jpa:
     hibernate:
-      # 운영 환경에서는 validate로 설정하여, 엔티티와 DB 스키마가 다를 경우 서버 실행을 막아 안전성을 높입니다.
       ddl-auto: validate
-    # 운영 환경에서는 성능을 위해 SQL 로그를 비활성화합니다.
     show-sql: false
     properties:
       hibernate:
-        format_sql: false # show-sql이 false이므로 이 설정은 의미 없지만, 일관성을 위해 false로 둡니다.
+        format_sql: false
+        # [권장] MySQL Dialect를 명시적으로 설정하여 안정성을 높입니다.
+        dialect: org.hibernate.dialect.MySQLDialect
 
   # 이메일 발송 설정 (환경 변수 사용)
   mail:
@@ -55,14 +53,14 @@ spring:
       client:
         registration:
           kakao:
-            client-id: ${KAKAO_CLIENT_ID} # 운영용 카카오 클라이언트 ID
+            client-id: ${KAKAO_CLIENT_ID}
             redirect-uri: "{baseUrl}/login/oauth2/code/kakao"
             authorization-grant-type: authorization_code
             client-name: kakao
             scope:
               - profile_nickname
               - account_email
-              - profile_image # 프로필 이미지 정보 요청
+              - profile_image
         provider:
           kakao:
             authorization-uri: https://kauth.kakao.com/oauth/authorize
@@ -70,13 +68,13 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
-# 로깅 레벨 설정 (운영 환경에서는 INFO 레벨로 설정)
+# 로깅 레벨 설정
 logging:
   level:
     com.example.moneyway: INFO
     org.springframework.web: INFO
     org.springframework.security: INFO
-    org.hibernate: INFO # SQL 로그는 비활성화하고, Hibernate 동작 로그는 INFO로 설정
+    org.hibernate: INFO
 
 # JWT, 외부 API 키 등 (환경 변수 사용)
 jwt:
@@ -86,10 +84,10 @@ jwt:
 tourapi:
   service-key: ${TOUR_API_KEY}
 
-openai:
-  api:
-    key: ${OPENAI_API_KEY}
+OPENAI:
+  API:
+    KEY: ${OPENAI_API_KEY}
 
 # OAuth2 로그인 성공 후 리다이렉트 될 프론트엔드 운영 주소
 oauth:
-  default-redirect-uri: ${OAUTH_DEFAULT_REDIRECT_URI} # 예: https://moneyway-572cf.web.app
+  default-redirect-uri: ${OAUTH_DEFAULT_REDIRECT_URI}
