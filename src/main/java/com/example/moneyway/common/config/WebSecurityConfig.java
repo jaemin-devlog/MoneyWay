@@ -50,11 +50,11 @@ public class WebSecurityConfig {
                 .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                // [개선] API 경로별 접근 권한 설정
+                // API 경로별 접근 권한 설정
                 .authorizeHttpRequests(auth -> auth
                         // 아래 경로들은 인증 없이 접근 허용
                         .requestMatchers(
-                                "/api/auth/**", "/login/**", "/oauth2/**",
+                                "/api/auth/**", "/login/**", "/oauth2/**", "/api/**",
                                 "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**",
                                 "/error" // Spring Boot 기본 에러 페이지
                         ).permitAll()
@@ -67,13 +67,13 @@ public class WebSecurityConfig {
                         .userInfoEndpoint(info -> info
                                 .userService(kakaoOAuth2Service))
                         .successHandler(oAuth2SuccessHandler())
-                        // [개선] 하드코딩된 URL 대신 주입받은 값 사용
+                        // 하드코딩된 URL 대신 주입받은 값 사용
                         .failureHandler((request, response, exception) -> {
                             response.sendRedirect(loginFailureRedirectUri);
                         })
                 )
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                // [개선] 일관된 예외 응답을 위해 커스텀 EntryPoint 사용
+                // 일관된 예외 응답을 위해 커스텀 EntryPoint 사용
                 .exceptionHandling(exception -> exception
                         .authenticationEntryPoint(customAuthenticationEntryPoint())
                 )
@@ -81,7 +81,7 @@ public class WebSecurityConfig {
     }
 
     /**
-     * [신규] CORS(Cross-Origin Resource Sharing) 설정
+     * CORS(Cross-Origin Resource Sharing) 설정
      * 다른 도메인의 프론트엔드에서 API를 호출할 수 있도록 허용
      */
     @Bean
