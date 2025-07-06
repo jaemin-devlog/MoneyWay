@@ -6,7 +6,9 @@ import com.example.moneyway.place.repository.TourPlaceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -51,5 +53,16 @@ public class TourPlaceService {
 
     public List<TourPlace> findByCat1(String cat1) {
         return tourPlaceRepository.findByAreacodeAndCat1("39", cat1);
+    }
+
+    public TourPlace findByContentId(String contentid) {
+        return tourPlaceRepository.findByContentid(contentid)
+                .orElseThrow(() -> new IllegalArgumentException("해당 contentid의 장소를 찾을 수 없습니다: " + contentid));
+    }
+
+    public List<TourPlace> getRandomJejuPlaces(int size) {
+        List<TourPlace> allJejuPlaces = tourPlaceRepository.findByAreacode("39");
+        Collections.shuffle(allJejuPlaces, new Random());
+        return allJejuPlaces.stream().limit(size).collect(Collectors.toList());
     }
 }
