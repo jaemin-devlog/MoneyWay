@@ -1,12 +1,16 @@
 package com.example.moneyway.user.controller;
 
-import com.example.moneyway.user.domain.User;
+import com.example.moneyway.community.dto.response.PostSummaryResponse;
 import com.example.moneyway.user.dto.request.UpdateNicknameRequest;
 import com.example.moneyway.user.dto.response.MessageResponse;
 import com.example.moneyway.user.dto.response.UserResponse;
+import com.example.moneyway.user.service.MyPageService;
 import com.example.moneyway.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -20,16 +24,15 @@ import org.springframework.web.bind.annotation.*;
 public class MyPageController {
 
     private final UserService userService;
+    private final MyPageService myPageService;
 
     /**
      * ✅ 내 정보 조회
-     * @AuthenticationPrincipal을 통해 인증된 사용자 객체를 직접 받아 사용합니다.
      */
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getMyInfo(@AuthenticationPrincipal org.springframework.security.core.userdetails.User principal) {
-        // Spring Security의 principal에서 이메일을 꺼내 우리 시스템의 User 엔티티를 조회
-        User user = userService.findByEmail(principal.getUsername());
-        return ResponseEntity.ok(UserResponse.from(user));
+        UserResponse response = UserResponse.from(userService.findByEmail(principal.getUsername()));
+        return ResponseEntity.ok(response);
     }
 
     /**
@@ -39,8 +42,7 @@ public class MyPageController {
     public ResponseEntity<MessageResponse> updateNickname(
             @AuthenticationPrincipal org.springframework.security.core.userdetails.User principal,
             @Valid @RequestBody UpdateNicknameRequest request) {
-        User user = userService.findByEmail(principal.getUsername());
-        userService.updateNickname(user.getId(), request.getNewNickname());
+        myPageService.updateNickname(principal.getUsername(), request.getNewNickname());
         return ResponseEntity.ok(new MessageResponse("닉네임이 성공적으로 변경되었습니다."));
     }
 
@@ -49,8 +51,29 @@ public class MyPageController {
      */
     @DeleteMapping("/withdraw")
     public ResponseEntity<MessageResponse> withdrawUser(@AuthenticationPrincipal org.springframework.security.core.userdetails.User principal) {
-        User user = userService.findByEmail(principal.getUsername());
-        userService.withdrawUser(user.getId());
+        myPageService.withdrawUser(principal.getUsername());
         return ResponseEntity.ok(new MessageResponse("회원 탈퇴가 완료되었습니다."));
+    }
+
+    /**
+     * ✅ 내가 작성한 글 목록 조회
+     */
+    @GetMapping("/posts")
+    public ResponseEntity<Page<PostSummaryResponse>> getMyPosts(
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.User principal,
+            @PageableDefault(size = 10) Pageable pageable) {
+        Page<PostSummaryResponse> myPosts = myPageService.getMyPosts(principal.getUsername(), pageable);
+        return ResponseEntity.ok(myPosts);
+    }
+
+    /**
+     * ✅ 내가 스크랩한 글 목록 조회
+     */
+    @GetMapping("/scraps")
+    public ResponseEntity<Page<PostSummaryResponse>> getMyScraps(
+            @AuthenticationPrincipal org.springframework.security.core.userdetails.User principal,
+            @PageableDefault(size = 10) Pageable pageable) {
+        Page<PostSummaryResponse> myScraps = myPageService.getMyScraps(principal.getUsername(), pageable);
+        return ResponseEntity.ok(myScraps);
     }
 }

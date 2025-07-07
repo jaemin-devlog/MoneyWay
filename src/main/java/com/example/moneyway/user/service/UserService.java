@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 사용자 데이터 CRUD 및 비즈니스 로직을 담당하는 서비스
- * (인증/토큰 관련 로직은 포함하지 않음)
+ * 사용자 데이터 CRUD 및 핵심 비즈니스 로직을 담당하는 서비스
+ * (인증, 마이페이지 액션 관련 로직은 포함하지 않음)
  */
 @Service
 @RequiredArgsConstructor
@@ -53,27 +53,6 @@ public class UserService {
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomUserException(ErrorCode.USER_NOT_FOUND));
-    }
-
-    /**
-     * 사용자 닉네임을 변경합니다.
-     */
-    @Transactional
-    public void updateNickname(Long userId, String newNickname) {
-        if (userRepository.existsByNickname(newNickname)) {
-            throw new CustomUserException(ErrorCode.DUPLICATE_NICKNAME);
-        }
-        User user = findActiveUserById(userId);
-        user.updateProfile(newNickname, user.getProfileImageUrl());
-    }
-
-    /**
-     * 사용자를 탈퇴 처리합니다.
-     */
-    @Transactional
-    public void withdrawUser(Long userId) {
-        User user = findActiveUserById(userId);
-        user.withdraw(); // User 엔티티의 비즈니스 메서드 호출
     }
 
     /**

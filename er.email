@@ -1,0 +1,117 @@
+*   [33ma794f40[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/community[m[33m)[m Merge branch 'develop' into feature/community
+[31m|[m[32m\[m  
+[31m|[m *   [33m2121e45[m[33m ([m[1;31morigin/develop[m[33m, [m[1;32mdevelop[m[33m)[m Merge pull request #22 from jaemin-devlog/feature/place
+[31m|[m [33m|[m[34m\[m  
+[31m|[m [33m|[m * [33mafb2129[m 사용자 검색 기능 추가
+[31m|[m [33m|[m * [33m113c6dd[m 사용자 검색 기능 추가
+[31m|[m * [34m|[m [33m0928f08[m Merge pull request #21 from jaemin-devlog/feature/place
+[31m|[m [35m|[m[34m\[m[34m|[m 
+[31m|[m [35m|[m * [33m763a27d[m cat1 카테고리 분류 api추가
+[31m|[m [35m|[m * [33m2875e70[m cat1 카테고리 분류 api추가
+[31m|[m * [36m|[m [33m2f76801[m Merge pull request #20 from jaemin-devlog/feature/place
+[31m|[m [1;31m|[m[36m\[m[36m|[m 
+[31m|[m [1;31m|[m * [33me1f40e7[m 음식점 카테고리 조회 api추가
+[31m|[m [1;31m|[m * [33m6ac83c0[m 음식점 카테고리 조회 api추가
+[31m|[m [1;31m|[m * [33m6133563[m tourAPI 저장 로직 수정
+[31m|[m * [1;32m|[m [33m4c7ef18[m EmailCode 자동생성자 추가
+[31m|[m * [1;32m|[m [33m2d0256b[m 배포용 yml 수정
+[31m|[m * [1;32m|[m [33me482086[m 배포용 yml 수정
+[31m|[m * [1;32m|[m [33m43ef556[m Dockerfile Update
+[31m|[m * [1;32m|[m [33m40be0d3[m Dockerfile Update
+[31m|[m * [1;32m|[m [33m3eaefae[m Dockerfile Update
+[31m|[m * [1;32m|[m [33med9ed89[m Dockerfile Update
+[31m|[m * [1;32m|[m [33m2cb8e04[m 배포용 yml 수정 완료
+[31m|[m * [1;32m|[m   [33mec3324b[m Merge pull request #19 from jaemin-devlog/feature/community
+[31m|[m [1;33m|[m[1;34m\[m [1;32m\[m  
+[31m|[m * [1;34m\[m [1;32m\[m   [33m0e67b06[m Merge pull request #18 from jaemin-devlog/feature/community
+[31m|[m [1;35m|[m[1;36m\[m [1;34m\[m [1;32m\[m  
+[31m|[m * [1;36m\[m [1;34m\[m [1;32m\[m   [33mc8d6385[m Merge pull request #17 from jaemin-devlog/feature/community
+[31m|[m [31m|[m[32m\[m [1;36m\[m [1;34m\[m [1;32m\[m  
+* [31m|[m [32m|[m [1;36m|[m [1;34m|[m [1;32m|[m [33mea04af3[m develop에서 하던 작업을 feature/community로 이동
+[1;34m|[m [31m|[m[1;34m_[m[32m|[m[1;34m_[m[1;36m|[m[1;34m/[m [1;32m/[m  
+[1;34m|[m[1;34m/[m[31m|[m [32m|[m [1;36m|[m [1;32m|[m   
+* [31m|[m [32m|[m [1;36m|[m [1;32m|[m [33mef50bfb[m ✨ .yml , Dockerfile 배포용 수정 완료
+[1;36m|[m [31m|[m[1;36m_[m[32m|[m[1;36m/[m [1;32m/[m  
+[1;36m|[m[1;36m/[m[31m|[m [32m|[m [1;32m|[m   
+* [31m|[m [32m|[m [1;32m|[m [33mde221c2[m ✨ .yml , Dockerfile 배포용 수정 완료
+[32m|[m [31m|[m[32m/[m [1;32m/[m  
+[32m|[m[32m/[m[31m|[m [1;32m|[m   
+* [31m|[m [1;32m|[m [33me336cf2[m Update community
+* [31m|[m [1;32m|[m [33maa50973[m Update community
+* [31m|[m [1;32m|[m [33m4e48d0a[m Update community Service
+[31m|[m[31m/[m [1;32m/[m  
+* [1;32m|[m   [33m8904093[m Merge branch 'develop' into feature/community/Repository
+[33m|[m[34m\[m [1;32m\[m  
+[33m|[m * [1;32m\[m   [33mcc3f096[m Merge branch 'develop' of https://github.com/jaemin-devlog/MoneyWay into develop
+[33m|[m [35m|[m[36m\[m [1;32m\[m  
+[33m|[m [35m|[m * [1;32m\[m   [33mcaa4e0a[m Merge pull request #15 from jaemin-devlog/feature/community/dto
+[33m|[m [35m|[m [1;31m|[m[1;32m\[m [1;32m\[m  
+[33m|[m * [1;31m|[m [1;32m|[m [1;32m|[m [33m31a8506[m repository domain 최신화, 확정
+* [1;32m|[m [1;31m|[m [1;32m|[m [1;32m|[m [33mfeb3cc4[m community repository 최신화, 확정
+* [1;32m|[m [1;31m|[m [1;32m|[m [1;32m|[m [33m816d9ac[m community repository 최신화, 확정
+[1;32m|[m [1;32m|[m[1;32m_[m[1;31m|[m[1;32m/[m [1;32m/[m  
+[1;32m|[m[1;32m/[m[1;32m|[m [1;31m|[m [1;32m|[m   
+* [1;32m|[m [1;31m|[m [1;32m|[m [33mfadeb99[m community dto 최신화, 확정
+* [1;32m|[m [1;31m|[m [1;32m|[m [33m6293a9b[m community dto 최신화, 확정
+* [1;32m|[m [1;31m|[m [1;32m|[m [33mfa8c836[m 작업 내용 메시지
+* [1;32m|[m [1;31m|[m [1;32m|[m [33m6067e5f[m repository domain 최신화, 확정
+[1;31m|[m [1;32m|[m[1;31m/[m [1;32m/[m  
+[1;31m|[m[1;31m/[m[1;32m|[m [1;32m|[m   
+* [1;32m|[m [1;32m|[m   [33m8142b70[m Merge pull request #13 from jaemin-devlog/feature/place
+[1;32m|[m[1;32m\[m [1;32m\[m [1;32m\[m  
+[1;32m|[m [1;32m|[m[1;32m/[m [1;32m/[m  
+[1;32m|[m[1;32m/[m[1;32m|[m [1;32m/[m   
+[1;32m|[m [1;32m|[m[1;32m/[m    
+[1;32m|[m * [33me615c55[m 기본 장소 호출 api
+[1;32m|[m * [33m8cae46f[m 기본 장소 호출 api
+* [1;34m|[m [33mb5cad66[m repository domain 최신화, 확정
+* [1;34m|[m [33m8057957[m Community domain 최신화, 확정
+* [1;34m|[m [33m092a5e9[m Community repository 설정
+* [1;34m|[m [33md0a6046[m Community Service 패키지, 클래스 설정
+* [1;34m|[m [33m42cda0e[m Community repository 설정
+* [1;34m|[m [33m6e9ab1d[m Community Dto 설정
+* [1;34m|[m [33m9679e4d[m 커뮤니티 기능 초안 작업 시작
+* [1;34m|[m   [33m9cecdae[m 커뮤니티 기능 마이그레이션 및 review 패키지 제거
+[1;35m|[m[1;36m\[m [1;34m\[m  
+[1;35m|[m * [1;34m|[m [33m64a26fb[m chore: remove legacy Review* classes after migration to community
+[1;35m|[m * [1;34m|[m [33m43d4df2[m Post Domain 설정
+[1;35m|[m * [1;34m|[m [33m698c0db[m 댓글 Domain 설정
+* [1;36m|[m [1;34m|[m   [33m105bdaa[m Merge pull request #9 from jaemin-devlog/feature/place
+[31m|[m[1;34m\[m [1;36m\[m [1;34m\[m  
+[31m|[m [1;34m|[m [1;36m|[m[1;34m/[m  
+[31m|[m [1;34m|[m[1;34m/[m[1;36m|[m   
+[31m|[m * [1;36m|[m [33m74af0ad[m detailintro db저장
+[31m|[m * [1;36m|[m [33m524108a[m detailintro db저장
+* [32m|[m [1;36m|[m [33mbfa2c62[m Merge pull request #8 from jaemin-devlog/feature/place
+[33m|[m[32m\[m[32m|[m [1;36m|[m 
+[33m|[m * [1;36m|[m [33m88e6c33[m detailinfo db저장
+[33m|[m * [1;36m|[m [33mfe9825d[m detailinfo db저장
+[33m|[m[33m/[m [1;36m/[m  
+* [1;36m|[m   [33m57d0200[m Merge pull request #7 from jaemin-devlog/feature/place
+[1;36m|[m[36m\[m [1;36m\[m  
+[1;36m|[m [36m|[m[1;36m/[m  
+[1;36m|[m[1;36m/[m[36m|[m   
+[1;36m|[m *   [33m82976e1[m Merge branch 'develop' into feature/place
+[1;36m|[m [1;31m|[m[1;36m\[m  
+[1;36m|[m [1;31m|[m[1;36m/[m  
+[1;36m|[m[1;36m/[m[1;31m|[m   
+* [1;31m|[m   [33m609bd0e[m merge feature/ai into develop (conflict resolved)
+[1;33m|[m[1;34m\[m [1;31m\[m  
+[1;33m|[m * [1;31m|[m [33md926810[m 예산 관련 PlanPlace 기능 추가
+[1;33m|[m * [1;31m|[m [33m038e146[m 경로수정
+[1;33m|[m * [1;31m|[m [33m7f4c60b[m yml 프로필 설정
+[1;33m|[m * [1;31m|[m [33m8d17c0c[m toolchain 주석제거
+[1;33m|[m * [1;31m|[m [33m94010ed[m [Refactor] GPT 관련 구성요소 리팩토링 및 TourPlace 필드 수정
+[1;33m|[m * [1;31m|[m [33m11f390d[m [AI] GPT 일정 추천 전체 구성 추가 및 RecommendationEngine 제거
+[1;33m|[m * [1;31m|[m [33m85a6452[m 각 변수 주석 and price 변수 추가
+[1;33m|[m * [1;31m|[m [33mdb808d4[m Revert "Revert "Plan & Place 기능 수정 완료""
+[1;33m|[m * [1;31m|[m [33m70ddbcc[m Revert "Plan & Place 기능 수정 완료"
+[1;33m|[m * [1;31m|[m [33mf8c9563[m 💡 Plan & Place 기능 수정 완료
+* [1;34m|[m [1;31m|[m   [33m44b24b8[m Merge pull request #5 from jaemin-devlog/revert-4-revert-3-feature/plan
+[1;35m|[m[1;36m\[m [1;34m\[m [1;31m\[m  
+[1;35m|[m * [1;34m|[m [1;31m|[m [33m0324a53[m Revert "Revert "Plan & Place 기능 수정 완료""
+[1;35m|[m[1;35m/[m [1;34m/[m [1;31m/[m  
+* [1;34m|[m [1;31m|[m   [33m4fabf82[m Merge pull request #4 from jaemin-devlog/revert-3-feature/plan
+[31m|[m[32m\[m [1;34m\[m [1;31m\[m  
+[31m|[m * [1;34m|[m [1;31m|[m [33md51227a[m Revert "Plan & Place 기능 수정 완료"
+[31m|[m[31m/[m [1;34m/[m 
