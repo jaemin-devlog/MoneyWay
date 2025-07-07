@@ -28,15 +28,15 @@ public class TourPlaceService {
      * 추후 거리/예산 필터 추가 가능
      */
     public List<TourPlace> findCandidatesByRequest(TravelPlanRequestDto request) {
-        // 기본적으로 지역이 제주도인 장소만 가져옴
+
         List<TourPlace> allJejuPlaces = tourPlaceRepository.findByAreacode("39"); // 제주 지역 코드
 
-        // 요청에 포함된 테마가 있을 경우 간단한 필터링
+
         List<String> themes = request.getThemes();
 
         return allJejuPlaces.stream()
                 .filter(place -> {
-                    // 카테고리(cat1)에 테마 키워드가 포함되어 있는지 여부 확인
+
                     if (themes != null && !themes.isEmpty()) {
                         return themes.stream().anyMatch(theme ->
                                 (place.getCat1() != null && place.getCat1().contains(theme)) ||
