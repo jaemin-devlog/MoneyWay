@@ -68,7 +68,6 @@ public class MyPageService {
     @Transactional(readOnly = true)
     public Page<PostSummaryResponse> getMyScraps(String email, Pageable pageable) {
         User user = userService.findByEmail(email);
-        // PostScrapRepository에 페이징 조회를 위한 메서드가 구현되어 있어야 합니다.
         return postScrapRepository.findAllByUserWithPaging(user, pageable)
                 .map(postScrap -> toPostSummaryResponse(postScrap.getPost(), user));
     }
