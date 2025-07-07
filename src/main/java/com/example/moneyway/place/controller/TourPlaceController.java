@@ -35,9 +35,9 @@ public class TourPlaceController {
 
         List<TourPlace> places;
         if (cat1 == null || cat1.isBlank()) {
-            places = tourPlaceService.findAllJejuPlaces(); // 전체
+            places = tourPlaceService.findAllJejuPlaces();
         } else {
-            places = tourPlaceService.findByCat1(cat1); // cat1 필터링
+            places = tourPlaceService.findByCat1(cat1);
         }
 
         return ResponseEntity.ok(places);

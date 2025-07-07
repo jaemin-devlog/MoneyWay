@@ -29,7 +29,7 @@ public class CookieUtil {
                 .secure(isSecure) // 프로퍼티 값을 올바르게 사용
                 .path("/")
                 .maxAge(Duration.ofSeconds(maxAge))
-                .sameSite("Lax") // CSRF 공격 방지를 위한 설정
+                .sameSite("None") // CSRF 공격 방지를 위한 설정
                 .build();
 
         response.addHeader("Set-Cookie", cookie.toString());
@@ -46,7 +46,7 @@ public class CookieUtil {
                         .secure(isSecure)
                         .path("/")
                         .maxAge(0) // 쿠키 즉시 만료
-                        .sameSite("Lax")
+                        .sameSite("None")
                         .build();
                 response.addHeader("Set-Cookie", deleteCookie.toString());
             }

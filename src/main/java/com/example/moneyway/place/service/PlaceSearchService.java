@@ -1,7 +1,5 @@
 package com.example.moneyway.place.service;
 
-import com.example.moneyway.place.domain.RestaurantJeju;
-import com.example.moneyway.place.domain.TourPlace;
 import com.example.moneyway.place.dto.PlaceSearchResultDto;
 import com.example.moneyway.place.repository.RestaurantJejuRepository;
 import com.example.moneyway.place.repository.TourPlaceRepository;

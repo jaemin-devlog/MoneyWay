@@ -51,6 +51,7 @@ public class WebSecurityConfig {
                                 "/login/**",          // 소셜 로그인 리다이렉션 경로
                                 "/oauth2/**",         // OAuth2 처리 경로
                                 "/error",             // Spring Boot 기본 에러 페이지
+                                "/api/**",
                                 // Swagger UI 접근 허용
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
