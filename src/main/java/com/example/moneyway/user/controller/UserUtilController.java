@@ -45,8 +45,8 @@ public class UserUtilController {
      * ✅ 비밀번호 재설정 코드 발송
      */
     @PostMapping("/password/send-code")
-    public ResponseEntity<MessageResponse> sendVerificationCode(@Valid @RequestBody EmailRequest request) {
-        emailCodeService.sendCode(request.getEmail());
+    public ResponseEntity<MessageResponse> sendPasswordResetCode(@Valid @RequestBody EmailRequest request) {
+        userAuthService.sendPasswordResetCode(request.getEmail());
         return ResponseEntity.ok(new MessageResponse("인증코드가 이메일로 전송되었습니다."));
     }
 
@@ -57,15 +57,6 @@ public class UserUtilController {
     public ResponseEntity<MessageResponse> verifyCode(@Valid @RequestBody EmailCodeRequest request) {
         emailCodeService.verifyCode(request.getEmail(), request.getCode());
         return ResponseEntity.ok(new MessageResponse("이메일 인증이 완료되었습니다."));
-    }
-
-    /**
-     * ✅ 비밀번호 재설정 가능 여부 확인
-     */
-    @PostMapping("/password/find")
-    public ResponseEntity<MessageResponse> checkPasswordReset(@Valid @RequestBody FindPasswordRequest request) {
-        userAuthService.checkPasswordResetEligibility(request);
-        return ResponseEntity.ok(new MessageResponse("비밀번호 재설정이 가능합니다."));
     }
 
     /**

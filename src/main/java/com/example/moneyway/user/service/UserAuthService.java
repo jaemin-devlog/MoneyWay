@@ -33,13 +33,13 @@ public class UserAuthService {
     private final JwtTokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenRepository refreshTokenRepository;
-
+    private final EmailCodeService emailCodeService;
     /**
      * 이메일 기반 회원가입을 처리하고, 토큰과 사용자 정보를 반환합니다.
      */
     public AuthResponse signup(SignupRequest request) {
         User user = userService.createEmailUser(request.getEmail(), request.getPassword(), request.getNickname());
-        TokenInfo tokenInfo = generateTokens(user);
+        TokenInfo tokenInfo = generateTokens(user); //JWT토큰 발급
 
         // [수정] record의 접근자 메서드(refreshToken()) 사용
         saveOrUpdateRefreshToken(user, tokenInfo.refreshToken());
@@ -69,20 +69,23 @@ public class UserAuthService {
                 .userInfo(UserResponse.from(user))
                 .build();
     }
+    public void logout(String email) {
+        User user = userService.findByEmail(email);
+        refreshTokenRepository.findByUserId(user.getId())
+                .ifPresent(refreshTokenRepository::delete);
+    }
 
-    /**
-     * 비밀번호 재설정 자격(이메일-닉네임 일치)을 확인합니다.
-     */
-    @Transactional(readOnly = true)
-    public void checkPasswordResetEligibility(FindPasswordRequest request) {
-        User user = userService.findByEmail(request.getEmail());
+    public void sendPasswordResetCode(String email) {
+        // 1. 이메일로 사용자를 찾습니다.
+        User user = userService.findByEmail(email);
 
-        if (!user.getNickname().equals(request.getNickname())) {
-            throw new CustomUserException(ErrorCode.PASSWORD_RESET_NAME_MISMATCH);
-        }
+        // 2. 소셜 로그인(카카오) 계정인지 확인합니다.
         if (user.getLoginType() != LoginType.EMAIL) {
             throw new CustomUserException(ErrorCode.KAKAO_ACCOUNT_LOGIN);
         }
+
+        // 3. 모든 확인이 끝나면, 해당 이메일로 인증코드를 발송합니다.
+        emailCodeService.sendCode(email);
     }
 
     /**
@@ -121,15 +124,5 @@ public class UserAuthService {
                 .orElse(new RefreshToken(user, newRefreshToken));
 
         refreshTokenRepository.save(refreshToken);
-    }
-    /**
-     * ✅ [추가] 로그아웃을 처리합니다.
-     * 서버에 저장된 사용자의 Refresh Token을 삭제합니다.
-     * @param email 현재 인증된 사용자의 이메일
-     */
-    public void logout(String email) {
-        User user = userService.findByEmail(email);
-        refreshTokenRepository.findByUserId(user.getId())
-                .ifPresent(refreshTokenRepository::delete);
     }
 }
