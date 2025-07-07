@@ -1,91 +1,99 @@
 package com.example.moneyway.common.config;
 
 import com.example.moneyway.auth.jwt.JwtAuthenticationFilter;
-import com.example.moneyway.auth.jwt.JwtTokenProvider;
-import com.example.moneyway.auth.oauth.OAuth2SuccessHandler;
 import com.example.moneyway.auth.oauth.KakaoOAuth2Service;
+import com.example.moneyway.auth.oauth.OAuth2LoginFailureHandler;
+import com.example.moneyway.auth.oauth.OAuth2SuccessHandler;
 import com.example.moneyway.auth.oauth.repository.OAuth2AuthorizationCookieRepository;
-import com.example.moneyway.auth.token.repository.RefreshTokenRepository;
-import com.example.moneyway.user.service.UserService;
+import com.example.moneyway.common.exception.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-    private final JwtTokenProvider jwtTokenProvider;
+    // 현재 가지고 계신 모든 필수 컴포넌트를 생성자 주입으로 받습니다.
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final KakaoOAuth2Service kakaoOAuth2Service;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final UserService userService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
+    private final OAuth2AuthorizationCookieRepository oAuth2AuthorizationCookieRepository;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(AbstractHttpConfigurer::disable) //CSRF비활성화
-                .httpBasic(AbstractHttpConfigurer::disable) //브라우저 팝업 제거
-                .formLogin(AbstractHttpConfigurer::disable)//Form Login 제거
-                .logout(AbstractHttpConfigurer::disable) // 세션기반이 아니므로 서버가 로그아웃 처리 필요X
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
-                //세션 생성, 저장X ->JWT는 요청마다 인증 정보를 포함 -> 서버에 세션 저장소 필요X
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll() //현재는 모든 요청을 허용 -> 실 운영에서는 분리
+                        // 인증 없이 접근을 허용할 경로들
+                        .requestMatchers(
+                                "/api/auth/**",       // 인증(로그인, 회원가입) 관련 API
+                                "/login/**",          // 소셜 로그인 리다이렉션 경로
+                                "/oauth2/**",         // OAuth2 처리 경로
+                                "/error",             // Spring Boot 기본 에러 페이지
+                                "/api/**",
+                                // Swagger UI 접근 허용
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**"
+                        ).permitAll()
+                        // 위 경로를 제외한 모든 요청은 반드시 인증을 거쳐야 합니다.
+                        .anyRequest().authenticated()
                 )
+                // OAuth2 로그인 설정
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(endpoint -> endpoint
-                                .authorizationRequestRepository(oAuth2AuthorizationRequestBasedOnCookieRepository()))
-                        //인가 요청 정보를 세션이 아니라 쿠키에 저장하기 위해 설정
+                                .authorizationRequestRepository(oAuth2AuthorizationCookieRepository))
                         .userInfoEndpoint(info -> info
-                                .userService(kakaoOAuth2Service)) //카카오에서 사용자 정보를 받아서 DB저장
-                        .successHandler(oAuth2SuccessHandler())   //OAuth2 인증 후 -> AccessToken, RefreshToken 발급 -> 쿠키로 응답
-                        .failureHandler((request, response, exception) -> {
-                            // 로그인 실패 시 프론트 로그인 에러 페이지로 리다이렉트
-                            response.sendRedirect("http://192.168.100.37:3000/login?error");
-                        })
+                                .userService(kakaoOAuth2Service))
+                        // 직접 만든 성공 및 실패 핸들러를 등록합니다.
+                        .successHandler(oAuth2SuccessHandler)
+                        .failureHandler(oAuth2LoginFailureHandler)
                 )
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                // Filter보다 앞단에서 JWT를 먼저 검사하도록 설정
+                // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 추가합니다.
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // 인증 예외 발생 시, 커스텀 EntryPoint가 일관된 에러 응답을 처리합니다.
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(
-                                (request, response, authException) -> response.setStatus(HttpStatus.UNAUTHORIZED.value())
-                        )
-                ) //JWT가 유효하지 않거나 로그인되지 않은 상태에서 인증 필요한 요청 보낼 경우 401에러
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                )
                 .build();
     }
 
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider);
-    }
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // 허용할 프론트엔드 출처(Origin) 목록
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://moneyway-572cf.web.app"));
+        // 허용할 HTTP 메서드
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        // 허용할 HTTP 헤더
+        configuration.setAllowedHeaders(List.of("*"));
+        // 쿠키 등 자격 증명을 포함한 요청 허용
+        configuration.setAllowCredentials(true);
 
-    @Bean
-    public OAuth2SuccessHandler oAuth2SuccessHandler() {
-        return new OAuth2SuccessHandler(
-                jwtTokenProvider,
-                refreshTokenRepository,
-                oAuth2AuthorizationRequestBasedOnCookieRepository(),
-                userService
-        );
-    }
-
-    @Bean
-    public OAuth2AuthorizationCookieRepository oAuth2AuthorizationRequestBasedOnCookieRepository() {
-        return new OAuth2AuthorizationCookieRepository();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // 기본 strength=10
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        // 모든 경로("/**")에 대해 위 CORS 설정을 적용합니다.
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

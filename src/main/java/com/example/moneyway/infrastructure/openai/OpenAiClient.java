@@ -18,7 +18,7 @@ public class OpenAiClient {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    @Value("${openai.api.key}")
+    @Value("${OPENAI_API_KEY}")
     private String apiKey;
 
     // 사용할 GPT 모델과 OpenAI API 엔드포인트

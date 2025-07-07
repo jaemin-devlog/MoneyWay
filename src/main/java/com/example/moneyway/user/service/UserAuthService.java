@@ -1,215 +1,125 @@
 package com.example.moneyway.user.service;
 
+import com.example.moneyway.auth.dto.TokenInfo;
 import com.example.moneyway.auth.jwt.JwtTokenProvider;
 import com.example.moneyway.auth.token.domain.RefreshToken;
 import com.example.moneyway.auth.token.repository.RefreshTokenRepository;
 import com.example.moneyway.common.exception.CustomException.CustomUserException;
 import com.example.moneyway.common.exception.ErrorCode;
-import com.example.moneyway.common.util.CookieUtil;
-import com.example.moneyway.common.util.TokenUtil;
 import com.example.moneyway.user.domain.LoginType;
 import com.example.moneyway.user.domain.User;
-import com.example.moneyway.user.dto.request.*;
+import com.example.moneyway.user.dto.request.FindPasswordRequest;
+import com.example.moneyway.user.dto.request.LoginRequest;
+import com.example.moneyway.user.dto.request.ResetPasswordRequest;
+import com.example.moneyway.user.dto.request.SignupRequest;
+import com.example.moneyway.user.dto.response.AuthResponse;
 import com.example.moneyway.user.dto.response.UserResponse;
-import com.example.moneyway.user.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 
-import static com.example.moneyway.common.util.TokenUtil.resolveToken;
-
 /**
- * 일반 회원가입, 로그인, 비밀번호 재설정, 로그아웃, 닉네임 변경 등 인증 핵심 로직을 담당하는 서비스
+ * 회원가입, 로그인, 비밀번호 재설정 등 사용자 인증 흐름을 전담하는 서비스
  */
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserAuthService {
 
-    private final UserRepository userRepository;
+    private final UserService userService;
+    private final JwtTokenProvider tokenProvider;
     private final PasswordEncoder passwordEncoder;
-    private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
 
     /**
-     * ✅ 회원가입 처리 메서드
-     * 흐름: 유효성 검사 → 중복 확인 → User 생성 → JWT 발급/저장 → 쿠키 저장
+     * 이메일 기반 회원가입을 처리하고, 토큰과 사용자 정보를 반환합니다.
      */
-    public UserResponse signup(SignupRequest request, HttpServletResponse response) {
-        // 필수 필드 유효성 검사
-        if (request.getEmail() == null || request.getEmail().isBlank() ||
-                request.getPassword() == null || request.getPassword().isBlank() ||
-                request.getNickname() == null || request.getNickname().isBlank()) {
-            throw new CustomUserException(ErrorCode.EMPTY_SIGNUP_FIELD);
-        }
+    public AuthResponse signup(SignupRequest request) {
+        User user = userService.createEmailUser(request.getEmail(), request.getPassword(), request.getNickname());
+        TokenInfo tokenInfo = generateTokens(user);
 
-        // 중복 검사
-        if (userRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new CustomUserException(ErrorCode.DUPLICATE_EMAIL);
-        }
-        if (userRepository.existsByNickname(request.getNickname())) {
-            throw new CustomUserException(ErrorCode.DUPLICATE_NICKNAME);
-        }
-        if (request.getPassword().length() < 8) {
-            throw new CustomUserException(ErrorCode.WEAK_PASSWORD);
-        }
+        // [수정] record의 접근자 메서드(refreshToken()) 사용
+        saveOrUpdateRefreshToken(user, tokenInfo.refreshToken());
 
-        // 비밀번호 암호화
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
-
-        // 사용자 생성 및 저장
-        User user = User.ofEmail(
-                request.getEmail(),
-                encodedPassword,
-                request.getNickname()
-        );
-
-        System.out.println("nickname >>> " + request.getNickname());
-        System.out.println("email >>> " + request.getEmail());
-
-        userRepository.save(user);
-
-        // JWT 발급 및 쿠키/DB 저장
-        String accessToken = jwtTokenProvider.generateToken(user, Duration.ofHours(1));
-        String refreshToken = jwtTokenProvider.generateToken(user, Duration.ofDays(14));
-
-        refreshTokenRepository.findByUser(user).ifPresent(refreshTokenRepository::delete);
-        refreshTokenRepository.save(new RefreshToken(user, refreshToken));
-
-        CookieUtil.addCookie(response, "access_token", accessToken, 3600);
-        CookieUtil.addCookie(response, "refresh_token", refreshToken, 14 * 24 * 60 * 60);
-
-        return UserResponse.from(user);
+        return AuthResponse.builder()
+                .tokenInfo(tokenInfo)
+                .userInfo(UserResponse.from(user))
+                .build();
     }
 
     /**
-     * ✅ 로그인 처리 메서드
-     * 흐름: 사용자 조회 → 비밀번호 확인 → JWT 발급 + 저장
+     * 이메일 기반 로그인을 처리하고, 토큰과 사용자 정보를 반환합니다.
      */
-    public UserResponse login(LoginRequest request, HttpServletResponse response) {
-        if (request.getEmail() == null || request.getEmail().isBlank() ||
-                request.getPassword() == null || request.getPassword().isBlank()) {
-            throw new CustomUserException(ErrorCode.EMPTY_LOGIN_FIELD);
-        }
-
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new CustomUserException(ErrorCode.EMAIL_NOT_FOUND));
-
-        if (user.getLoginType() != LoginType.EMAIL) {
-            throw new CustomUserException(ErrorCode.KAKAO_ACCOUNT_LOGIN);
-        }
+    public AuthResponse login(LoginRequest request) {
+        User user = userService.findByEmail(request.getEmail());
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             throw new CustomUserException(ErrorCode.INVALID_PASSWORD);
         }
 
-        String accessToken = jwtTokenProvider.generateToken(user, Duration.ofHours(1));
-        String refreshToken = jwtTokenProvider.generateToken(user, Duration.ofDays(14));
+        TokenInfo tokenInfo = generateTokens(user);
+        // [수정] record의 접근자 메서드(refreshToken()) 사용
+        saveOrUpdateRefreshToken(user, tokenInfo.refreshToken());
 
-        refreshTokenRepository.findByUser(user).ifPresent(refreshTokenRepository::delete);
-        refreshTokenRepository.save(new RefreshToken(user, refreshToken));
-
-        CookieUtil.addCookie(response, "access_token", accessToken, 3600);
-        CookieUtil.addCookie(response, "refresh_token", refreshToken, 14 * 24 * 60 * 60);
-
-        return UserResponse.from(user);
+        return AuthResponse.builder()
+                .tokenInfo(tokenInfo)
+                .userInfo(UserResponse.from(user))
+                .build();
     }
 
     /**
-     * ✅ 비밀번호 재설정 가능 여부 확인
-     * 조건: 이메일 존재 + 닉네임 일치 + EMAIL 로그인 타입
+     * 비밀번호 재설정 자격(이메일-닉네임 일치)을 확인합니다.
      */
+    @Transactional(readOnly = true)
     public void checkPasswordResetEligibility(FindPasswordRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new CustomUserException(ErrorCode.PASSWORD_RESET_EMAIL_NOT_FOUND));
+        User user = userService.findByEmail(request.getEmail());
 
         if (!user.getNickname().equals(request.getNickname())) {
             throw new CustomUserException(ErrorCode.PASSWORD_RESET_NAME_MISMATCH);
         }
-
         if (user.getLoginType() != LoginType.EMAIL) {
             throw new CustomUserException(ErrorCode.KAKAO_ACCOUNT_LOGIN);
         }
     }
 
     /**
-     * ✅ 실제 비밀번호 재설정 수행
-     * 조건: 기존 비밀번호와 다르고, 8자 이상이어야 함
+     * 실제 비밀번호를 재설정합니다.
      */
     public void resetPassword(ResetPasswordRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new CustomUserException(ErrorCode.PASSWORD_RESET_EMAIL_NOT_FOUND));
+        User user = userService.findByEmail(request.getEmail());
 
         if (user.getLoginType() != LoginType.EMAIL) {
             throw new CustomUserException(ErrorCode.KAKAO_ACCOUNT_LOGIN);
         }
-
-        if (request.getNewPassword().length() < 8) {
-            throw new CustomUserException(ErrorCode.WEAK_PASSWORD);
-        }
-
         if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
             throw new CustomUserException(ErrorCode.PASSWORD_SAME_AS_BEFORE);
         }
 
-        user.resetPassword(passwordEncoder.encode(request.getNewPassword()));
-        userRepository.save(user);
+        user.updatePassword(passwordEncoder.encode(request.getNewPassword()));
     }
 
     /**
-     * ✅ 로그아웃 처리
-     * 동작: RefreshToken 제거, 쿠키 삭제
+     * 사용자에 대한 AccessToken과 RefreshToken을 생성합니다. (private)
      */
-    public void logout(HttpServletRequest request, HttpServletResponse response) {
-        String token = resolveToken(request);
+    private TokenInfo generateTokens(User user) {
+        String accessToken = tokenProvider.generateToken(user, Duration.ofHours(1));
+        String refreshToken = tokenProvider.generateToken(user, Duration.ofDays(14));
 
-        if (!jwtTokenProvider.validToken(token)) {
-            throw new CustomUserException(ErrorCode.JWT_INVALID);
-        }
-
-        Long userId = jwtTokenProvider.getUserId(token);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomUserException(ErrorCode.USER_NOT_FOUND));
-
-        refreshTokenRepository.findByUser(user).ifPresent(refreshTokenRepository::delete);
-
-        CookieUtil.deleteCookie(request, response, "access_token");
-        CookieUtil.deleteCookie(request, response, "refresh_token");
+        // [수정] record는 builder 대신 생성자를 직접 호출
+        return new TokenInfo("Bearer", accessToken, refreshToken);
     }
 
     /**
-     * ✅ 닉네임 변경 처리
-     * 조건: JWT 인증된 사용자 → 중복 검사 → 변경 및 저장
+     * 사용자의 RefreshToken을 DB에 저장하거나 업데이트합니다. (private)
      */
-    public void updateNickname(HttpServletRequest request, UpdateNicknameRequest updateRequest) {
-        String token = TokenUtil.resolveToken(request);
-        if (!jwtTokenProvider.validToken(token)) {
-            throw new CustomUserException(ErrorCode.JWT_INVALID);
-        }
+    private void saveOrUpdateRefreshToken(User user, String newRefreshToken) {
+        RefreshToken refreshToken = refreshTokenRepository.findByUserId(user.getId())
+                .map(token -> token.update(newRefreshToken))
+                .orElse(new RefreshToken(user, newRefreshToken));
 
-        Long userId = jwtTokenProvider.getUserId(token);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomUserException(ErrorCode.USER_NOT_FOUND));
-
-        if (userRepository.existsByNickname(updateRequest.getNewNickname())) {
-            throw new CustomUserException(ErrorCode.DUPLICATE_NICKNAME);
-        }
-
-        user.update(updateRequest.getNewNickname());
-        userRepository.save(user);
+        refreshTokenRepository.save(refreshToken);
     }
 }
-
-/**
- * ✅ 전체 동작 흐름 요약
- *
- * 1. 회원가입/로그인 → 사용자 유효성 확인 → 토큰 발급 및 저장 → 쿠키 저장
- * 2. 비밀번호 찾기 → 이메일+닉네임 확인 → 비밀번호 재설정
- * 3. 로그아웃 → 토큰 제거 → 쿠키 삭제
- * 4. 닉네임 변경 → 토큰 인증 → 사용자 식별 → 중복 확인 후 저장
- *
- * → 유효성 검사 → 사용자 인증 → 토큰/쿠키 처리 → 응답 반환
- */

@@ -1,3 +1,4 @@
+#application.yml
 spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:local}  # local or production (기본은 local, Railway에선 환경변수 설정)
@@ -20,3 +21,5 @@ logging:
   level:
     org.springframework.web: INFO
     org.springframework.security: INFO
+
+
