@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
+
 /**
  * 사용자 인증(회원가입, 로그인)을 전담하는 컨트롤러
  */
@@ -39,5 +41,12 @@ public class UserAuthController {
     public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
         AuthResponse response = userAuthService.login(request);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(Principal principal) {
+        // Principal.getName()은 일반적으로 사용자의 식별자(여기서는 이메일)를 반환합니다.
+        userAuthService.logout(principal.getName());
+        return ResponseEntity.ok().build();
     }
 }

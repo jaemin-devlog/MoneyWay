@@ -122,4 +122,14 @@ public class UserAuthService {
 
         refreshTokenRepository.save(refreshToken);
     }
+    /**
+     * ✅ [추가] 로그아웃을 처리합니다.
+     * 서버에 저장된 사용자의 Refresh Token을 삭제합니다.
+     * @param email 현재 인증된 사용자의 이메일
+     */
+    public void logout(String email) {
+        User user = userService.findByEmail(email);
+        refreshTokenRepository.findByUserId(user.getId())
+                .ifPresent(refreshTokenRepository::delete);
+    }
 }

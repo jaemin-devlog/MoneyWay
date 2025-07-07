@@ -1,12 +1,10 @@
 # ===================================================================
-# PRODUCTION-SPECIFIC PROPERTIES
+# 운영 환경 전용 설정 (application-production.yml)
 # ===================================================================
-# 이 파일은 운영 환경을 위한 설정입니다.
-# .env 파일에 정의된 환경 변수 이름을 직접 참조합니다.
-# ===================================================================
+# 이 파일은 'production' 프로필이 활성화되었을 때만 적용됩니다.
 
 server:
-  port: 8080 # 운영 서버 포트
+  port: ${SERVER_PORT:8080} # 기본 포트는 8080
 
 spring:
   # 운영 DB 연결 정보 (환경 변수 사용)
@@ -26,10 +24,10 @@ spring:
   # JPA 및 Hibernate 설정
   jpa:
     hibernate:
-      # [매우 중요] 운영 환경에서는 'update' 대신 'validate'를 사용해야 합니다.
-      # 'update'는 의도치 않은 DB 스키마 변경을 유발할 수 있어 위험합니다.
-      # 'validate'는 코드와 DB 스키마가 일치하는지 검증만 합니다.
+      # [매우 중요] 운영 환경의 데이터 보호를 위해 반드시 'validate'를 사용합니다.
+      # 애플리케이션 시작 시 Entity와 DB 스키마가 일치하는지 검증만 하고, 다르면 실행을 중단시켜 문제를 즉시 알립니다.
       ddl-auto: validate
+    # 성능을 위해 SQL 쿼리를 로그로 출력하지 않습니다.
     show-sql: false
     properties:
       hibernate:
@@ -57,8 +55,7 @@ spring:
         registration:
           kakao:
             client-id: ${KAKAO_CLIENT_ID}
-            # 환경 변수와 명확하게 일치시킵니다.
-            # 이 값은 카카오 개발자 콘솔에 등록된 리다이렉트 URI와 정확히 일치해야 합니다.
+            # 카카오 개발자 콘솔에 등록된, Spring Security가 처리하는 백엔드의 콜백 주소입니다.
             redirect-uri: ${OAUTH_BACKEND_CALLBACK_URI}
             authorization-grant-type: authorization_code
             client-name: kakao
@@ -76,6 +73,7 @@ spring:
 # 로깅 레벨 설정
 logging:
   level:
+    # 운영 환경에서는 필요한 정보만 기록하도록 INFO 레벨로 설정합니다.
     com.example.moneyway: INFO
     org.springframework.web: INFO
     org.springframework.security: INFO
@@ -95,9 +93,9 @@ OPENAI:
 
 # 쿠키 보안 설정을 위한 커스텀 프로퍼티
 cookie:
-  secure: ${COOKIE_SECURE:false} # 운영 환경에서는 환경 변수에 의해 true가 됩니다.
+  # 운영 환경에서는 환경 변수(COOKIE_SECURE=true)에 의해 이 값이 true로 덮어쓰여집니다.
+  secure: ${COOKIE_SECURE:true}
 
 # OAuth2 로그인 성공/실패 후 리다이렉트 될 프론트엔드 운영 주소
 oauth:
-  # 환경 변수 이름과 일치시킵니다.
   default-redirect-uri: ${OAUTH_FRONTEND_REDIRECT_URI}
