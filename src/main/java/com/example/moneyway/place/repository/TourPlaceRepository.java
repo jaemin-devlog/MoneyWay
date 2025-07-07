@@ -10,15 +10,15 @@ import java.util.Optional;
 @Repository
 public interface TourPlaceRepository extends JpaRepository<TourPlace, String> {
 
-    // ✅ contentid 중복 확인용
+
     boolean existsByContentid(String contentid);
 
-    // ✅ 제주 지역 장소 조회용
+
     List<TourPlace> findByAreacode(String areacode);
 
     Optional<TourPlace> findByContentid(String contentid);
 
-//    List<TourPlace> findByCategory(String category);
+
 
     List<TourPlace> findByAreacodeAndCat1(String areacode, String cat1);
 
