@@ -9,9 +9,12 @@ import com.example.moneyway.community.repository.action.PostLikeRepository;
 import com.example.moneyway.community.repository.action.PostScrapRepository;
 import com.example.moneyway.community.repository.post.PostRepository;
 import com.example.moneyway.user.domain.User;
+import com.example.moneyway.user.dto.response.MyPageResponse;
+import com.example.moneyway.user.dto.response.UserResponse;
 import com.example.moneyway.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,6 +75,28 @@ public class MyPageService {
                 .map(postScrap -> toPostSummaryResponse(postScrap.getPost(), user));
     }
 
+    /**
+     * ✅ [신규] 마이페이지 초기 진입 시 필요한 모든 정보를 한번에 조회합니다.
+     * @param email 현재 사용자 이메일
+     * @return 사용자 정보, 내가 쓴 글 첫 페이지, 내가 스크랩한 글 첫 페이지
+     */
+    @Transactional(readOnly = true)
+    public MyPageResponse getMyPageInfo(String email) {
+        // 1. 사용자 정보 조회
+        UserResponse userInfo = UserResponse.from(userService.findByEmail(email));
+
+        // 2. 내가 쓴 글/스크랩한 글의 첫 페이지만 조회 (예: 5개씩)
+        Pageable initialPageable = PageRequest.of(0, 5);
+        Page<PostSummaryResponse> myPosts = getMyPosts(email, initialPageable);
+        Page<PostSummaryResponse> myScraps = getMyScraps(email, initialPageable);
+
+        // 3. 조회한 모든 정보를 하나의 DTO에 담아 반환
+        return MyPageResponse.builder()
+                .userInfo(userInfo)
+                .myPosts(myPosts)
+                .myScraps(myScraps)
+                .build();
+    }
     /**
      * Post 엔티티를 PostSummaryResponse DTO로 변환하는 헬퍼 메서드
      */
