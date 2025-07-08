@@ -42,4 +42,14 @@ public class TourPlaceController {
 
         return ResponseEntity.ok(places);
     }
+
+    @Operation(summary = "contentid로 장소 비용 정보 조회", description = "contentid를 기반으로 장소의 price2(비용) 정보를 반환합니다.")
+    @GetMapping("/{contentid}/price")
+    public ResponseEntity<String> getPlacePrice(@PathVariable String contentid) {
+        TourPlace place = tourPlaceService.findByContentId(contentid);
+        if (place.getPrice2() == null || place.getPrice2().isBlank()) {
+            return ResponseEntity.ok("비용 정보가 없습니다.");
+        }
+        return ResponseEntity.ok(place.getPrice2());
+    }
 }
