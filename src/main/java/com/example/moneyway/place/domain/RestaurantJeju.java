@@ -1,10 +1,14 @@
 package com.example.moneyway.place.domain;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(name = "jeju_restaurants")
+@NoArgsConstructor
+@AllArgsConstructor
 @Getter
 public class RestaurantJeju {
 
