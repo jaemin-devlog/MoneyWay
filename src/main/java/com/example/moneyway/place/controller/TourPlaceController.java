@@ -52,4 +52,10 @@ public class TourPlaceController {
         }
         return ResponseEntity.ok(place.getPrice2());
     }
+    @Operation(summary = "contentid로 장소 전체 정보 조회", description = "contentid를 기반으로 장소의 전체 정보를 반환합니다.")
+    @GetMapping("/{contentid}")
+    public ResponseEntity<TourPlace> getPlaceByContentId(@PathVariable String contentid) {
+        TourPlace place = tourPlaceService.findByContentId(contentid);
+        return ResponseEntity.ok(place);
+    }
 }
