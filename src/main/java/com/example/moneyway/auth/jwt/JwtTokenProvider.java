@@ -35,7 +35,8 @@ public class JwtTokenProvider {
     public JwtTokenProvider(JwtProperties jwtProperties) {
         this.jwtProperties = jwtProperties;
         // ✅ Base64URL 형식의 secretKey를 디코딩하여 Key 객체 생성
-        byte[] keyBytes = Decoders.BASE64.decode(jwtProperties.secretKey());
+        byte[] keyBytes = Decoders.BASE64URL.decode(jwtProperties.secretKey());
+
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
