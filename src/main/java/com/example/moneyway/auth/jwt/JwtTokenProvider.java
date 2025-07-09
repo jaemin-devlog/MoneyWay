@@ -1,5 +1,6 @@
 package com.example.moneyway.auth.jwt;
 
+import com.example.moneyway.auth.userdetails.UserDetailsServiceImpl;
 import com.example.moneyway.user.domain.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -8,35 +9,30 @@ import io.jsonwebtoken.security.SecurityException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.time.Duration;
-import java.util.Collections;
 import java.util.Date;
-import java.util.Set;
 
 /**
  * JWT 생성/검증/파싱을 전담하는 서비스
  * 역할: AccessToken, RefreshToken을 생성하고, 이를 검증하거나 사용자 정보를 추출함
  */
 @Slf4j
-@Component // [개선] @Service 대신 범용적인 @Component 사용
+@Component
 public class JwtTokenProvider {
 
     private final JwtProperties jwtProperties;
     private final Key key;
+    private final UserDetailsServiceImpl userDetailsService; // ✅ 서비스 주입
 
-    /**
-     * [개선] 생성자: JwtProperties를 직접 주입받아 설정값 관리
-     * @param jwtProperties application.yml의 'jwt' 프로퍼티가 바인딩된 객체
-     */
-    public JwtTokenProvider(JwtProperties jwtProperties) {
+    // ✅ 생성자 수정
+    public JwtTokenProvider(JwtProperties jwtProperties, UserDetailsServiceImpl userDetailsService) {
         this.jwtProperties = jwtProperties;
-        // ✅ Base64URL 형식의 secretKey를 디코딩하여 Key 객체 생성
+        this.userDetailsService = userDetailsService; // ✅ 서비스 할당
         byte[] keyBytes = Decoders.BASE64URL.decode(jwtProperties.secretKey());
-
         this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -57,7 +53,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .setHeaderParam(Header.TYPE, Header.JWT_TYPE)
-                .setIssuer(jwtProperties.issuer()) // [개선] jwtProperties에서 발급자 정보 사용
+                .setIssuer(jwtProperties.issuer())
                 .setIssuedAt(now)
                 .setExpiration(expiry)
                 .setSubject(user.getEmail())
@@ -74,7 +70,7 @@ public class JwtTokenProvider {
             Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
-                    .parseClaimsJws(token); // 서명 검증 + 파싱
+                    .parseClaimsJws(token);
             return true;
         } catch (SecurityException | MalformedJwtException e) {
             log.warn("잘못된 JWT 서명 또는 구조: {}", e.getMessage());
@@ -94,22 +90,19 @@ public class JwtTokenProvider {
      */
     public Authentication getAuthentication(String token) {
         try {
-            // getClaims 메서드는 토큰이 유효하지 않으면 예외를 던집니다.
             Claims claims = getClaims(token);
-            Set<SimpleGrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"));
+            String email = claims.getSubject();
 
+            // ✅ [수정] DB에서 완전한 사용자 정보를 로드합니다.
+            UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+            // ✅ 이제 principal은 DB 정보가 모두 담긴 UserDetailsImpl 객체입니다.
             return new UsernamePasswordAuthenticationToken(
-                    new org.springframework.security.core.userdetails.User(
-                            claims.getSubject(),
-                            "",
-                            authorities
-                    ),
+                    userDetails,
                     token,
-                    authorities
+                    userDetails.getAuthorities()
             );
         } catch (Exception e) {
-            // 토큰 파싱/검증 중 예외가 발생하면 로그를 남기고 null을 반환합니다.
-            // 이렇게 하면 애플리케이션이 비정상 종료되는 것을 막을 수 있습니다.
             log.warn("❗️유효하지 않은 JWT 토큰으로 인증 객체를 생성할 수 없습니다. 메시지: {}", e.getMessage());
             return null;
         }
