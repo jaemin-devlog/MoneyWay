@@ -25,37 +25,46 @@ repositories {
     mavenCentral()
 }
 dependencies {
+    // === JWT (JSON Web Token) 관련 라이브러리 ===
+    // JWT를 생성하고 검증하는 데 필요한 인터페이스와 구현체들입니다.
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
-    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5' // JWT를 JSON으로 처리하기 위한 Jackson 지원
 
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    runtimeOnly 'com.mysql:mysql-connector-j:8.3.0'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    // === Spring Boot 핵심 스타터 ===
+    implementation 'org.springframework.boot:spring-boot-starter-web' // 웹 애플리케이션(API) 개발을 위한 핵심 모듈
+    implementation 'org.springframework.boot:spring-boot-starter-security' // Spring Security를 사용한 인증/인가 기능
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa' // JPA를 사용한 데이터베이스 연동
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client' // 카카오, 구글 등 소셜 로그인을 위한 OAuth2 클라이언트
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis' // Redis 데이터베이스 연동
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf' // 서버 사이드 템플릿 엔진 (HTML 생성)
+    implementation 'org.springframework.boot:spring-boot-starter-mail' // 이메일 발송 기능
 
-    compileOnly 'org.projectlombok:lombok'
+    // === 데이터베이스 드라이버 ===
+    runtimeOnly 'com.mysql:mysql-connector-j:8.3.0' // MySQL 데이터베이스 연결 드라이버
+
+    // === 개발 편의성 라이브러리 ===
+    compileOnly 'org.projectlombok:lombok' // @Getter, @Builder 등 어노테이션으로 보일러플레이트 코드 자동 생성
     annotationProcessor 'org.projectlombok:lombok'
 
-    // Swagger
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
-    // 테스트
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2'
+    // === API 문서 자동화 (Swagger) ===
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0' // API 명세를 자동으로 생성하고 UI 제공
+
+    // === 유효성 검증 ===
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final' // @NotBlank, @Email 등 DTO 필드 유효성 검증
+
+    // === Microsoft Office 파일 처리 ===
+    implementation 'org.apache.poi:poi:5.2.5' // 엑셀(XLS) 등 MS 오피스 파일 처리
+    implementation 'org.apache.poi:poi-ooxml:5.2.5' // 엑셀(XLSX) 등 최신 MS 오피스 파일 처리
+
+    // === JSON 처리 확장 ===
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310' // LocalDateTime 등 Java 8 날짜/시간 타입을 JSON으로 변환 지원
+
+    // === 테스트 관련 라이브러리 ===
+    testImplementation 'org.springframework.boot:spring-boot-starter-test' // Spring Boot 테스트 환경
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2' // JUnit 5 테스트 프레임워크
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
-    testImplementation 'org.assertj:assertj-core:3.25.3'
-
-    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-
-
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'org.springframework.boot:spring-boot-starter-mail'
-
-    implementation 'org.apache.poi:poi:5.2.5'
-    implementation 'org.apache.poi:poi-ooxml:5.2.5'
+    testImplementation 'org.assertj:assertj-core:3.25.3' // 더 읽기 쉬운 테스트 단언(assertion)문 작성 지원
 }
 
 bootJar {
