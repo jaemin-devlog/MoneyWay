@@ -3,7 +3,6 @@ package com.example.moneyway.auth.userdetails;
 import com.example.moneyway.user.domain.User;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
@@ -11,7 +10,7 @@ import java.util.Collections;
 
 /**
  * Spring Security가 사용자를 인증할 때 참조하는 핵심 클래스.
- * User 엔티티를 감싸서 Spring Security가 필요로 하는 정보(아이디, 비밀번호, 권한 등)를 제공한다.
+ * User 엔티티를 감싸서 Spring Security가 필요로 하는 정보(아이디, 비밀번호 등)를 제공한다.
  */
 @Getter
 public class UserDetailsImpl implements UserDetails {
@@ -24,8 +23,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // 사용자의 역할을 기반으로 권한 목록을 반환합니다.
-        return Collections.singletonList(new SimpleGrantedAuthority(user.getRole().name()));
+        return Collections.emptyList();
     }
 
     @Override
@@ -58,6 +56,8 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
+        // User 엔티티에 isDeleted 필드가 있다면, 아래와 같이 연동하는 것이 보안상 더 좋습니다.
+        // return !user.isDeleted();
         return true; // 계정이 활성화되어 있음
     }
 }
