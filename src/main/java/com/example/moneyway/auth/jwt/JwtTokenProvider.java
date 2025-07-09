@@ -93,18 +93,26 @@ public class JwtTokenProvider {
      * 토큰에서 사용자 정보를 기반으로 Authentication 객체를 생성하는 메서드
      */
     public Authentication getAuthentication(String token) {
-        Claims claims = getClaims(token);
-        Set<SimpleGrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"));
+        try {
+            // getClaims 메서드는 토큰이 유효하지 않으면 예외를 던집니다.
+            Claims claims = getClaims(token);
+            Set<SimpleGrantedAuthority> authorities = Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"));
 
-        return new UsernamePasswordAuthenticationToken(
-                new org.springframework.security.core.userdetails.User(
-                        claims.getSubject(),
-                        "",
-                        authorities
-                ),
-                token,
-                authorities
-        );
+            return new UsernamePasswordAuthenticationToken(
+                    new org.springframework.security.core.userdetails.User(
+                            claims.getSubject(),
+                            "",
+                            authorities
+                    ),
+                    token,
+                    authorities
+            );
+        } catch (Exception e) {
+            // 토큰 파싱/검증 중 예외가 발생하면 로그를 남기고 null을 반환합니다.
+            // 이렇게 하면 애플리케이션이 비정상 종료되는 것을 막을 수 있습니다.
+            log.warn("❗️유효하지 않은 JWT 토큰으로 인증 객체를 생성할 수 없습니다. 메시지: {}", e.getMessage());
+            return null;
+        }
     }
 
     /**
