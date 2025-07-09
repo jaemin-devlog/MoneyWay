@@ -1,5 +1,6 @@
 package com.example.moneyway.user.controller;
 
+import com.example.moneyway.auth.userdetails.UserDetailsImpl;
 import com.example.moneyway.user.dto.request.LoginRequest;
 import com.example.moneyway.user.dto.request.SignupRequest;
 import com.example.moneyway.user.dto.response.AuthResponse;
@@ -7,6 +8,7 @@ import com.example.moneyway.user.service.UserAuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,9 +46,9 @@ public class UserAuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(Principal principal) {
-        // Principal.getName()은 일반적으로 사용자의 식별자(여기서는 이메일)를 반환합니다.
-        userAuthService.logout(principal.getName());
+    public ResponseEntity<Void> logout(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        // 이제 userDetails 객체를 통해 사용자 이메일을 가져옵니다.
+        userAuthService.logout(userDetails.getUsername());
         return ResponseEntity.ok().build();
     }
 }

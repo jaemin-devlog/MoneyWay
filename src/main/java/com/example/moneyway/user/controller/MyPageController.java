@@ -1,9 +1,12 @@
 package com.example.moneyway.user.controller;
 
+// ✅ [수정] 우리 프로젝트의 커스텀 UserDetails 구현체를 import 합니다.
+//    (경로나 이름이 다를 경우 실제 클래스에 맞게 수정해주세요)
+import com.example.moneyway.auth.userdetails.UserDetailsImpl;
 import com.example.moneyway.community.dto.response.PostSummaryResponse;
 import com.example.moneyway.user.dto.request.UpdateNicknameRequest;
 import com.example.moneyway.user.dto.response.MessageResponse;
-import com.example.moneyway.user.dto.response.MyPageResponse; // [추가]
+import com.example.moneyway.user.dto.response.MyPageResponse;
 import com.example.moneyway.user.dto.response.UserResponse;
 import com.example.moneyway.user.service.MyPageService;
 import com.example.moneyway.user.service.UserService;
@@ -24,62 +27,48 @@ public class MyPageController {
     private final UserService userService;
     private final MyPageService myPageService;
 
-    /**
-     * ✅ [신규] 마이페이지 통합 정보 조회 (초기 로딩용)
-     * 사용자 정보, 내가 쓴 글(첫 페이지), 내가 스크랩한 글(첫 페이지)을 한번에 반환합니다.
-     */
     @GetMapping
-    public ResponseEntity<MyPageResponse> getMyPageInfo(@AuthenticationPrincipal org.springframework.security.core.userdetails.User principal) {
-        MyPageResponse response = myPageService.getMyPageInfo(principal.getUsername());
+    public ResponseEntity<MyPageResponse> getMyPageInfo(
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        MyPageResponse response = myPageService.getMyPageInfo(userDetails.getUsername());
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * ✅ 내 정보 조회 (개별 조회용)
-     * 이 엔드포인트는 프로필 수정 화면 등에서 단독으로 사용자 정보만 필요할 때 유용하게 사용할 수 있습니다.
-     */
     @GetMapping("/me")
-    public ResponseEntity<UserResponse> getMyInfo(@AuthenticationPrincipal org.springframework.security.core.userdetails.User principal) {
-        UserResponse response = UserResponse.from(userService.findByEmail(principal.getUsername()));
+    public ResponseEntity<UserResponse> getMyInfo(
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        UserResponse response = UserResponse.from(userService.findByEmail(userDetails.getUsername()));
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * ✅ 내가 작성한 글 목록 조회 (페이지네이션용)
-     * '더 보기' 기능이나 '내가 쓴 글' 탭 화면에서 사용합니다.
-     */
     @GetMapping("/posts")
     public ResponseEntity<Page<PostSummaryResponse>> getMyPosts(
-            @AuthenticationPrincipal org.springframework.security.core.userdetails.User principal,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PageableDefault(size = 10) Pageable pageable) {
-        Page<PostSummaryResponse> myPosts = myPageService.getMyPosts(principal.getUsername(), pageable);
+        Page<PostSummaryResponse> myPosts = myPageService.getMyPosts(userDetails.getUsername(), pageable);
         return ResponseEntity.ok(myPosts);
     }
 
-    /**
-     * ✅ 내가 스크랩한 글 목록 조회 (페이지네이션용)
-     * '더 보기' 기능이나 '내가 스크랩한 글' 탭 화면에서 사용합니다.
-     */
     @GetMapping("/scraps")
     public ResponseEntity<Page<PostSummaryResponse>> getMyScraps(
-            @AuthenticationPrincipal org.springframework.security.core.userdetails.User principal,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PageableDefault(size = 10) Pageable pageable) {
-        Page<PostSummaryResponse> myScraps = myPageService.getMyScraps(principal.getUsername(), pageable);
+        Page<PostSummaryResponse> myScraps = myPageService.getMyScraps(userDetails.getUsername(), pageable);
         return ResponseEntity.ok(myScraps);
     }
 
-    // --- 사용자 정보 수정 및 탈퇴 API ---
     @PatchMapping("/nickname")
     public ResponseEntity<MessageResponse> updateNickname(
-            @AuthenticationPrincipal org.springframework.security.core.userdetails.User principal,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Valid @RequestBody UpdateNicknameRequest request) {
-        myPageService.updateNickname(principal.getUsername(), request.getNewNickname());
+        myPageService.updateNickname(userDetails.getUsername(), request.getNewNickname());
         return ResponseEntity.ok(new MessageResponse("닉네임이 성공적으로 변경되었습니다."));
     }
 
     @DeleteMapping("/withdraw")
-    public ResponseEntity<MessageResponse> withdrawUser(@AuthenticationPrincipal org.springframework.security.core.userdetails.User principal) {
-        myPageService.withdrawUser(principal.getUsername());
+    public ResponseEntity<MessageResponse> withdrawUser(
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        myPageService.withdrawUser(userDetails.getUsername());
         return ResponseEntity.ok(new MessageResponse("회원 탈퇴가 완료되었습니다."));
     }
 }
