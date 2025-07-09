@@ -5,24 +5,22 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor; // ✅ 추가
 
 @Getter
-@RequiredArgsConstructor // [개선] final 필드를 위한 생성자 추가
+@NoArgsConstructor // ✅ 변경: Jackson이 객체를 생성할 수 있도록 기본 생성자를 추가합니다.
 public class SignupRequest {
 
     @Email(message = "올바른 이메일 형식이어야 합니다.")
     @NotBlank(message = "이메일은 필수 입력값입니다.")
-    private final String email;
+    private String email; // ✅ 변경: final 키워드 제거
 
     @NotBlank(message = "비밀번호는 필수 입력값입니다.")
-    // 비밀번호 복잡도(영문, 숫자, 특수문자 조합) 검증 강화
     @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,16}$",
             message = "비밀번호는 8~16자의 영문, 숫자, 특수문자를 포함해야 합니다.")
-    private final String password;
+    private String password; // ✅ 변경: final 키워드 제거
 
     @NotBlank(message = "닉네임은 필수 입력값입니다.")
-    // 닉네임 길이 제한 추가
     @Size(min = 2, max = 10, message = "닉네임은 2자 이상 10자 이하로 입력해주세요.")
-    private final String nickname;
+    private String nickname; // ✅ 변경: final 키워드 제거
 }

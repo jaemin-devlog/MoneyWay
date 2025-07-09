@@ -7,6 +7,7 @@ import lombok.Getter;
 import java.time.LocalDateTime;
 
 @Getter
+@Builder
 public class UserResponse {
 
     private final Long id;
@@ -16,23 +17,6 @@ public class UserResponse {
     private final String loginType;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
-
-    @Builder
-    public UserResponse(Long id,
-                        String email,
-                        String nickname,
-                        String profileImageUrl,
-                        String loginType,
-                        LocalDateTime createdAt,
-                        LocalDateTime updatedAt) {
-        this.id = id;
-        this.email = email;
-        this.nickname = nickname;
-        this.profileImageUrl = profileImageUrl;
-        this.loginType = loginType;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
-    }
 
     public static UserResponse from(User user) {
         return UserResponse.builder()
