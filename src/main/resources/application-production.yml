@@ -34,7 +34,9 @@ spring:
         format_sql: false
         # [권장] MySQL Dialect를 명시적으로 설정하여 안정성을 높입니다.
         dialect: org.hibernate.dialect.MySQLDialect
-
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
   # 이메일 발송 설정 (환경 변수 사용)
   mail:
     host: smtp.gmail.com
