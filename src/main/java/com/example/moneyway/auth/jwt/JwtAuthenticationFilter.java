@@ -5,49 +5,49 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
-/**
- * 모든 HTTP 요청에 대해 JWT 토큰을 검사하고 인증 객체를 설정하는 필터
- * 역할: 요청 헤더 또는 쿠키에 포함된 JWT를 파싱하고, 유효하면 Spring Security 인증 컨텍스트에 등록
- */
-@Slf4j
-@RequiredArgsConstructor
 @Component
+@RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    public static final String AUTHORIZATION_HEADER = "Authorization";
+    public static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    private static final String HEADER_AUTHORIZATION = "Authorization";
-    private static final String TOKEN_PREFIX = "Bearer ";
-
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
 
-        String authorizationHeader = request.getHeader(HEADER_AUTHORIZATION);
-        String token = getAccessToken(authorizationHeader);
+        String jwt = resolveToken(request);
 
-        if (token != null && jwtTokenProvider.validToken(token)) {
-            Authentication authentication = jwtTokenProvider.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-            // ✅ 인증 성공 시, 어떤 사용자가 인증되었는지 로그로 기록 (디버깅에 유용)
-            log.debug("인증 성공: [User: '{}', authorities: {}]", authentication.getName(), authentication.getAuthorities());
+        // ✅ 토큰이 존재할 경우에만 인증 처리
+        if (StringUtils.hasText(jwt)) {
+            // getAuthentication 내부에서 토큰 파싱 및 검증을 한 번에 처리하도록 책임을 위임합니다.
+            // 유효하지 않은 토큰(만료, 손상 등)의 경우 getAuthentication이 null을 반환하거나 예외를 던질 수 있습니다.
+            // 여기서는 null을 반환하는 패턴을 가정합니다.
+            Authentication authentication = jwtTokenProvider.getAuthentication(jwt);
+
+            // 인증 정보가 성공적으로 생성되었다면 SecurityContext에 저장합니다.
+            if (authentication != null) {
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
         }
 
         filterChain.doFilter(request, response);
     }
 
-    private String getAccessToken(String authorizationHeader) {
-        if (authorizationHeader != null && authorizationHeader.startsWith(TOKEN_PREFIX)) {
-            return authorizationHeader.substring(TOKEN_PREFIX.length());
+    private String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
+            return bearerToken.substring(BEARER_PREFIX.length());
         }
         return null;
     }

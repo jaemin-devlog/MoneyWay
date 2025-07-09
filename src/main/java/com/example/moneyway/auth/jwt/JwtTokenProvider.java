@@ -74,19 +74,20 @@ public class JwtTokenProvider {
             Jwts.parserBuilder()
                     .setSigningKey(key)
                     .build()
-                    .parseClaimsJws(token);
+                    .parseClaimsJws(token); // 서명 검증 + 파싱
             return true;
         } catch (SecurityException | MalformedJwtException e) {
-            log.warn("잘못된 JWT 서명입니다.", e);
+            log.warn("잘못된 JWT 서명 또는 구조: {}", e.getMessage());
         } catch (ExpiredJwtException e) {
-            log.warn("만료된 JWT 토큰입니다.", e);
+            log.info("만료된 JWT 토큰입니다: {}", e.getMessage());
         } catch (UnsupportedJwtException e) {
-            log.warn("지원되지 않는 JWT 토큰입니다.", e);
+            log.warn("지원하지 않는 JWT 토큰입니다: {}", e.getMessage());
         } catch (IllegalArgumentException e) {
-            log.warn("JWT 토큰이 잘못되었습니다.", e);
+            log.warn("JWT 토큰이 비어있거나 잘못되었습니다: {}", e.getMessage());
         }
         return false;
     }
+
 
     /**
      * 토큰에서 사용자 정보를 기반으로 Authentication 객체를 생성하는 메서드
