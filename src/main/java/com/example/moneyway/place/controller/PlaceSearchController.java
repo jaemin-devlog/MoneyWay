@@ -47,7 +47,7 @@ public class PlaceSearchController {
                 .map(p -> new PlaceSearchResultDto(
                         "TOUR_PLACE",
                         p.getTitle(),
-                        p.getAddr1(),
+                        p.getAddre(),
                         p.getTel(),
                         null))
                 .collect(Collectors.toList());

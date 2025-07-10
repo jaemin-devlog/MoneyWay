@@ -83,7 +83,13 @@ public enum ErrorCode {
     COMMENT_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 생성에 실패했습니다."),
     COMMENT_DELETE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "댓글 삭제에 실패했습니다."),
     COMMENT_FORBIDDEN_DELETE(HttpStatus.FORBIDDEN, "작성자만 해당 댓글을 삭제할 수 있습니다."),
-    COMMENT_INVALID_INPUT(HttpStatus.BAD_REQUEST, "댓글 입력 값이 올바르지 않습니다.");
+    COMMENT_INVALID_INPUT(HttpStatus.BAD_REQUEST, "댓글 입력 값이 올바르지 않습니다."),
+
+    // ================== CART (장바구니) ==================
+    ALREADY_IN_CART(HttpStatus.BAD_REQUEST, "이미 장바구니에 담긴 장소입니다."),
+    CART_NOT_FOUND(HttpStatus.NOT_FOUND, "장바구니에서 해당 항목을 찾을 수 없습니다."),
+    INVALID_PLACE_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 장소 타입입니다."),
+    PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 장소입니다.");
 
     private final HttpStatus status;
     private final String message;

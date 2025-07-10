@@ -47,6 +47,7 @@ public class MyPageService {
         user.updateProfile(newNickname, user.getProfileImageUrl());
     }
 
+
     /**
      * 사용자를 탈퇴 처리합니다.
      */
