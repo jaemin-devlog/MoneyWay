@@ -45,10 +45,6 @@ public class TourPlace extends Place {
     @Column(columnDefinition = "TEXT")
     private String infotext;
 
-
-    @Column(columnDefinition = "TEXT") //DetailInfo API
-    private String infotext; // o
-
     /**
      * ✅ Place 추상 메서드 구현
      * - TourPlace의 실제 주소는 addr1 필드를 따름
