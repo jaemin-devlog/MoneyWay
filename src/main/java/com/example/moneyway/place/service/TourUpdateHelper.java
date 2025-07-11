@@ -39,7 +39,6 @@ public class TourUpdateHelper {
             if (item == null) return;
 
             place.setInfotext(item.getInfotext());
-            place.setSubname(item.getSubname());
         } catch (Exception e) {
             log.error("ID {}의 상세 정보 동기화 실패. 건너뜁니다.", place.getContentid(), e);
         }
@@ -59,7 +58,6 @@ public class TourUpdateHelper {
             IntroApiResponseDto.Item item = responseDto.getFirstItem();
             if (item == null) return;
 
-            place.setOverview(item.getOverview());
         } catch (Exception e) {
             log.error("ID {}의 소개 정보 동기화 실패. 건너뜁니다.", place.getContentid(), e);
         }

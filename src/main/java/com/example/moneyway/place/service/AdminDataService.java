@@ -44,7 +44,6 @@ public class AdminDataService {
     private static final String HEADER_MENU = "메뉴";
     private static final String HEADER_URL = "url";
 
-    // ✅ [추가] TourAPI 호출 시 한 번에 가져오는 데이터 개수를 상수로 정의
     private static final int TOUR_API_FETCH_SIZE = 100;
 
     private final TourApiClient tourApiClient;
@@ -214,8 +213,6 @@ public class AdminDataService {
                 .contentid(item.getContentid())
                 .contenttypeid(item.getContenttypeid())
                 .addr1(item.getAddr1())
-                .addr2(item.getAddr2())
-                .zipcode(item.getZipcode())
                 .firstimage(item.getFirstimage())
                 .firstimage2(item.getFirstimage2())
                 .areacode(item.getAreacode())
@@ -258,7 +255,6 @@ public class AdminDataService {
                 .review(getStringValue(row, columnIndexMap, HEADER_REVIEW_COUNT))
                 .menu(getStringValue(row, columnIndexMap, HEADER_MENU))
                 .url(getStringValue(row, columnIndexMap, HEADER_URL))
-                .categoryCode(getStringValue(row, columnIndexMap, "categorycode"))
                 .build();
     }
 

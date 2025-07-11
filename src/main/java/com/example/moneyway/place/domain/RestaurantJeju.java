@@ -27,8 +27,6 @@ public class RestaurantJeju extends Place {
     private String review;
     private String menu;
     private String url;
-    private String categoryCode;
-
     /**
      * ✅ Place 추상 메서드 구현
      * - RestaurantJeju의 주소는 'address' 필드를 사용합니다.

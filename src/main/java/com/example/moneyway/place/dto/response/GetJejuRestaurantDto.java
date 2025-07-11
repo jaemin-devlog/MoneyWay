@@ -37,7 +37,6 @@ public class GetJejuRestaurantDto {
                 .tel(entity.getTel())
                 .menu(entity.getMenu())
                 .url(entity.getUrl())
-                .categoryCode(entity.getCategoryCode())
                 .build();
     }
 }
