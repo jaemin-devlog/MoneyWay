@@ -48,7 +48,6 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 인증 없이 접근을 허용할 경로들 (정확하게 명시)
                         .requestMatchers(
-                                "/api/**",
                                 "/api/auth/**",       // 인증(로그인, 회원가입, 토큰 갱신) 관련 API
                                 "/login/**",          // 소셜 로그인 리다이렉션 경로
                                 "/oauth2/**",         // OAuth2 처리 경로
