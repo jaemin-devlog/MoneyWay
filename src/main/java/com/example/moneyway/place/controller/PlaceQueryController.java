@@ -56,7 +56,6 @@ public class PlaceQueryController {
     @GetMapping("/tour")
     public ResponseEntity<Page<PlaceSearchResultDto>> getTourPlaces(
             @RequestParam(required = false) String category, Pageable pageable) {
-        // [수정] placeQueryService 호출
         return ResponseEntity.ok(placeQueryService.findTourPlaces(category, pageable));
     }
 
