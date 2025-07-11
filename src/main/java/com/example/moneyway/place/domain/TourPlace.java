@@ -24,34 +24,26 @@ public class TourPlace extends Place {
     @Column(unique = true, nullable = false)
     private String contentid;
     private String contenttypeid;
+    private String createdtime;
+    private String modifiedtime;
     private String addr1;
-    private String addr2;
     private String areacode;
-    private String zipcode;
     private String mapx;
     private String mapy;
-
     private String firstimage;
     private String firstimage2;
-
     private String cat1;
     private String cat2;
     private String cat3;
-
-    private String createdtime;
-    private String modifiedtime;
     private String mlevel;
     private String sigungucode;
     @Column(columnDefinition = "TEXT")
-    private String overview;
 
     // --- 가격 정보 및 상세 정보 필드 ---
-    private int price;
     private String price2;
 
     @Column(columnDefinition = "TEXT")
     private String infotext;
-    private String subname;
 
 
     /**

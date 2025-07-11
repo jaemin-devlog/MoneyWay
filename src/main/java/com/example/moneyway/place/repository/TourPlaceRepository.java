@@ -52,13 +52,11 @@ public interface TourPlaceRepository extends JpaRepository<TourPlace, Long>, Tou
      */
     @Query(value = """
         SELECT p FROM TourPlace p WHERE
-        LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
-        LOWER(p.overview) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
         """,
             countQuery = """
         SELECT COUNT(p) FROM TourPlace p WHERE
-        LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
-        LOWER(p.overview) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) 
         """)
     Page<TourPlace> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 

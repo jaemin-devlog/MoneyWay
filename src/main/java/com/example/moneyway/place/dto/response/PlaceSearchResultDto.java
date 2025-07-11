@@ -23,7 +23,13 @@ public record PlaceSearchResultDto(
         String title,
         String address,
         String tel,
-        String imageUrl
+        String imageUrl,
+        String img,
+        String price2,
+        String categoryCode,
+        String mapx,
+        String mapy
+
 ) {
 
     // --- 정적 팩토리 메서드 ---
@@ -60,7 +66,16 @@ public record PlaceSearchResultDto(
                 restaurant.getTitle(),
                 restaurant.getAddress(),
                 restaurant.getTel(),
-                null // 맛집은 이미지가 없으므로 null
+                restaurant.getImg(),
+                null,
+                restaurant.getPrice2(),
+                restaurant.getCategoryCode(),
+                null,
+                null
+
+
+
+
         );
     }
 
@@ -75,9 +90,16 @@ public record PlaceSearchResultDto(
                 place.getId(),
                 PlaceType.TOUR_API,
                 place.getTitle(),
-                place.getAddress(),
+                place.getAddr1(),
                 place.getTel(),
-                place.getFirstimage()
+                place.getFirstimage(),
+                place.getFirstimage(),
+                place.getPrice2(),
+                place.getCat1(),
+                String.valueOf(place.getMapx()),
+                String.valueOf(place.getMapy())
         );
     }
+
+
 }

@@ -27,6 +27,9 @@ public class RestaurantJeju extends Place {
     private String review;
     private String menu;
     private String url;
+    private String img;
+    private String tel;
+    private String price2;
     private String categoryCode;
 
     /**

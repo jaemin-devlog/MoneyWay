@@ -36,13 +36,16 @@ import java.util.stream.Stream;
 public class AdminDataService {
 
     // ✅ 엑셀 헤더 이름을 상수로 정의하여 유지보수성 향상
-    private static final String HEADER_NAME = "이름";
-    private static final String HEADER_ADDRESS = "주소";
-    private static final String HEADER_SCORE = "점수";
-    private static final String HEADER_REVIEW_COUNT = "리뷰수";
-    private static final String HEADER_TEL = "전화번호";
-    private static final String HEADER_MENU = "메뉴";
+    private static final String HEADER_NAME = "title";
+    private static final String HEADER_ADDRESS = "address";
+    private static final String HEADER_SCORE = "score";
+    private static final String HEADER_REVIEW_COUNT = "review_count";
+    private static final String HEADER_TEL = "tel";
+    private static final String HEADER_MENU = "menu";
     private static final String HEADER_URL = "url";
+    private static final String HEADER_PRICE = "price2";
+    private static final String HEADER_IMG = "img";
+    private static final String HEADER_CATEGORYCODE = "category_code";
 
     // ✅ [추가] TourAPI 호출 시 한 번에 가져오는 데이터 개수를 상수로 정의
     private static final int TOUR_API_FETCH_SIZE = 100;
@@ -214,8 +217,6 @@ public class AdminDataService {
                 .contentid(item.getContentid())
                 .contenttypeid(item.getContenttypeid())
                 .addr1(item.getAddr1())
-                .addr2(item.getAddr2())
-                .zipcode(item.getZipcode())
                 .firstimage(item.getFirstimage())
                 .firstimage2(item.getFirstimage2())
                 .areacode(item.getAreacode())
@@ -258,7 +259,9 @@ public class AdminDataService {
                 .review(getStringValue(row, columnIndexMap, HEADER_REVIEW_COUNT))
                 .menu(getStringValue(row, columnIndexMap, HEADER_MENU))
                 .url(getStringValue(row, columnIndexMap, HEADER_URL))
-                .categoryCode(getStringValue(row, columnIndexMap, "categorycode"))
+                .img(getStringValue(row, columnIndexMap, HEADER_IMG))
+                .price2(getStringValue(row, columnIndexMap, HEADER_PRICE))
+                .categoryCode(getStringValue(row, columnIndexMap, HEADER_CATEGORYCODE))
                 .build();
     }
 
