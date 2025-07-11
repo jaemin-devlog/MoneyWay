@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * ✅ 모든 데이터 '관리' (생성, 수정, 동기화, 업로드) 로직을 통합 관리하는 서비스
+ * 모든 데이터 '관리' (생성, 수정, 동기화, 업로드) 로직을 통합 관리하는 서비스
  */
 @Slf4j
 @Service
@@ -42,12 +42,12 @@ public class AdminDataService {
     private static final String HEADER_REVIEW_COUNT = "review_count";
     private static final String HEADER_TEL = "tel";
     private static final String HEADER_MENU = "menu";
+    
     private static final String HEADER_URL = "url";
     private static final String HEADER_PRICE = "price2";
     private static final String HEADER_IMG = "img";
     private static final String HEADER_CATEGORYCODE = "category_code";
 
-    // ✅ [추가] TourAPI 호출 시 한 번에 가져오는 데이터 개수를 상수로 정의
     private static final int TOUR_API_FETCH_SIZE = 100;
 
     private final TourApiClient tourApiClient;
@@ -262,6 +262,7 @@ public class AdminDataService {
                 .img(getStringValue(row, columnIndexMap, HEADER_IMG))
                 .price2(getStringValue(row, columnIndexMap, HEADER_PRICE))
                 .categoryCode(getStringValue(row, columnIndexMap, HEADER_CATEGORYCODE))
+
                 .build();
     }
 

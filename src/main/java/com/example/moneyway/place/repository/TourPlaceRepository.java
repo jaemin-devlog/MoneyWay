@@ -47,9 +47,10 @@ public interface TourPlaceRepository extends JpaRepository<TourPlace, Long>, Tou
     Set<String> findContentidsIn(@Param("contentIds") Collection<String> contentIds);
 
     /**
-     * ✅ [수정] 키워드로 관광지와 음식점 모두를 검색합니다. (LIKE 사용)
+     * 키워드로 관광지와 음식점 모두를 검색합니다. (LIKE 사용)
      * contenttypeid 필터를 제거하여 모든 타입의 장소를 검색 대상으로 포함합니다.
      */
+
     @Query(value = """
         SELECT p FROM TourPlace p WHERE
         LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
@@ -58,6 +59,7 @@ public interface TourPlaceRepository extends JpaRepository<TourPlace, Long>, Tou
         SELECT COUNT(p) FROM TourPlace p WHERE
         LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%')) 
         """)
+
     Page<TourPlace> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
     /**

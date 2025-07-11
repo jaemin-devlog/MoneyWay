@@ -8,7 +8,7 @@ package com.example.moneyway.place.domain;
  */
 public enum PlaceType {
     TOUR_API("TourAPI 장소"),
-    JEJU_RESTAURANT("제주 맛집");
+    JEJU_RESTAURANT("제주 크롤링");
 
     private final String description;
 

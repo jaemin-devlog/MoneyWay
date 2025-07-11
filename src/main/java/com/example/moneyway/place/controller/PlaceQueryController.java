@@ -22,14 +22,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PlaceQueryController {
 
-    // ✅ [수정] 3개의 서비스 의존성이 단 하나로 통합되었습니다.
     private final PlaceQueryService placeQueryService;
 
     @Operation(summary = "키워드 기반 통합 검색")
     @GetMapping("/search")
     public ResponseEntity<Page<PlaceSearchResultDto>> searchByKeyword(
             @RequestParam String keyword, Pageable pageable) {
-        // [수정] placeQueryService 호출
+        //  placeQueryService 호출
         return ResponseEntity.ok(placeQueryService.searchPlacesByKeyword(keyword, pageable));
     }
 
@@ -57,11 +56,10 @@ public class PlaceQueryController {
     @GetMapping("/tour")
     public ResponseEntity<Page<PlaceSearchResultDto>> getTourPlaces(
             @RequestParam(required = false) String category, Pageable pageable) {
-        // [수정] placeQueryService 호출
         return ResponseEntity.ok(placeQueryService.findTourPlaces(category, pageable));
     }
 
-    @Operation(summary = "맛집 목록 조회 (카테고리별/전체)")
+    @Operation(summary = "다이닝코드 식당 목록 조회 (카테고리별/전체)")
     @GetMapping("/restaurants")
     public ResponseEntity<Page<PlaceSearchResultDto>> getRestaurants(
             @RequestParam(required = false) String category, Pageable pageable) {
