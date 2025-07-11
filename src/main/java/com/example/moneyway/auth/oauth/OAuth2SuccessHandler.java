@@ -73,9 +73,9 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     }
 
     private void addTokensToCookie(HttpServletRequest request, HttpServletResponse response, String accessToken, String refreshToken) {
-        // ✅ [변경] 주입받은 cookieUtil 인스턴스를 통해 메서드를 호출합니다.
-        cookieUtil.deleteCookie(request, response, ACCESS_TOKEN_COOKIE_NAME);
-        cookieUtil.deleteCookie(request, response, REFRESH_TOKEN_COOKIE_NAME);
+        // ✅ [수정] 불필요한 request 인자를 제거하여 메서드 시그니처를 맞춥니다.
+        cookieUtil.deleteCookie(response, ACCESS_TOKEN_COOKIE_NAME);
+        cookieUtil.deleteCookie(response, REFRESH_TOKEN_COOKIE_NAME);
 
         cookieUtil.addCookie(response, ACCESS_TOKEN_COOKIE_NAME, accessToken, (int) ACCESS_TOKEN_DURATION.toSeconds());
         cookieUtil.addCookie(response, REFRESH_TOKEN_COOKIE_NAME, refreshToken, (int) REFRESH_TOKEN_DURATION.toSeconds());
