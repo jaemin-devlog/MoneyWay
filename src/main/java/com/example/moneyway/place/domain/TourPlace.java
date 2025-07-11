@@ -1,66 +1,57 @@
-/*
- * 한국관광공사 TourAPI로부터 수집된 장소 데이터를 저장하는 엔티티.
- * 관광지, 음식점, 숙소 등 다양한 장소 정보를 포함하며,
- * AI 여행 일정 추천 및 지도 시각화에 사용된다.
- */
 package com.example.moneyway.place.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
+/**
+ * ✅ TourAPI 명세를 완벽하게 준수하는 장소 엔티티
+ * - Place를 상속하여 다형성 확보
+ * - TourAPI의 모든 필드명(addr1, tel 등)을 그대로 유지
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Setter // 외부 API 동기화를 위한 Setter 유지
+@SuperBuilder // 상속 관계 빌더
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED) // ✅ SuperBuilder가 사용할 생성자
+@PrimaryKeyJoinColumn(name = "place_pk_id")
 @Table(name = "tour_place")
-public class TourPlace {
+public class TourPlace extends Place {
 
-    @Id
-    private String contentid;
+    @Column(unique = true, nullable = false)
+    private String contentid;     //필수
+    private String contenttypeid; //필수
+    private String addr1; // o
+    private String areacode; // o
+    private String mapx; // o
+    private String mapy; // o
 
-    private String contenttypeid;
-    private String title;
-    private String addr1;
-    private String addr2;
-    private String areacode;
-    private String zipcode;
-    private String mapx;
-    private String mapy;
+    private String firstimage; //o
+    private String firstimage2; //o
 
-    private String firstimage;
-    private String firstimage2;
-    private String tel;
+    private String cat1; //o
+    private String cat2; //o
+    private String cat3; //o
 
-    private String cat1;
-    private String cat2;
-    private String cat3;
+    private String createdtime; //필수
+    private String modifiedtime; //필수
+    private String mlevel; //o
+    private String sigungucode; //o
 
-    private String showflag;
-    private String createdtime;
-    private String modifiedtime;
-    private String mlevel;
-    private String sigungucode;
-    private String dist;
-    private String cpyrhtDivCd;
+    private String price2; //o // 다이닝코드
 
-    private int price;
+    @Column(columnDefinition = "TEXT") //DetailInfo API
+    private String infotext; // o
 
-    @Column(columnDefinition = "TEXT")
-    private String infotext;
-
-    private String subname;
-
-    @Column(columnDefinition = "TEXT")
-    private String overview;
-
-    @Column
-    private String price2;
-
+    /**
+     * ✅ Place 추상 메서드 구현
+     * - TourPlace의 실제 주소는 addr1 필드를 따름
+     */
+    @Override
+    public String getAddress() {
+        return this.addr1;
+    }
 }

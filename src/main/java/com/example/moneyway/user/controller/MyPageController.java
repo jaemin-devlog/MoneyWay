@@ -1,9 +1,8 @@
 package com.example.moneyway.user.controller;
 
-// ✅ [수정] 우리 프로젝트의 커스텀 UserDetails 구현체를 import 합니다.
-//    (경로나 이름이 다를 경우 실제 클래스에 맞게 수정해주세요)
 import com.example.moneyway.auth.userdetails.UserDetailsImpl;
 import com.example.moneyway.community.dto.response.PostSummaryResponse;
+import com.example.moneyway.user.dto.request.ChangePasswordRequest;
 import com.example.moneyway.user.dto.request.UpdateNicknameRequest;
 import com.example.moneyway.user.dto.response.MessageResponse;
 import com.example.moneyway.user.dto.response.MyPageResponse;
@@ -64,7 +63,19 @@ public class MyPageController {
         myPageService.updateNickname(userDetails.getUsername(), request.getNewNickname());
         return ResponseEntity.ok(new MessageResponse("닉네임이 성공적으로 변경되었습니다."));
     }
+    @PatchMapping("/password")
+    public ResponseEntity<MessageResponse> changePassword(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @Valid @RequestBody ChangePasswordRequest request) {
 
+        myPageService.changePassword(
+                userDetails.getUsername(),
+                request.getCurrentPassword(),
+                request.getNewPassword()
+        );
+
+        return ResponseEntity.ok(new MessageResponse("비밀번호가 성공적으로 변경되었습니다."));
+    }
     @DeleteMapping("/withdraw")
     public ResponseEntity<MessageResponse> withdrawUser(
             @AuthenticationPrincipal UserDetailsImpl userDetails) {

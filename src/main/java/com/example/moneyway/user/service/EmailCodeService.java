@@ -67,11 +67,11 @@ public class EmailCodeService {
     }
 
     /**
-     * ✅ 인증코드 생성 로직 (5자리 숫자)
-     * @return 00000 ~ 99999 사이 문자열 코드
+     * ✅ 인증코드 생성 로직 (6자리 숫자)
+     * @return 000000 ~ 999999 사이 문자열 코드
      */
     private String generateCode() {
-        return String.format("%05d", new Random().nextInt(1000000));
+        return String.format("%06d", new Random().nextInt(1000000));
     }
 
     /**

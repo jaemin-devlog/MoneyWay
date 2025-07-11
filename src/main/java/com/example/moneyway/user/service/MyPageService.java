@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +31,7 @@ public class MyPageService {
     // User 관련
     private final UserService userService;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // Community 관련
     private final PostRepository postRepository;
@@ -47,6 +49,7 @@ public class MyPageService {
         user.updateProfile(newNickname, user.getProfileImageUrl());
     }
 
+
     /**
      * 사용자를 탈퇴 처리합니다.
      */
@@ -54,7 +57,29 @@ public class MyPageService {
         User user = userService.findByEmail(email);
         user.withdraw();
     }
+    /**
+     * ✅ [추가] 로그인한 사용자의 비밀번호를 변경합니다.
+     * @param email 현재 로그인된 사용자의 이메일
+     * @param currentPassword 사용자가 입력한 현재 비밀번호
+     * @param newPassword 사용자가 설정할 새 비밀번호
+     */
+    public void changePassword(String email, String currentPassword, String newPassword) {
+        // 1. 사용자 정보 조회
+        User user = userService.findByEmail(email);
 
+        // 2. 현재 비밀번호가 맞는지 확인
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new CustomUserException(ErrorCode.INVALID_CURRENT_PASSWORD);
+        }
+
+        // 3. 새 비밀번호가 이전 비밀번호와 동일한지 확인
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            throw new CustomUserException(ErrorCode.PASSWORD_SAME_AS_BEFORE);
+        }
+
+        // 4. 모든 검증 통과 시, 새 비밀번호를 암호화하여 업데이트
+        user.updatePassword(passwordEncoder.encode(newPassword));
+    }
     /**
      * 현재 인증된 사용자가 작성한 글 목록을 조회합니다.
      */
