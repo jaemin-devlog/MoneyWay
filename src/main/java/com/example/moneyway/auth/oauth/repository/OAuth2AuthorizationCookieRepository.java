@@ -59,7 +59,7 @@ public class OAuth2AuthorizationCookieRepository implements AuthorizationRequest
     }
 
     public void removeAuthorizationRequestCookies(HttpServletRequest request, HttpServletResponse response) {
-        // ✅ [변경] 주입받은 cookieUtil 인스턴스를 통해 메서드를 호출합니다.
-        cookieUtil.deleteCookie(request, response, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME);
+        // ✅ [수정] 불필요한 request 인자를 제거하여 메서드 시그니처를 맞춥니다.
+        cookieUtil.deleteCookie(response, OAUTH2_AUTHORIZATION_REQUEST_COOKIE_NAME);
     }
 }

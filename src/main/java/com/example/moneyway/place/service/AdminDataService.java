@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * ✅ 모든 데이터 '관리' (생성, 수정, 동기화, 업로드) 로직을 통합 관리하는 서비스
+ * 모든 데이터 '관리' (생성, 수정, 동기화, 업로드) 로직을 통합 관리하는 서비스
  */
 @Slf4j
 @Service
@@ -35,7 +35,6 @@ import java.util.stream.Stream;
 @Transactional
 public class AdminDataService {
 
-    // ✅ 엑셀 헤더 이름을 상수로 정의하여 유지보수성 향상
     private static final String HEADER_NAME = "이름";
     private static final String HEADER_ADDRESS = "주소";
     private static final String HEADER_SCORE = "점수";
