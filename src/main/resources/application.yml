@@ -1,4 +1,4 @@
 #application.yml
 spring:
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE:}  # local or production (기본은 local, Railway에선 환경변수 설정)
+    active: ${SPRING_PROFILES_ACTIVE:production}  # local or production (기본은 local, Railway에선 환경변수 설정)
