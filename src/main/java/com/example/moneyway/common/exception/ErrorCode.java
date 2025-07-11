@@ -37,7 +37,7 @@ public enum ErrorCode {
     PASSWORD_SAME_AS_BEFORE(HttpStatus.BAD_REQUEST, "이전과 동일한 비밀번호는 사용할 수 없습니다."),
     NEW_PASSWORD_REQUIRED(HttpStatus.BAD_REQUEST, "새로운 비밀번호를 입력해주세요."),
     INVALID_PASSWORD_RESET_REQUEST(HttpStatus.BAD_REQUEST, "비밀번호 재설정 요청이 잘못되었습니다."),
-    
+
 
     // ================= USER: 이메일/닉네임 중복 확인 =================
     EMAIL_CHECK_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "이메일 중복 확인 중 오류가 발생했습니다."),
@@ -61,6 +61,15 @@ public enum ErrorCode {
 
 
 
+    // ================== AI / GPT ==================
+    GPT_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AI 여행 계획 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."),
+
+
+
+    // ================== FILE (파일) ==================
+    FILE_IS_EMPTY(HttpStatus.BAD_REQUEST, "업로드된 파일이 비어있습니다."),
+    FILE_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "파일 처리 중 오류가 발생했습니다. 파일 형식을 확인해주세요."),
+    INVALID_FILE_FORMAT(HttpStatus.BAD_REQUEST, "파일 형식이 올바르지 않거나 필수 헤더가 누락되었습니다."),
 
 
 

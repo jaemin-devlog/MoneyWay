@@ -41,7 +41,7 @@ public class UserAuthService {
         User user = userService.createEmailUser(request.getEmail(), request.getPassword(), request.getNickname());
         TokenInfo tokenInfo = generateTokens(user); //JWT토큰 발급
 
-        // [수정] record의 접근자 메서드(refreshToken()) 사용
+        // record의 접근자 메서드(refreshToken()) 사용
         saveOrUpdateRefreshToken(user, tokenInfo.refreshToken());
 
         return AuthResponse.builder()
@@ -61,7 +61,7 @@ public class UserAuthService {
         }
 
         TokenInfo tokenInfo = generateTokens(user);
-        // [수정] record의 접근자 메서드(refreshToken()) 사용
+        //  record의 접근자 메서드(refreshToken()) 사용
         saveOrUpdateRefreshToken(user, tokenInfo.refreshToken());
 
         return AuthResponse.builder()

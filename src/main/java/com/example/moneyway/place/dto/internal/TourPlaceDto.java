@@ -1,4 +1,4 @@
-package com.example.moneyway.place.dto;
+package com.example.moneyway.place.dto.internal;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,5 +1,5 @@
 // ExcelUploadResult.java (새 파일 또는 RestaurantExcelLoader 내부에 static으로 선언)
-package com.example.moneyway.place.dto;
+package com.example.moneyway.place.dto.response;
 
 import java.util.List;
 

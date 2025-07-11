@@ -65,6 +65,8 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.10.2' // JUnit 5 테스트 프레임워크
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
     testImplementation 'org.assertj:assertj-core:3.25.3' // 더 읽기 쉬운 테스트 단언(assertion)문 작성 지원
+
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
 }
 
 bootJar {

@@ -2,8 +2,10 @@ package com.example.moneyway.place.domain;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder; // SuperBuilder 임포트
 
 /**
  * ✅ 장소의 공통 속성을 정의하는 추상 엔티티
@@ -12,7 +14,9 @@ import lombok.NoArgsConstructor;
  */
 @Entity
 @Getter
+@SuperBuilder // ✅ [수정] 상속 관계를 위해 @SuperBuilder 추가
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED) // ✅ [추가] SuperBuilder가 사용할 생성자
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "dtype")
 public abstract class Place {
@@ -26,11 +30,6 @@ public abstract class Place {
     private String title; // 공통 필드: 장소명
 
     private String tel; // 공통 필드: 전화번호
-
-    protected Place(String title, String tel) {
-        this.title = title;
-        this.tel = tel;
-    }
 
     /**
      * 주소를 반환하는 추상 메서드.
