@@ -12,6 +12,7 @@ public class PlaceDetailDto {
     private final String tel;
     private final String imageUrl;
 
+
     // TourPlace 엔티티를 받아서 DTO로 변환하는 생성자
     public PlaceDetailDto(TourPlace place) {
         this.contentId = place.getContentid();
@@ -19,5 +20,6 @@ public class PlaceDetailDto {
         this.address = place.getAddr1();
         this.tel = place.getTel();
         this.imageUrl = place.getFirstimage();
+
     }
 }

@@ -35,13 +35,18 @@ import java.util.stream.Stream;
 @Transactional
 public class AdminDataService {
 
-    private static final String HEADER_NAME = "이름";
-    private static final String HEADER_ADDRESS = "주소";
-    private static final String HEADER_SCORE = "점수";
-    private static final String HEADER_REVIEW_COUNT = "리뷰수";
-    private static final String HEADER_TEL = "전화번호";
-    private static final String HEADER_MENU = "메뉴";
+    // ✅ 엑셀 헤더 이름을 상수로 정의하여 유지보수성 향상
+    private static final String HEADER_NAME = "title";
+    private static final String HEADER_ADDRESS = "address";
+    private static final String HEADER_SCORE = "score";
+    private static final String HEADER_REVIEW_COUNT = "review_count";
+    private static final String HEADER_TEL = "tel";
+    private static final String HEADER_MENU = "menu";
+    
     private static final String HEADER_URL = "url";
+    private static final String HEADER_PRICE = "price2";
+    private static final String HEADER_IMG = "img";
+    private static final String HEADER_CATEGORYCODE = "category_code";
 
     private static final int TOUR_API_FETCH_SIZE = 100;
 
@@ -254,6 +259,10 @@ public class AdminDataService {
                 .review(getStringValue(row, columnIndexMap, HEADER_REVIEW_COUNT))
                 .menu(getStringValue(row, columnIndexMap, HEADER_MENU))
                 .url(getStringValue(row, columnIndexMap, HEADER_URL))
+                .img(getStringValue(row, columnIndexMap, HEADER_IMG))
+                .price2(getStringValue(row, columnIndexMap, HEADER_PRICE))
+                .categoryCode(getStringValue(row, columnIndexMap, HEADER_CATEGORYCODE))
+
                 .build();
     }
 

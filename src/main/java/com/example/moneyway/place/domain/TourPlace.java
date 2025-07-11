@@ -22,26 +22,29 @@ import lombok.experimental.SuperBuilder;
 public class TourPlace extends Place {
 
     @Column(unique = true, nullable = false)
-    private String contentid;     //필수
-    private String contenttypeid; //필수
-    private String addr1; // o
-    private String areacode; // o
-    private String mapx; // o
-    private String mapy; // o
+    private String contentid;
+    private String contenttypeid;
+    private String createdtime;
+    private String modifiedtime;
+    private String addr1;
+    private String areacode;
+    private String mapx;
+    private String mapy;
+    private String firstimage;
+    private String firstimage2;
+    private String cat1;
+    private String cat2;
+    private String cat3;
+    private String mlevel;
+    private String sigungucode;
+    @Column(columnDefinition = "TEXT")
 
-    private String firstimage; //o
-    private String firstimage2; //o
+    // --- 가격 정보 및 상세 정보 필드 ---
+    private String price2;
 
-    private String cat1; //o
-    private String cat2; //o
-    private String cat3; //o
+    @Column(columnDefinition = "TEXT")
+    private String infotext;
 
-    private String createdtime; //필수
-    private String modifiedtime; //필수
-    private String mlevel; //o
-    private String sigungucode; //o
-
-    private String price2; //o // 다이닝코드
 
     @Column(columnDefinition = "TEXT") //DetailInfo API
     private String infotext; // o
