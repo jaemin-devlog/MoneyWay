@@ -22,7 +22,6 @@ import org.springframework.web.multipart.MultipartFile;
 @RequiredArgsConstructor
 public class AdminDataController {
 
-    // ✅ [수정] 5개의 서비스 의존성이 단 하나로 통합되었습니다.
     private final AdminDataService adminDataService;
 
     @Operation(summary = "TourAPI 전체 데이터 동기화")
