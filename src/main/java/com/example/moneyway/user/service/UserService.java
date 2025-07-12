@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
  * 사용자 데이터 CRUD 및 핵심 비즈니스 로직을 담당하는 서비스
  * (인증, 마이페이지 액션 관련 로직은 포함하지 않음)
  */
+// C:/Users/jjm02/IdeaProjects/MoneyWay1/src/main/java/com/example/moneyway/user/service/UserService.java
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -20,51 +21,47 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AvatarService avatarService;
 
-    /**
-     * 이메일 기반 신규 사용자를 생성합니다. (비밀번호 암호화 포함)
-     */
     @Transactional
     public User createEmailUser(String email, String rawPassword, String nickname) {
+        validateNewUser(email, nickname);
+
+        String encryptedPassword = passwordEncoder.encode(rawPassword);
+        String profileImageUrl = avatarService.generateAvatar(email);
+
+        User user = User.createEmailUser(email, encryptedPassword, nickname, profileImageUrl);
+        return userRepository.save(user);
+    }
+
+    /**
+     * ✅ [SUGGESTION] A helper method to encapsulate validation logic.
+     */
+    private void validateNewUser(String email, String nickname) {
         if (userRepository.existsByEmail(email)) {
             throw new CustomUserException(ErrorCode.DUPLICATE_EMAIL);
         }
         if (userRepository.existsByNickname(nickname)) {
             throw new CustomUserException(ErrorCode.DUPLICATE_NICKNAME);
         }
-
-        String encryptedPassword = passwordEncoder.encode(rawPassword);
-        User user = User.createEmailUser(email, encryptedPassword, nickname);
-        return userRepository.save(user);
     }
 
-    /**
-     * ID로 활성화된 사용자를 조회합니다.
-     */
+    // ... other methods remain the same
     public User findActiveUserById(Long id) {
         return userRepository.findById(id)
                 .filter(user -> !user.isDeleted())
                 .orElseThrow(() -> new CustomUserException(ErrorCode.USER_NOT_FOUND));
     }
 
-    /**
-     * 이메일로 사용자를 조회합니다.
-     */
     public User findByEmail(String email) {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new CustomUserException(ErrorCode.USER_NOT_FOUND));
     }
 
-    /**
-     * 이메일 중복 여부를 확인합니다.
-     */
     public boolean checkEmailExists(String email) {
         return userRepository.existsByEmail(email);
     }
 
-    /**
-     * 닉네임 중복 여부를 확인합니다.
-     */
     public boolean checkNicknameExists(String nickname) {
         return userRepository.existsByNickname(nickname);
     }

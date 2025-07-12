@@ -17,4 +17,11 @@ public class AppConfig {
         return new RestTemplate();
     }
 
+    @Bean
+    public ObjectMapper objectMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        // Java 8의 날짜/시간 타입을 직렬화/역직렬화하기 위해 필수적인 모듈
+        objectMapper.registerModule(new JavaTimeModule());
+        return objectMapper;
+    }
 }

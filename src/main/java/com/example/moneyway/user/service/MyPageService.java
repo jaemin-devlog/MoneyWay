@@ -48,7 +48,7 @@ public class MyPageService {
             throw new CustomUserException(ErrorCode.DUPLICATE_NICKNAME);
         }
         User user = userService.findByEmail(email);
-        user.updateProfile(newNickname, user.getProfileImageUrl());
+        user.updateNickname(newNickname);
     }
 
 

@@ -38,6 +38,7 @@ public class User {
     @Column(name = "password", length = 100)
     private String password; // 비밀번호 (EMAIL 로그인만 사용)
 
+    // ✅ [수정] 중복 선언된 필드를 제거하고 하나만 남겨둡니다.
     @Column(name = "profile_image_url", columnDefinition = "TEXT")
     private String profileImageUrl; // 프로필 이미지 URL
 
@@ -72,11 +73,15 @@ public class User {
 
     //== 정적 팩토리 메서드 ==//
 
-    public static User createEmailUser(String email, String encryptedPassword, String nickname) {
+    /**
+     * ✅ [수정] UserService에서 생성한 동적 프로필 이미지 URL을 파라미터로 받도록 변경합니다.
+     */
+    public static User createEmailUser(String email, String encryptedPassword, String nickname, String profileImageUrl) {
         return User.builder()
                 .email(email)
                 .password(encryptedPassword)
                 .nickname(nickname)
+                .profileImageUrl(profileImageUrl) // 생성된 URL 설정
                 .loginType(LoginType.EMAIL)
                 .build();
     }
@@ -94,10 +99,16 @@ public class User {
     //== 비즈니스 메서드 ==//
 
     /**
-     * 닉네임과 프로필 이미지 수정
+     * 닉네임 수정
      */
-    public void updateProfile(String newNickname, String newProfileImageUrl) {
+    public void updateNickname(String newNickname) {
         this.nickname = newNickname;
+    }
+
+    /**
+     * ✅ [추가] 프로필 이미지만 단독으로 변경하는 비즈니스 메서드
+     */
+    public void updateProfileImage(String newProfileImageUrl) {
         this.profileImageUrl = newProfileImageUrl;
     }
 
@@ -108,9 +119,6 @@ public class User {
         this.password = newEncryptedPassword;
     }
 
-    /**
-     * 탈퇴 처리 및 개인정보 비식별화
-     */
     /**
      * 탈퇴 처리 및 개인정보 비식별화
      * - 고유성 제약조건(unique) 위반을 피하기 위해 ID를 사용하여 닉네임과 이메일을 고유하게 만듭니다.
