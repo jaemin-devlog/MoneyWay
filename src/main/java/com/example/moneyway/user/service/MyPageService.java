@@ -1,5 +1,6 @@
 package com.example.moneyway.user.service;
 
+import com.example.moneyway.auth.token.repository.RefreshTokenRepository;
 import com.example.moneyway.common.exception.CustomException.CustomUserException;
 import com.example.moneyway.common.exception.ErrorCode;
 import com.example.moneyway.community.domain.Post;
@@ -29,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MyPageService {
 
     // User 관련
+    private final RefreshTokenRepository refreshTokenRepository;
     private final UserService userService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -54,7 +56,12 @@ public class MyPageService {
      * 사용자를 탈퇴 처리합니다.
      */
     public void withdrawUser(String email) {
+        // 1. 삭제할 사용자 조회
         User user = userService.findByEmail(email);
+
+        // ✅ 2. 사용자의 Refresh Token을 DB에서 삭제하여 재로그인 방지
+        refreshTokenRepository.deleteByUser(user);
+
         user.withdraw();
     }
     /**

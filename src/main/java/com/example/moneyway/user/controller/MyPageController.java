@@ -63,6 +63,7 @@ public class MyPageController {
         myPageService.updateNickname(userDetails.getUsername(), request.getNewNickname());
         return ResponseEntity.ok(new MessageResponse("닉네임이 성공적으로 변경되었습니다."));
     }
+
     @PatchMapping("/password")
     public ResponseEntity<MessageResponse> changePassword(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -76,6 +77,7 @@ public class MyPageController {
 
         return ResponseEntity.ok(new MessageResponse("비밀번호가 성공적으로 변경되었습니다."));
     }
+
     @DeleteMapping("/withdraw")
     public ResponseEntity<MessageResponse> withdrawUser(
             @AuthenticationPrincipal UserDetailsImpl userDetails) {

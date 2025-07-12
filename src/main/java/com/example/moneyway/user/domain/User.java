@@ -111,11 +111,21 @@ public class User {
     /**
      * 탈퇴 처리 및 개인정보 비식별화
      */
+    /**
+     * 탈퇴 처리 및 개인정보 비식별화
+     * - 고유성 제약조건(unique) 위반을 피하기 위해 ID를 사용하여 닉네임과 이메일을 고유하게 만듭니다.
+     */
     public void withdraw() {
+        // 1. 소프트 삭제 상태로 변경
         this.isDeleted = true;
-        this.email = null;
-        this.nickname = "탈퇴한 사용자";
+
+        // 2. 개인정보를 실제 값은 알 수 없지만, 고유성은 유지되는 값으로 변경
+        this.email = this.id + "@deleted.user"; // 예: "15@deleted.user"
+        this.nickname = "탈퇴한 사용자_" + this.id; // 예: "탈퇴한 사용자_15"
+
+        // 3. 나머지 개인 식별 정보 제거
         this.kakaoId = null;
         this.profileImageUrl = null;
+        this.password = null; // 비밀번호도 비워주는 것이 안전합니다.
     }
 }

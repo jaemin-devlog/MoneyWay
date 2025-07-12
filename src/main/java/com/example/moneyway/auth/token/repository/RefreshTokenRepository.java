@@ -20,6 +20,8 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
 
     // ✅ 실제 토큰 문자열로 조회 (재발급 시 사용)
     Optional<RefreshToken> findByRefreshToken(String refreshToken);
+
+    void deleteByUser(User user);
 }
 
 

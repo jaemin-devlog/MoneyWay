@@ -33,6 +33,7 @@ public enum ErrorCode {
     INVALID_PASSWORD_RESET_REQUEST(HttpStatus.BAD_REQUEST, "비밀번호 재설정 요청이 잘못되었습니다."),
     INVALID_VERIFICATION_CODE(HttpStatus.BAD_REQUEST, "인증코드가 올바르지 않습니다. 다시 확인해주세요."),
     VERIFICATION_CODE_EXPIRED(HttpStatus.UNAUTHORIZED, "인증코드가 만료되었습니다. 다시 요청해주세요."),
+    EMAIL_NOT_VERIFIED(HttpStatus.BAD_REQUEST, "이메일 인증이 완료되지 않았습니다. 인증을 먼저 진행해주세요."),
 
     // ================= USER: 인증 및 권한 =================
     JWT_EXPIRED(HttpStatus.UNAUTHORIZED, "로그인 정보가 만료되었습니다. 다시 로그인해주세요."),

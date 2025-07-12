@@ -8,7 +8,6 @@ import com.example.moneyway.common.exception.CustomException.CustomUserException
 import com.example.moneyway.common.exception.ErrorCode;
 import com.example.moneyway.user.domain.LoginType;
 import com.example.moneyway.user.domain.User;
-import com.example.moneyway.user.dto.request.FindPasswordRequest;
 import com.example.moneyway.user.dto.request.LoginRequest;
 import com.example.moneyway.user.dto.request.ResetPasswordRequest;
 import com.example.moneyway.user.dto.request.SignupRequest;
@@ -34,14 +33,13 @@ public class UserAuthService {
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenRepository refreshTokenRepository;
     private final EmailCodeService emailCodeService;
+
     /**
      * 이메일 기반 회원가입을 처리하고, 토큰과 사용자 정보를 반환합니다.
      */
     public AuthResponse signup(SignupRequest request) {
         User user = userService.createEmailUser(request.getEmail(), request.getPassword(), request.getNickname());
-        TokenInfo tokenInfo = generateTokens(user); //JWT토큰 발급
-
-        // record의 접근자 메서드(refreshToken()) 사용
+        TokenInfo tokenInfo = generateTokens(user);
         saveOrUpdateRefreshToken(user, tokenInfo.refreshToken());
 
         return AuthResponse.builder()
@@ -61,7 +59,6 @@ public class UserAuthService {
         }
 
         TokenInfo tokenInfo = generateTokens(user);
-        //  record의 접근자 메서드(refreshToken()) 사용
         saveOrUpdateRefreshToken(user, tokenInfo.refreshToken());
 
         return AuthResponse.builder()
@@ -69,6 +66,7 @@ public class UserAuthService {
                 .userInfo(UserResponse.from(user))
                 .build();
     }
+
     public void logout(String email) {
         User user = userService.findByEmail(email);
         refreshTokenRepository.findByUserId(user.getId())
@@ -76,15 +74,8 @@ public class UserAuthService {
     }
 
     public void sendPasswordResetCode(String email) {
-        // 1. 이메일로 사용자를 찾습니다.
         User user = userService.findByEmail(email);
-
-        // 2. 소셜 로그인(카카오) 계정인지 확인합니다.
-        if (user.getLoginType() != LoginType.EMAIL) {
-            throw new CustomUserException(ErrorCode.KAKAO_ACCOUNT_LOGIN);
-        }
-
-        // 3. 모든 확인이 끝나면, 해당 이메일로 인증코드를 발송합니다.
+        validateEmailAccount(user); // ✅ 중복 로직을 메서드로 대체
         emailCodeService.sendCode(email);
     }
 
@@ -92,11 +83,13 @@ public class UserAuthService {
      * 실제 비밀번호를 재설정합니다.
      */
     public void resetPassword(ResetPasswordRequest request) {
-        User user = userService.findByEmail(request.getEmail());
+        // ✅ 1. 이메일 인증이 완료되었는지 먼저 확인
+        emailCodeService.checkVerificationStatus(request.getEmail());
 
-        if (user.getLoginType() != LoginType.EMAIL) {
-            throw new CustomUserException(ErrorCode.KAKAO_ACCOUNT_LOGIN);
-        }
+        // 2. 사용자 정보 조회 및 기존 검증 로직 수행
+        User user = userService.findByEmail(request.getEmail());
+        validateEmailAccount(user); // ✅ 중복 로직을 메서드로 대체
+
         if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
             throw new CustomUserException(ErrorCode.PASSWORD_SAME_AS_BEFORE);
         }
@@ -110,8 +103,6 @@ public class UserAuthService {
     private TokenInfo generateTokens(User user) {
         String accessToken = tokenProvider.generateToken(user, Duration.ofHours(1));
         String refreshToken = tokenProvider.generateToken(user, Duration.ofDays(14));
-
-        // [수정] record는 builder 대신 생성자를 직접 호출
         return new TokenInfo("Bearer", accessToken, refreshToken);
     }
 
@@ -122,7 +113,15 @@ public class UserAuthService {
         RefreshToken refreshToken = refreshTokenRepository.findByUserId(user.getId())
                 .map(token -> token.update(newRefreshToken))
                 .orElse(new RefreshToken(user, newRefreshToken));
-
         refreshTokenRepository.save(refreshToken);
+    }
+
+    /**
+     * ✅ [신규] 소셜 로그인 계정이 아닌지 검증하는 private 헬퍼 메서드
+     */
+    private void validateEmailAccount(User user) {
+        if (user.getLoginType() != LoginType.EMAIL) {
+            throw new CustomUserException(ErrorCode.KAKAO_ACCOUNT_LOGIN);
+        }
     }
 }
