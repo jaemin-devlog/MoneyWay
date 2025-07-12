@@ -54,6 +54,7 @@ public class WebSecurityConfig {
                                 "/oauth2/**",         // OAuth2 처리 경로
                                 "/error",             // Spring Boot 기본 에러 페이지
                                 "/swagger-ui/**",
+                                "/api/admin",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**"
                         ).permitAll()
