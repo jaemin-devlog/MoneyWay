@@ -2,24 +2,22 @@ package com.example.moneyway.place.domain;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.Transient; // Import added
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
-/**
- * ✅ Place 엔티티를 상속받는 맛집 엔티티.
- * @Table 어노테이션을 제거하여 JPA의 JOINED 상속 전략을 따르도록 합니다.
- * 이제 이 엔티티는 'restaurant_jeju' 테이블과 매핑됩니다.
- */
+import java.util.Collections;
+import java.util.List;
+
 @Entity
 @Getter
-@SuperBuilder // ✅ 상속 관계 빌더
+@SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED) // ✅ SuperBuilder가 사용할 생성자
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @PrimaryKeyJoinColumn(name = "place_pk_id")
-// ✅ @Table 어노테이션이 제거되어 JPA 상속 전략을 따름
 public class RestaurantJeju extends Place {
 
     private String address;
@@ -27,17 +25,56 @@ public class RestaurantJeju extends Place {
     private String review;
     private String menu;
     private String url;
-    private String img;
-    private String tel;
-    private String price2;
+
+    private String thumbnailUrl;
+
+    private String priceInfo;
+
     private String categoryCode;
 
-    /**
-     * ✅ Place 추상 메서드 구현
-     * - RestaurantJeju의 주소는 'address' 필드를 사용합니다.
-     */
+    @Override
+    protected PlaceCategory calculateCategory() {
+        if ("c2".equals(this.categoryCode)) {
+            return PlaceCategory.CAFE;
+        }
+        return PlaceCategory.RESTAURANT;
+    }
+
+    @Override
+    public String getDisplayPrice() {
+        if (this.priceInfo == null || this.priceInfo.isBlank()) {
+            return "가격 정보 없음";
+        }
+        String prefix = PlaceCategory.CAFE.equals(getCategory()) ? "약 " : "평균 ";
+        return prefix + this.priceInfo + "원";
+    }
+
     @Override
     public String getAddress() {
         return this.address;
+    }
+
+    @Override
+    public String getThumbnailUrl() {
+        return this.thumbnailUrl;
+    }
+
+    @Override
+    @Transient
+    public List<String> getImageUrls() {
+        if (this.thumbnailUrl == null || this.thumbnailUrl.isBlank()) {
+            return Collections.emptyList();
+        }
+        return List.of(this.thumbnailUrl);
+    }
+
+    @Override
+    public String getDescription() {
+        return null; // 맛집/카페에는 별도의 상세 설명이 없음
+    }
+
+    @Override
+    public String getMenu() {
+        return this.menu;
     }
 }

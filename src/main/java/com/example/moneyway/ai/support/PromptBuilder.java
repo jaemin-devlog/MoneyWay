@@ -80,7 +80,7 @@ public class PromptBuilder {
                         .forEach(place -> sb.append("- ")
                                 .append(place.getTitle())
                                 // ✅ [수정] getPrice()를 getPrice2()로 변경
-                                .append(" (").append(place.getPrice2()).append("원)\n"));
+                                .append(" (").append(place.getPriceInfo()).append("원)\n"));
             }
         }
         return sb.toString();

@@ -1,70 +1,99 @@
 package com.example.moneyway.cart.domain;
 
-import com.example.moneyway.common.domain.BaseTimeEntity;
-import com.example.moneyway.place.domain.PlaceType;
-import com.example.moneyway.plan.domain.Plan;
-import com.example.moneyway.user.domain.User;
+import com.example.moneyway.place.domain.Place;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/**
- * 특정 여행 계획(Plan)에 속한 장바구니 항목을 나타내는 엔티티.
- * 사용자가 선택한 장소와 직접 입력한 예상 비용, 메모 등을 관리한다.
- */
+import java.util.Objects;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class CartItem extends BaseTimeEntity {
+@Table(
+        uniqueConstraints = @UniqueConstraint(
+                name = "uk_cart_item_cart_place", // (cart_id, place_id) 복합 유니크
+                columnNames = {"cart_id", "place_id"}
+        )
+)
+public class CartItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 이 항목이 어떤 여행 계획에 속해있는지 명시 (가장 중요한 관계)
+    // Cart N:1
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plan_id", nullable = false)
-    private Plan plan;
+    @JoinColumn(name = "cart_id", nullable = false)
+    private Cart cart;
 
-    // 어떤 사용자의 항목인지 (보안 및 편의를 위해 추가)
+    // Place N:1 (JEJU_RESTAURANT, TOUR_PLACE 등 상속 가능)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "place_id", nullable = false)
+    private Place place;
 
-    // 어떤 장소인지 (두 종류의 장소를 모두 담기 위함)
-    @Column(name = "place_id", nullable = false)
-    private String placeId;
+    // 수량 (최소 1 이상)
+    @Column(nullable = false)
+    private int quantity;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "place_type", nullable = false)
-    private PlaceType placeType;
-
-    // 사용자가 직접 입력하는 예상 비용
-    @Column(name = "estimated_cost")
-    private int estimatedCost;
-
-    // 사용자가 남기는 간단한 메모 (예: "점심 식사", "입장권 예매 필수")
-    @Column(length = 100)
-    private String memo;
+    // 장소 가격 스냅샷 (단위: 원)
+    @Column(nullable = false)
+    private int price;
 
     @Builder
-    public CartItem(Plan plan, User user, String placeId, PlaceType placeType, int estimatedCost, String memo) {
-        this.plan = plan;
-        this.user = user;
-        this.placeId = placeId;
-        this.placeType = placeType;
-        this.estimatedCost = estimatedCost;
-        this.memo = memo;
+    public CartItem(Cart cart, Place place, int quantity, int price) {
+        if (quantity <= 0) throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
+        if (price < 0) throw new IllegalArgumentException("가격은 0 이상이어야 합니다.");
+        this.cart = cart;
+        this.place = place;
+        this.quantity = quantity;
+        this.price = price;
     }
 
-    //== 비즈니스 메서드 ==//
-    /**
-     * 예상 비용과 메모 수정
-     */
-    public void update(int newEstimatedCost, String newMemo) {
-        this.estimatedCost = newEstimatedCost;
-        this.memo = newMemo;
+    // 수량 추가
+    public void addQuantity(int quantity) {
+        if (quantity < 0) throw new IllegalArgumentException("추가 수량은 0 이상이어야 합니다.");
+        this.quantity += quantity;
+    }
+
+    // 수량 변경
+    public void updateQuantity(int newQuantity) {
+        if (newQuantity <= 0) throw new IllegalArgumentException("수량은 1 이상이어야 합니다.");
+        this.quantity = newQuantity;
+    }
+
+    protected void setCart(Cart cart) {
+        this.cart = cart;
+    }
+
+    // 개별 항목의 총 가격 반환
+    public int getTotalPrice() {
+        return this.quantity * this.price;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        CartItem cartItem = (CartItem) o;
+        return this.id != null && this.id.equals(cartItem.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "CartItem{" +
+                "id=" + id +
+                ", cartId=" + (cart != null ? cart.getId() : "null") +
+                ", placeId=" + (place != null ? place.getId() : "null") +
+                ", quantity=" + quantity +
+                ", price=" + price +
+                '}';
     }
 }

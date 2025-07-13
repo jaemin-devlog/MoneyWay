@@ -1,73 +1,107 @@
 package com.example.moneyway.place.controller;
 
-import com.example.moneyway.common.exception.CustomException.CustomFileException;
-import com.example.moneyway.common.exception.ErrorCode;
 import com.example.moneyway.place.dto.response.ExcelUploadResult;
-import com.example.moneyway.place.service.AdminDataService; // [수정] 통합된 서비스 주입
+import com.example.moneyway.place.service.AdminDataService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-@Tag(name = "Admin Data Management", description = "데이터 동기화 및 업로드 API")
-@Slf4j
+import java.util.List;
+
+@Tag(name = "Admin Data Management", description = "데이터 동기화 및 업로드 API (관리자용)")
+// @SecurityRequirement(name = "bearerAuth") // ✅ [수정] 인증 요구사항 제거
 @RestController
 @RequestMapping("/api/admin")
 @RequiredArgsConstructor
+@Slf4j
 public class AdminDataController {
 
     private final AdminDataService adminDataService;
+    private static final List<String> ALLOWED_EXCEL_TYPES = List.of(
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+            "application/vnd.ms-excel"  // .xls
+    );
 
-    @Operation(summary = "TourAPI 전체 데이터 동기화")
+    /**
+     * API의 모든 성공 응답을 위한 표준 래퍼(Wrapper) DTO입니다.
+     * Record를 사용하여 불변(Immutable)하고 간결하게 정의했습니다.
+     */
+    @Getter
+    @Schema(description = "API 성공 응답 래퍼")
+    public static class SuccessResponse<T> {
+        @Schema(description = "응답 메시지", example = "작업이 성공적으로 시작되었습니다.")
+        private final String message;
+
+        @Schema(description = "응답 데이터 (없을 경우 null)")
+        private final T data;
+
+        private SuccessResponse(String message, T data) {
+            this.message = message;
+            this.data = data;
+        }
+
+        // 데이터가 없는 성공 응답을 위한 정적 팩토리 메서드
+        public static SuccessResponse<Void> withMessage(String message) {
+            return new SuccessResponse<>(message, null);
+        }
+
+        // 데이터가 있는 성공 응답을 위한 정적 팩토리 메서드
+        public static <T> SuccessResponse<T> withData(String message, T data) {
+            return new SuccessResponse<>(message, data);
+        }
+    }
+
+    @Operation(summary = "TourAPI 전체 데이터 동기화", description = "백그라운드에서 TourAPI의 모든 장소 정보를 가져와 DB에 저장합니다. (시간 소요)")
+    @ApiResponse(responseCode = "200", description = "동기화 작업이 성공적으로 시작됨",
+            content = @Content(schema = @Schema(implementation = SuccessResponse.class)))
     @PostMapping("/sync/tour-all")
-    public ResponseEntity<String> syncAllTourData() {
-        // [수정] adminDataService 호출
+    public ResponseEntity<SuccessResponse<Void>> syncAllTourData() {
+        // ✅ 서비스 계층의 해당 메서드는 @Async로 비동기 처리되어야 합니다.
         adminDataService.syncAllTourData();
-        return ResponseEntity.ok("제주 관광 데이터를 DB에 저장했습니다.");
+        return ResponseEntity.ok(SuccessResponse.withMessage("TourAPI 전체 데이터 동기화 작업이 시작되었습니다. 완료까지 시간이 소요될 수 있습니다."));
     }
 
-    @Operation(summary = "TourAPI 소개 정보 동기화")
-    @PostMapping("/sync/tour-intro")
-    public ResponseEntity<String> syncAllTourIntros() {
-        // [수정] adminDataService 호출 및 메서드명 일관성 통일
-        adminDataService.syncAllTourIntros();
-        return ResponseEntity.ok("소개 정보가 저장되었습니다.");
-    }
-
-    @Operation(summary = "TourAPI 상세 정보 동기화")
+    @Operation(summary = "TourAPI 상세 정보 동기화", description = "백그라운드에서 모든 관광지의 상세 정보를 업데이트합니다. (시간 소요)")
+    @ApiResponse(responseCode = "200", description = "동기화 작업이 성공적으로 시작됨",
+            content = @Content(schema = @Schema(implementation = SuccessResponse.class)))
     @PostMapping("/sync/tour-detail")
-    public ResponseEntity<String> syncAllTourDetails() {
-        // [수정] adminDataService 호출 및 메서드명 일관성 통일
+    public ResponseEntity<SuccessResponse<Void>> syncAllTourDetails() {
         adminDataService.syncAllTourDetails();
-        return ResponseEntity.ok("상세 정보가 저장되었습니다.");
+        return ResponseEntity.ok(SuccessResponse.withMessage("TourAPI 상세 정보 동기화 작업이 시작되었습니다."));
     }
 
-    @Operation(summary = "관광지 가격 정보 엑셀 업로드")
-    @PostMapping("/upload/tour-prices")
-    public ResponseEntity<String> uploadTourPrices(@RequestParam("file") MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new CustomFileException(ErrorCode.FILE_IS_EMPTY);
-        }
-        // [수정] adminDataService 호출
-        adminDataService.loadPricesFromExcel(file);
-        return ResponseEntity.ok("가격 정보 업데이트를 성공적으로 완료했습니다.");
-    }
-
-    @Operation(summary = "다이닝코드 정보 엑셀 업로드")
+    @Operation(summary = "맛집 정보 엑셀 업로드", description = "엑셀 파일을 업로드하여 맛집 정보를 DB에 저장합니다.")
+    @ApiResponse(responseCode = "200", description = "업로드 및 처리 성공",
+            content = @Content(schema = @Schema(implementation = SuccessResponse.class)))
+    @ApiResponse(responseCode = "400", description = "파일이 비어있거나, 허용되지 않는 파일 형식인 경우", content = @Content)
     @PostMapping("/upload/restaurants")
-    // ✅ [개선] 단순 문자열 대신, 처리 결과를 담은 객체를 반환하여 클라이언트에게 더 유용한 정보를 제공합니다.
-    public ResponseEntity<ExcelUploadResult> uploadRestaurantData(@RequestParam("file") MultipartFile file) {
-        if (file.isEmpty()) {
-            throw new CustomFileException(ErrorCode.FILE_IS_EMPTY);
-        }
-        // [수정] adminDataService 호출
+    public ResponseEntity<SuccessResponse<ExcelUploadResult>> uploadRestaurantData(@RequestParam("file") MultipartFile file) {
+        validateFile(file);
         ExcelUploadResult result = adminDataService.loadRestaurantsFromExcel(file);
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(SuccessResponse.withData("파일이 성공적으로 처리되었습니다.", result));
+    }
+
+    /**
+     * 업로드된 파일의 유효성을 검증하는 private 헬퍼 메서드
+     * - 파일 존재 여부와 허용된 MIME 타입인지 확인합니다.
+     */
+    private void validateFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("업로드할 파일이 비어있습니다.");
+        }
+
+        String contentType = file.getContentType();
+        if (!ALLOWED_EXCEL_TYPES.contains(contentType)) {
+            log.warn("허용되지 않은 파일 타입 업로드 시도: {}", contentType);
+            throw new IllegalArgumentException("엑셀 파일(.xls, .xlsx)만 업로드할 수 있습니다.");
+        }
     }
 }

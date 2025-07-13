@@ -5,18 +5,18 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
-/**
- * ✅ TourAPI 명세를 완벽하게 준수하는 장소 엔티티
- * - Place를 상속하여 다형성 확보
- * - TourAPI의 모든 필드명(addr1, tel 등)을 그대로 유지
- */
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
 @Getter
-@Setter // 외부 API 동기화를 위한 Setter 유지
-@SuperBuilder // 상속 관계 빌더
+@Setter // TourUpdateHelper에서 필드를 업데이트하기 위해 필요
+@SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED) // ✅ SuperBuilder가 사용할 생성자
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @PrimaryKeyJoinColumn(name = "place_pk_id")
 @Table(name = "tour_place")
 public class TourPlace extends Place {
@@ -37,20 +37,69 @@ public class TourPlace extends Place {
     private String cat3;
     private String mlevel;
     private String sigungucode;
-    @Column(columnDefinition = "TEXT")
 
-    // --- 가격 정보 및 상세 정보 필드 ---
-    private String price2;
+    private String priceInfo;
 
     @Column(columnDefinition = "TEXT")
     private String infotext;
 
-    /**
-     * ✅ Place 추상 메서드 구현
-     * - TourPlace의 실제 주소는 addr1 필드를 따름
-     */
+    @Override
+    protected PlaceCategory calculateCategory() {
+        if (this.contenttypeid == null) {
+            return PlaceCategory.TOURIST_ATTRACTION;
+        }
+        return switch (this.contenttypeid) {
+            case "32" -> PlaceCategory.ACCOMMODATION;
+            case "38" -> PlaceCategory.SHOPPING;
+            case "28" -> PlaceCategory.ACTIVITY;
+            default -> PlaceCategory.TOURIST_ATTRACTION;
+        };
+    }
+
+    @Override
+    public String getDisplayPrice() {
+        if (this.priceInfo == null || this.priceInfo.isBlank()) {
+            if (PlaceCategory.ACCOMMODATION.equals(getCategory())) {
+                return "가격 문의";
+            }
+            return "무료";
+        }
+
+        return switch (getCategory()) {
+            case ACCOMMODATION -> this.priceInfo + "원~";
+            case ACTIVITY, SHOPPING, TOURIST_ATTRACTION -> "입장료 " + this.priceInfo + "원";
+            default -> this.priceInfo + "원";
+        };
+    }
+
     @Override
     public String getAddress() {
         return this.addr1;
+    }
+
+    @Override
+    public String getThumbnailUrl() {
+        if (this.firstimage != null && !this.firstimage.isBlank()) {
+            return this.firstimage;
+        }
+        return this.firstimage2;
+    }
+
+    @Override
+    public List<String> getImageUrls() {
+        return Stream.of(this.firstimage, this.firstimage2)
+                .filter(Objects::nonNull)
+                .filter(url -> !url.isBlank())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public String getDescription() {
+        return this.infotext;
+    }
+
+    @Override
+    public String getMenu() {
+        return null;
     }
 }

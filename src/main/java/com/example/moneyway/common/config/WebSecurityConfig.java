@@ -10,6 +10,7 @@ import com.example.moneyway.common.exception.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -46,19 +47,28 @@ public class WebSecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 인증 없이 접근을 허용할 경로들 (정확하게 명시)
+                        // 1. 인증/보안 관련 경로 허용
                         .requestMatchers(
-                                "api/**",
-                                "/api/auth/**",       // 인증(로그인, 회원가입, 토큰 갱신) 관련 API
-                                "/login/**",          // 소셜 로그인 리다이렉션 경로
-                                "/oauth2/**",         // OAuth2 처리 경로
-                                "/error",             // Spring Boot 기본 에러 페이지
+                                "/api/auth/**",
+                                "/login/**",
+                                "/oauth2/**",
+                                "/error"
+                        ).permitAll()
+
+                        // 2. API 문서(Swagger) 관련 경로 허용
+                        .requestMatchers(
                                 "/swagger-ui/**",
-                                "/api/admin",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**"
                         ).permitAll()
-                        // 위 경로를 제외한 모든 요청은 반드시 인증을 거쳐야 합니다.
+
+                        // 3. 관리자용 API 전체 허용
+                        .requestMatchers("/api/admin/**").permitAll()
+
+                        // 4. 일반 사용자용 공개 API 허용 ㅋ
+                        .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll()
+
+                        // 5. 위에서 지정한 경로 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2

@@ -5,18 +5,16 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder; // SuperBuilder 임포트
+import lombok.experimental.SuperBuilder;
 
-/**
- * ✅ 장소의 공통 속성을 정의하는 추상 엔티티
- * - title, tel 등 공통 필드 관리
- * - getAddress() 추상 메서드를 통해 하위 클래스가 주소를 제공하도록 강제
- */
+import java.util.List;
+import java.util.Objects;
+
 @Entity
 @Getter
-@SuperBuilder // ✅ [수정] 상속 관계를 위해 @SuperBuilder 추가
+@SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@AllArgsConstructor(access = AccessLevel.PROTECTED) // ✅ [추가] SuperBuilder가 사용할 생성자
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "dtype")
 public abstract class Place {
@@ -24,17 +22,50 @@ public abstract class Place {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "place_pk_id")
-    private Long id; // 시스템 내부에서 사용하는 공통 PK
+    private Long id;
 
     @Column(nullable = false, length = 255)
-    private String title; // 공통 필드: 장소명
+    private String title;
 
-    private String tel; // 공통 필드: 전화번호
+    private String tel;
 
-    /**
-     * 주소를 반환하는 추상 메서드.
-     * 모든 하위 클래스는 이 메서드를 반드시 구현해야 합니다.
-     * TourPlace는 addr1을, RestaurantJeju는 address를 반환하게 됩니다.
-     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    private PlaceCategory category;
+
+    @PrePersist
+    @PreUpdate
+    public void updateCategory() {
+        this.category = calculateCategory();
+    }
+
+    protected abstract PlaceCategory calculateCategory();
+
+    public PlaceCategory getCategory() {
+        return this.category;
+    }
+
+    public abstract String getDisplayPrice();
+
     public abstract String getAddress();
+
+    public abstract String getThumbnailUrl();
+
+    public abstract List<String> getImageUrls();
+
+    public abstract String getDescription();
+
+    public abstract String getMenu();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Place place)) return false;
+        return Objects.equals(this.id, place.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }
