@@ -102,4 +102,8 @@ public class TourPlace extends Place {
     public String getMenu() {
         return null;
     }
+
+    public void updatePriceInfo(String newPriceInfo) {
+        this.priceInfo = newPriceInfo;
+    }
 }

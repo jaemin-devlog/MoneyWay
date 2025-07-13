@@ -49,6 +49,7 @@ public class AdminDataService {
     private static final String HEADER_PRICE_INFO = "price2";
     private static final String HEADER_THUMBNAIL_URL = "img";
     private static final String HEADER_CATEGORY_CODE = "category_code";
+    private static final String HEADER_CONTENT_ID = "contentid"; // ✅ [추가] 관광지 가격 업데이트용 헤더
     private static final int TOUR_API_FETCH_SIZE = 100;
     private static final int DB_QUERY_BATCH_SIZE = 1000;
 
@@ -59,10 +60,7 @@ public class AdminDataService {
     private final TourUpdateHelper tourUpdateHelper;
     private final ExecutorService dataSyncTaskExecutor;
 
-    /**
-     * TourAPI에서 페이징을 통해 새로운 관광지 데이터를 동기화합니다.
-     * 이미 DB에 존재하는 데이터는 건너뜁니다.
-     */
+    // ... syncAllTourData, syncAllTourDetails 메서드는 변경 없이 그대로 유지 ...
     @Async("dataSyncTaskExecutor")
     public void syncAllTourData() {
         log.info("TourAPI 전체 데이터 동기화 작업을 시작합니다...");
@@ -107,27 +105,11 @@ public class AdminDataService {
         long endTime = System.currentTimeMillis();
         log.info("TourAPI 전체 데이터 동기화 완료. 총 저장된 새 관광지: {}건 (소요 시간: {}ms)", totalSavedCount.get(), (endTime - startTime));
     }
-    /**
-     * 장소 상세 정보(infotext 포함)를 병렬로 동기화합니다.
-     */
+
     public void syncAllTourDetails() {
         syncTourDataInParallel("상세 정보", tourUpdateHelper::updatePlaceDetail);
     }
 
-    /**
-     * ✅ [수정] 이 메서드는 더 이상 필요 없으므로 삭제합니다.
-     * '소개 정보' 동기화는 '상세 정보' 동기화에 통합되었습니다.
-     */
-    // public void syncAllTourIntros() {
-    //     syncTourDataInParallel("소개 정보", tourUpdateHelper::updatePlaceIntro);
-    // }
-
-    /**
-     * 엑셀 파일을 읽어 새로운 맛집/카페 데이터를 DB에 저장합니다.
-     *
-     * @param file 업로드된 엑셀 파일
-     * @return 처리 결과 DTO
-     */
     public ExcelUploadResult loadRestaurantsFromExcel(MultipartFile file) {
         if (file == null || file.isEmpty()) {
             throw new CustomFileException(ErrorCode.FILE_IS_EMPTY);
@@ -164,11 +146,67 @@ public class AdminDataService {
         }
     }
 
+    /**
+     * ✅ [추가] 엑셀 파일을 읽어 기존 관광지의 가격 정보를 업데이트합니다.
+     *
+     * @param file contentid와 priceInfo(price2) 컬럼을 포함하는 엑셀 파일
+     * @return 처리 결과 DTO
+     */
+    public ExcelUploadResult updateTourPlacePricesFromExcel(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new CustomFileException(ErrorCode.FILE_IS_EMPTY);
+        }
+
+        try (InputStream is = file.getInputStream(); Workbook workbook = new XSSFWorkbook(is)) {
+            Sheet sheet = workbook.getSheetAt(0);
+            // 엑셀에 'contentid'와 'price2' 헤더가 있는지 확인
+            Map<String, Integer> columnIndexMap = findExcelColumnIndices(sheet.getRow(0), HEADER_CONTENT_ID, HEADER_PRICE_INFO);
+
+            // 1. 엑셀에서 업데이트할 가격 정보 읽기 (contentId -> priceInfo)
+            Map<String, String> priceUpdates = readPriceUpdatesFromSheet(sheet, columnIndexMap);
+            if (priceUpdates.isEmpty()) {
+                return new ExcelUploadResult(0, 0, 0, Collections.emptyList());
+            }
+
+            // 2. DB에서 업데이트 대상이 될 TourPlace 엔티티들을 한 번에 조회
+            List<TourPlace> placesToUpdate = placeRepository.findTourPlacesByContentIds(priceUpdates.keySet());
+            Map<String, TourPlace> placeMap = placesToUpdate.stream()
+                    .collect(Collectors.toMap(TourPlace::getContentid, place -> place));
+
+            // 3. 가격 정보 업데이트 및 결과 집계
+            AtomicInteger successCount = new AtomicInteger(0);
+            List<String> notFoundContentIds = new ArrayList<>();
+
+            priceUpdates.forEach((contentId, newPrice) -> {
+                TourPlace place = placeMap.get(contentId);
+                if (place != null) {
+                    place.updatePriceInfo(newPrice); // 엔티티 내부 메서드로 상태 변경
+                    successCount.incrementAndGet();
+                } else {
+                    notFoundContentIds.add(contentId);
+                }
+            });
+
+            // 4. 최종 결과 리포트 생성
+            // @Transactional에 의해 변경된 엔티티는 자동으로 DB에 반영됨 (save 호출 불필요)
+            log.info("관광지 가격 정보 업데이트 완료. 총 요청: {}, 성공: {}, 실패: {}",
+                    priceUpdates.size(), successCount.get(), notFoundContentIds.size());
+
+            return new ExcelUploadResult(priceUpdates.size(), successCount.get(), notFoundContentIds.size(), notFoundContentIds);
+
+        } catch (IOException e) {
+            log.error("관광지 가격 엑셀 파일 처리 중 I/O 오류 발생", e);
+            throw new CustomFileException(ErrorCode.FILE_PROCESSING_ERROR, e);
+        } catch (IllegalArgumentException e) {
+            log.error("엑셀 파일 처리 중 유효하지 않은 인자: {}", e.getMessage());
+            throw new CustomFileException(ErrorCode.INVALID_FILE_FORMAT, e);
+        }
+    }
+
+
     // --- Private Helper Methods ---
 
-    /**
-     * 병렬 동기화 공통 로직을 처리하는 private 헬퍼 메서드
-     */
+    // ... syncTourDataInParallel, readUniqueRestaurantsFromSheet 등 기존 헬퍼 메서드는 변경 없이 그대로 유지 ...
     private void syncTourDataInParallel(String taskName, Consumer<TourPlace> updateAction) {
         log.info("장소 {} 병렬 동기화 작업을 시작합니다.", taskName);
         long startTime = System.currentTimeMillis();
@@ -198,9 +236,6 @@ public class AdminDataService {
         log.info("장소 {} 병렬 동기화 완료. 총 {}건 처리. (소요 시간: {}ms)", taskName, totalSize, (endTime - startTime));
     }
 
-    /**
-     * 엑셀 시트에서 데이터를 읽어, 파일 내 중복을 제거한 맛집 후보 맵을 생성합니다.
-     */
     private Map<String, RestaurantJeju> readUniqueRestaurantsFromSheet(Sheet sheet, Map<String, Integer> columnIndexMap) {
         Map<String, RestaurantJeju> candidates = new LinkedHashMap<>();
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
@@ -218,9 +253,6 @@ public class AdminDataService {
         return candidates;
     }
 
-    /**
-     * DB에 이미 존재하는 맛집의 고유 키 목록을 배치 단위로 조회합니다.
-     */
     private Set<String> findExistingRestaurantKeysInBatches(List<String> candidateKeys) {
         Set<String> existingKeys = new HashSet<>();
         for (int i = 0; i < candidateKeys.size(); i += DB_QUERY_BATCH_SIZE) {
@@ -230,9 +262,6 @@ public class AdminDataService {
         return existingKeys;
     }
 
-    /**
-     * 전체 후보 중 DB에 존재하지 않는 새로운 맛집 목록만 필터링합니다.
-     */
     private List<RestaurantJeju> filterNewRestaurants(Map<String, RestaurantJeju> candidates, Set<String> existingKeys) {
         return candidates.keySet().stream()
                 .filter(key -> !existingKeys.contains(key))
@@ -240,9 +269,6 @@ public class AdminDataService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * 엑셀 업로드 처리 결과를 담는 DTO를 생성합니다.
-     */
     private ExcelUploadResult buildUploadResult(int totalCount, int successCount, Set<String> skippedKeys) {
         int skippedCount = totalCount - successCount;
         List<String> skippedRows = skippedKeys.stream()
@@ -251,6 +277,26 @@ public class AdminDataService {
         return new ExcelUploadResult(totalCount, successCount, skippedCount, skippedRows);
     }
 
+    /**
+     * ✅ [추가] 엑셀 시트에서 contentId와 priceInfo를 읽어 맵으로 반환하는 헬퍼 메서드
+     */
+    private Map<String, String> readPriceUpdatesFromSheet(Sheet sheet, Map<String, Integer> columnIndexMap) {
+        Map<String, String> priceUpdates = new HashMap<>();
+        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            Row row = sheet.getRow(i);
+            if (row == null) continue;
+
+            String contentId = getStringValue(row, columnIndexMap, HEADER_CONTENT_ID);
+            String priceInfo = getStringValue(row, columnIndexMap, HEADER_PRICE_INFO);
+
+            if (!contentId.isBlank()) {
+                priceUpdates.put(contentId, priceInfo);
+            }
+        }
+        return priceUpdates;
+    }
+
+    // ... mapItemToTourPlace, buildRestaurantFromRow 등 나머지 헬퍼 메서드는 변경 없이 그대로 유지 ...
     private TourPlace mapItemToTourPlace(TourApiResponseDto.Item item) {
         return TourPlace.builder()
                 .title(item.title())

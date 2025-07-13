@@ -68,4 +68,5 @@ public abstract class Place {
     public int hashCode() {
         return Objects.hash(id);
     }
+
 }

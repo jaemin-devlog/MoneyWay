@@ -88,7 +88,17 @@ public class AdminDataController {
         ExcelUploadResult result = adminDataService.loadRestaurantsFromExcel(file);
         return ResponseEntity.ok(SuccessResponse.withData("파일이 성공적으로 처리되었습니다.", result));
     }
-
+    @Operation(summary = "관광지 가격 정보 엑셀 업로드", description = "엑셀 파일을 업로드하여 기존 관광지의 가격 정보를 업데이트합니다. (contentId 기준)")
+    @ApiResponse(responseCode = "200", description = "업로드 및 업데이트 성공",
+            content = @Content(schema = @Schema(implementation = SuccessResponse.class)))
+    @ApiResponse(responseCode = "400", description = "파일이 비어있거나, 허용되지 않는 파일 형식인 경우", content = @Content)
+    @PostMapping("/upload/tour-prices")
+    public ResponseEntity<SuccessResponse<ExcelUploadResult>> uploadTourPlacePrices(@RequestParam("file") MultipartFile file) {
+        validateFile(file);
+        // 서비스에 새로운 메서드를 호출합니다.
+        ExcelUploadResult result = adminDataService.updateTourPlacePricesFromExcel(file);
+        return ResponseEntity.ok(SuccessResponse.withData("관광지 가격 정보가 성공적으로 업데이트되었습니다.", result));
+    }
     /**
      * 업로드된 파일의 유효성을 검증하는 private 헬퍼 메서드
      * - 파일 존재 여부와 허용된 MIME 타입인지 확인합니다.
