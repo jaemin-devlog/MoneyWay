@@ -57,6 +57,9 @@ public abstract class Place {
 
     public abstract String getMenu();
 
+    public abstract String getMapX(); // 경도(Longitude)
+
+    public abstract String getMapY(); // 위도(Latitude)
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

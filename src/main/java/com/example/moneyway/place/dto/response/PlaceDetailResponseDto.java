@@ -28,12 +28,15 @@ public record PlaceDetailResponseDto(
         String description,
 
         @Schema(description = "메뉴 정보", example = "흑돼지 2인분, 해물라면")
-        String menu
+        String menu,
+
+        // ✅ [개선] 위도와 경도 필드 추가
+        @Schema(description = "위도 (Y좌표)", example = "33.458023")
+        Double latitude,
+
+        @Schema(description = "경도 (X좌표)", example = "126.942653")
+        Double longitude
 ) {
-    /**
-     * Place 엔티티를 상세 DTO로 변환하는 정적 팩토리 메서드입니다.
-     * 다형성을 통해 Place 객체가 스스로 올바른 데이터를 제공합니다.
-     */
     public static PlaceDetailResponseDto from(Place place) {
         return new PlaceDetailResponseDto(
                 place.getId(),
@@ -42,8 +45,22 @@ public record PlaceDetailResponseDto(
                 place.getImageUrls(),
                 place.getCategory().getDisplayName(),
                 place.getDisplayPrice(),
-                place.getDescription(),
-                place.getMenu()
+                place.getDescription(), // TourPlace의 경우 infotext가 여기에 매핑됩니다.
+                place.getMenu(),
+                parseDouble(place.getMapY()), // 위도 = mapY
+                parseDouble(place.getMapX())  // 경도 = mapX
         );
+    }
+
+    // ✅ [개선] 문자열 좌표를 Double로 안전하게 변환하는 헬퍼 메서드
+    private static Double parseDouble(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            return null; // 변환 실패 시 null 반환
+        }
     }
 }

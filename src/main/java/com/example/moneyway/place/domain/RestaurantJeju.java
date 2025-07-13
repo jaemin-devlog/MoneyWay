@@ -74,6 +74,15 @@ public class RestaurantJeju extends Place {
     }
 
     @Override
+    public String getMapX() {
+        return null;
+    }
+
+    @Override
+    public String getMapY() {
+        return null;
+    }
+    @Override
     public String getMenu() {
         return this.menu;
     }

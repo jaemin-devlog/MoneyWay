@@ -107,4 +107,15 @@ public class TourPlace extends Place {
     public void updatePriceInfo(String newPriceInfo) {
         this.priceInfo = newPriceInfo;
     }
+
+    @Override
+    public String getMapX() {
+        return this.mapx;
+    }
+
+    @Override
+    public String getMapY() {
+        return this.mapy;
+    }
+
 }

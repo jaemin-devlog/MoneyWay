@@ -21,11 +21,15 @@ public record PlaceInfoResponseDto(
         String categoryName,
 
         @Schema(description = "가격 정보 문자열", example = "입장료 5000원")
-        String priceInfo
+        String priceInfo,
+
+        // ✅ [개선] 위도와 경도 필드 추가
+        @Schema(description = "위도 (Y좌표)", example = "33.458023")
+        Double latitude,
+
+        @Schema(description = "경도 (X좌표)", example = "126.942653")
+        Double longitude
 ) {
-    /**
-     * Place 엔티티를 목록용 DTO로 변환하는 정적 팩토리 메서드입니다.
-     */
     public static PlaceInfoResponseDto from(Place place) {
         return new PlaceInfoResponseDto(
                 place.getId(),
@@ -33,7 +37,20 @@ public record PlaceInfoResponseDto(
                 place.getAddress(),
                 place.getThumbnailUrl(),
                 place.getCategory().getDisplayName(),
-                place.getDisplayPrice()
+                place.getDisplayPrice(),
+                parseDouble(place.getMapY()),
+                parseDouble(place.getMapX())
         );
+    }
+
+    private static Double parseDouble(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }
