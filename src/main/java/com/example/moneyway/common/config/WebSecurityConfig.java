@@ -49,6 +49,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 1. 인증/보안 관련 경로 허용
                         .requestMatchers(
+                                "api/**",
                                 "/api/auth/**",
                                 "/login/**",
                                 "/oauth2/**",
@@ -65,7 +66,7 @@ public class WebSecurityConfig {
                         // 3. 관리자용 API 전체 허용
                         .requestMatchers("/api/admin/**").permitAll()
 
-                        // 4. 일반 사용자용 공개 API 허용 ㅋ
+                        // 4. 일반 사용자용 공개 API 허용 
                         .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll()
 
                         // 5. 위에서 지정한 경로 외 모든 요청은 인증 필요
