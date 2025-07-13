@@ -1,13 +1,15 @@
-/*
- * 여행 일정표에서 하루의 순서와 시간대별로 어떤 장소를 방문하는지 정의하는 엔티티.
- * 특정 Plan(여행 계획)에 포함된 Place의 방문 순서, 비용, 소요 시간 등의 정보를 관리한다.
- */
+// 📦 PlanPlace.java
 package com.example.moneyway.place.domain;
 
 import com.example.moneyway.plan.domain.Plan;
 import jakarta.persistence.*;
 import lombok.*;
 
+/**
+ * ✅ 여행 계획에 따라 확정된 장소 배치 정보
+ * - 각 Plan의 특정 날짜와 시간대에 어떤 Place를 방문할지를 기록
+ * - 장소는 다형성 기반의 Place로 참조됨 (TourPlace, RestaurantJeju 등 모두 가능)
+ */
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -19,41 +21,38 @@ public class PlanPlace {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** 여행 계획(Plan)과 N:1 연관관계 */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plan_id")
-    private Plan plan;
+    @JoinColumn(name = "plan_id", nullable = false)
+    private Plan plan; // 소속된 여행 계획
 
-    /** Place 엔티티 연동 (만약 없다면 Long 필드로) */
-    @Column(name = "place_id")
-    private Long placeId; // Place와 FK
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "place_pk_id", nullable = false)
+    private Place place; // 다형성 참조
 
-    /** 여행 며칠째(day 1, 2, 3 등) */
     @Column(name = "day_index")
-    private int dayIndex;
+    private int dayIndex; // n일차
 
-    /** 시간대 (varchar(20)) */
     @Column(name = "time_slot")
-    private String timeSlot;
+    private String timeSlot; // 예: "오전", "14:00"
 
-    /** 하루 중 순서 (order_index) */
     @Column(name = "order_index")
-    private int orderIndex;
+    private int orderIndex; // 당일 내 순서
 
-    /** 예상 비용 */
     @Column(name = "estimated_cost")
-    private int estimatedCost;
+    private int estimatedCost; // 예상 지출 비용
 
-    /** 예상 소요시간(분) */
     @Column(name = "estimated_time")
-    private int estimatedTime;
+    private int estimatedTime; // 예상 소요 시간 (분 단위)
 
-    public void update(int dayIndex, String timeSlot, int orderIndex, int estimatedCost, int estimatedTime) {
+    private String memo; // 사용자 메모
+
+    public void update(int dayIndex, String timeSlot, int orderIndex,
+                       int estimatedCost, int estimatedTime, String memo) {
         this.dayIndex = dayIndex;
         this.timeSlot = timeSlot;
         this.orderIndex = orderIndex;
         this.estimatedCost = estimatedCost;
         this.estimatedTime = estimatedTime;
+        this.memo = memo;
     }
-
 }

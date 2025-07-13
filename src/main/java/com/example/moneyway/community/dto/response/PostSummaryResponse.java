@@ -1,29 +1,31 @@
 package com.example.moneyway.community.dto.response;
 
+import com.example.moneyway.community.dto.response.common.WriterInfo; // [추가]
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-/**
- * 게시글 목록 요약 응답 DTO
- *
- * - 게시글 리스트에서 간단히 보여줄 정보를 담습니다.
- * - 썸네일, 제목, 작성자 정보, 집계 필드 중심 구성입니다.
- */
 @Getter
 @Builder
 public class PostSummaryResponse {
 
-    private Long postId;               // 게시글 ID
-    private String title;              // 제목
-    private String thumbnailUrl;       // 썸네일 이미지 URL
-    private Boolean isChallenge;       // 챌린지 여부 (챌린지 탭 필터링용)
+    // --- 게시글 정보 ---
+    private Long postId;
+    private String title;
+    private String thumbnailUrl;
+    private boolean isChallenge; // [개선] primitive boolean 타입 사용
+    private LocalDateTime createdAt;
 
-    private Integer likeCount;         // 좋아요 수
-    private Integer commentCount;      // 댓글 수
-    private Integer scrapCount;        // 스크랩 수
+    // --- 작성자 정보 ---
+    private WriterInfo writerInfo; // [개선] 공통 DTO 사용
 
-    private String writerNickname;     // 작성자 닉네임
-    private LocalDateTime createdAt;   // 작성 시간
+    // --- 통계 정보 ---
+    private Integer likeCount;
+    private Integer commentCount;
+    private Integer scrapCount;
+
+    // --- 현재 사용자의 상태 정보 ---
+    private boolean isLiked;    // 내가 좋아요를 눌렀는지 여부
+    private boolean isScrapped; // 내가 스크랩했는지 여부
 }

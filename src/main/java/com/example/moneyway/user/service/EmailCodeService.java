@@ -20,10 +20,13 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class EmailCodeService {
 
-    private final RedisTemplate<String, String> redisTemplate; // Redis 연결 객체
-    private final MailService mailService; // 실제 이메일 전송을 담당하는 유틸 서비스
+    private final RedisTemplate<String, String> redisTemplate;
+    private final MailService mailService;
 
-    private static final Duration CODE_TTL = Duration.ofMinutes(5);  // 인증코드 유효기간: 5분
+    private static final String VERIFICATION_KEY_PREFIX = "pwd:verify:";
+    private static final String VERIFIED_STATUS_KEY_PREFIX = "verified:";
+    private static final Duration CODE_TTL = Duration.ofMinutes(5);
+    private static final Duration VERIFIED_STATUS_TTL = Duration.ofMinutes(10);
 
     /**
      * ✅ 인증코드를 생성하고 이메일로 발송한 뒤, Redis에 저장
@@ -34,11 +37,8 @@ public class EmailCodeService {
         String redisKey = buildRedisKey(email);
 
         redisTemplate.opsForValue().set(redisKey, code, CODE_TTL);
-
-        // ✅ 일반 텍스트 대신 HTML 메일 전송
         mailService.sendVerificationCodeHtml(email, code);
     }
-
 
     /**
      * ✅ 사용자가 입력한 인증코드를 검증
@@ -47,23 +47,36 @@ public class EmailCodeService {
      */
     public void verifyCode(String email, String inputCode) {
         String redisKey = buildRedisKey(email);
-        String savedCode = redisTemplate.opsForValue().get(redisKey); // Redis에서 저장된 코드 조회
+        String savedCode = redisTemplate.opsForValue().get(redisKey);
 
         if (savedCode == null) {
-            // 저장된 코드가 없다면 만료 또는 전송되지 않은 상태
             throw new CustomUserException(ErrorCode.VERIFICATION_CODE_EXPIRED);
         }
 
         if (!savedCode.equals(inputCode)) {
-            // 입력한 코드가 일치하지 않음
             throw new CustomUserException(ErrorCode.INVALID_VERIFICATION_CODE);
         }
 
-        // 인증 성공: 기존 인증코드는 삭제
         redisTemplate.delete(redisKey);
+        redisTemplate.opsForValue().set(VERIFIED_STATUS_KEY_PREFIX + email, "true", VERIFIED_STATUS_TTL);
+    }
 
-        // 인증 상태 저장 (다음 단계에서 재확인 용도)
-        redisTemplate.opsForValue().set("verified:" + email, "true", Duration.ofMinutes(10));
+    /**
+     * 비밀번호 재설정을 위해 이메일 인증이 완료되었는지 확인합니다.
+     *    확인 후에는 재사용을 막기 위해 인증 상태를 삭제합니다.
+     * @param email 검증할 이메일
+     */
+    public void checkVerificationStatus(String email) {
+        String verifiedKey = VERIFIED_STATUS_KEY_PREFIX + email;
+        String isVerified = redisTemplate.opsForValue().get(verifiedKey);
+
+        // ErrorCode에 EMAIL_NOT_VERIFIED("이메일 인증이 필요합니다.") 추가 필요
+        if (!"true".equals(isVerified)) {
+            throw new CustomUserException(ErrorCode.EMAIL_NOT_VERIFIED);
+        }
+
+        // 성공적으로 확인 후, 재사용을 막기 위해 인증 상태 키를 삭제
+        redisTemplate.delete(verifiedKey);
     }
 
     /**
@@ -71,7 +84,7 @@ public class EmailCodeService {
      * @return 00000 ~ 99999 사이 문자열 코드
      */
     private String generateCode() {
-        return String.format("%05d", new Random().nextInt(1000000));
+        return String.format("%05d", new Random().nextInt(100000));
     }
 
     /**
@@ -80,6 +93,6 @@ public class EmailCodeService {
      * @return Redis Key 형식
      */
     private String buildRedisKey(String email) {
-        return "pwd:verify:" + email;
+        return VERIFICATION_KEY_PREFIX + email;
     }
 }

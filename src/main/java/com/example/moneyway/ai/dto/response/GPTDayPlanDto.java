@@ -1,19 +1,6 @@
 package com.example.moneyway.ai.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import java.util.List;
 
-/**
- * GPT가 응답한 하루 일정 단위 DTO
- * ex) "Day 1" → 장소 리스트
- */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class GPTDayPlanDto {
-    private String day;  // 예: "Day 1", "Day 2"
-    private List<GPTPlaceDto> places;  // 해당 날짜의 장소 리스트
-}
+// record를 사용하면 생성자, getter, equals, hashCode, toString이 자동으로 제공됩니다.
+public record GPTDayPlanDto(String day, List<GPTPlaceDto> places) {}

@@ -3,67 +3,76 @@ package com.example.moneyway.common.util;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.experimental.UtilityClass;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
+import org.springframework.stereotype.Component;
 import org.springframework.util.SerializationUtils;
 
 import java.time.Duration;
 import java.util.Base64;
+import java.util.Optional;
 
 /**
- * 쿠키 생성/삭제/직렬화/역직렬화를 담당하는 유틸리티 클래스
- * 역할: HttpOnly 보안 설정이 포함된 쿠키를 편리하게 추가하거나 제거하고, 객체를 쿠키로 저장 가능하도록 지원함
+ * 쿠키 생성/삭제/조회/직렬화를 담당하는 유틸리티 클래스
+ * 역할: HttpOnly 보안 설정이 포함된 쿠키를 편리하게 관리하고, 객체를 쿠키로 저장 가능하도록 지원함
  */
-@UtilityClass
+@Component
 public class CookieUtil {
 
+    // ✅ [개선] 쿠키 이름을 한 곳에서 상수로 관리하여 실수를 방지합니다.
+    public static final String ACCESS_TOKEN_COOKIE_NAME = "access_token";
+    public static final String REFRESH_TOKEN_COOKIE_NAME = "refresh_token";
+
+    @Value("${cookie.secure:true}") // ✅ [개선] 기본값을 true로 하여 보안 강화
+    private boolean isSecure;
+
     /**
-     * ✅ 쿠키 추가 메서드 (Set-Cookie 응답 헤더 구성)
-     * 옵션: HttpOnly=true, Secure=false (로컬 개발용), SameSite=Lax, Path="/"
+     * 이름으로 쿠키를 찾아 그 값을 Optional로 반환합니다.
+     * @param request HttpServletRequest
+     * @param name 찾고자 하는 쿠키의 이름
+     * @return 쿠키 값 (Optional)
      */
-    public static void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
+    public Optional<String> getCookieValue(HttpServletRequest request, String name) {
+        if (request.getCookies() == null) {
+            return Optional.empty();
+        }
+        for (Cookie cookie : request.getCookies()) {
+            if (name.equals(cookie.getName())) {
+                return Optional.of(cookie.getValue());
+            }
+        }
+        return Optional.empty();
+    }
+
+    public void addCookie(HttpServletResponse response, String name, String value, int maxAgeSeconds) {
         ResponseCookie cookie = ResponseCookie.from(name, value)
                 .httpOnly(true)
-                .secure(false)                   // HTTPS가 아니라면 false 유지
+                .secure(isSecure)
                 .path("/")
-                .maxAge(Duration.ofSeconds(maxAge))
-                .sameSite("Lax")                // HTTPS 미사용 환경에 맞게 Lax로 변경
+                .maxAge(Duration.ofSeconds(maxAgeSeconds))
+                .sameSite("None") // CORS 환경에서는 "None"이 필요할 수 있습니다.
                 .build();
 
         response.addHeader("Set-Cookie", cookie.toString());
     }
 
-    /**
-     * ✅ 쿠키 삭제 메서드 (같은 이름/경로로 빈 쿠키 재설정)
-     * 동작: MaxAge = 0 으로 설정하여 브라우저에서 즉시 삭제
-     */
-    public static void deleteCookie(HttpServletRequest request, HttpServletResponse response, String name) {
-        if (request == null || request.getCookies() == null) return;
-
-        for (Cookie cookie : request.getCookies()) {
-            if (name.equals(cookie.getName())) {
-                cookie.setValue("");
-                cookie.setPath("/");
-                cookie.setMaxAge(0);
-                response.addCookie(cookie);
-            }
-        }
+    public void deleteCookie(HttpServletResponse response, String name) {
+        ResponseCookie deleteCookie = ResponseCookie.from(name, "")
+                .httpOnly(true)
+                .secure(isSecure)
+                .path("/")
+                .maxAge(0) // 쿠키 즉시 만료
+                .sameSite("None")
+                .build();
+        response.addHeader("Set-Cookie", deleteCookie.toString());
     }
 
-    /**
-     * ✅ 객체를 직렬화하여 쿠키에 저장할 수 있도록 문자열로 변환
-     * 구조: SerializationUtils + Base64 URL 인코딩
-     */
+    // 직렬화/역직렬화 메서드는 상태를 사용하지 않으므로 static으로 유지
     public static String serialize(Object obj) {
         return Base64.getUrlEncoder()
                 .encodeToString(SerializationUtils.serialize(obj));
     }
 
-    /**
-     * ✅ 쿠키 값을 역직렬화하여 객체로 복원하는 메서드
-     * 구조: Base64 디코딩 → 직렬화 복원
-     * 제네릭: 원하는 클래스 타입으로 안전하게 캐스팅됨
-     */
     public static <T> T deserialize(Cookie cookie, Class<T> cls) {
         return cls.cast(
                 SerializationUtils.deserialize(
@@ -72,14 +81,3 @@ public class CookieUtil {
         );
     }
 }
-
-/**
- * ✅ 전체 동작 흐름 설명
- *
- * 1. addCookie() → 응답 헤더에 보안 설정 포함된 쿠키를 추가함
- * 2. deleteCookie() → 동일 이름의 쿠키를 무효화하여 브라우저에서 제거함
- * 3. serialize() → 객체를 쿠키에 담을 수 있도록 문자열로 직렬화함
- * 4. deserialize() → 쿠키 값을 다시 객체로 복원함
- *
- * → 요약 흐름: 객체 → 쿠키에 안전 저장 & 삭제 처리 + 인증 상태 유지를 위한 핵심 유틸
- */

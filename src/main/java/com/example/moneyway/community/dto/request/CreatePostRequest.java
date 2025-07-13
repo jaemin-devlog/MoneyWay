@@ -3,18 +3,27 @@ package com.example.moneyway.community.dto.request;
 import com.example.moneyway.community.dto.request.common.BasePostRequest;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
-import lombok.Setter;
+
+import java.util.List;
+// [제거] import lombok.Setter;
 
 /**
- * 게시글 생성 요청 DTO
- *
- * - 사용자가 새 게시글을 생성할 때 필요한 데이터를 담습니다.
- * - 챌린지 여부는 생성 시에만 설정 가능합니다.
+ * 게시글 생성 요청 DTO (불변 객체로 개선)
  */
 @Getter
-@Setter
+// [제거] @Setter
 public class CreatePostRequest extends BasePostRequest {
 
-    @NotNull(message = "챌린지 여부는 필수입니다.")
-    private Boolean isChallenge; // 챌린지 참여 여부 (true/false)
+    // [개선] final 키워드 추가 고려 가능 (상속 구조에서는 생략 가능)
+    private final Boolean isChallenge;
+
+    // [개선] 생성자를 통해 필드 주입
+    public CreatePostRequest(String title, String content, Integer totalCost, String thumbnailUrl, List<String> imageUrls, Boolean isChallenge) {
+        this.title = title;
+        this.content = content;
+        this.totalCost = totalCost;
+        this.thumbnailUrl = thumbnailUrl;
+        this.imageUrls = imageUrls;
+        this.isChallenge = isChallenge;
+    }
 }

@@ -1,91 +1,104 @@
 package com.example.moneyway.common.config;
 
 import com.example.moneyway.auth.jwt.JwtAuthenticationFilter;
-import com.example.moneyway.auth.jwt.JwtTokenProvider;
-import com.example.moneyway.auth.oauth.OAuth2SuccessHandler;
 import com.example.moneyway.auth.oauth.KakaoOAuth2Service;
+import com.example.moneyway.auth.oauth.OAuth2LoginFailureHandler;
+import com.example.moneyway.auth.oauth.OAuth2SuccessHandler;
 import com.example.moneyway.auth.oauth.repository.OAuth2AuthorizationCookieRepository;
-import com.example.moneyway.auth.token.repository.RefreshTokenRepository;
-import com.example.moneyway.user.service.UserService;
+import com.example.moneyway.common.exception.CustomAccessDeniedHandler; // ✨ [추가]
+import com.example.moneyway.common.exception.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
 
-    private final JwtTokenProvider jwtTokenProvider;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final KakaoOAuth2Service kakaoOAuth2Service;
-    private final RefreshTokenRepository refreshTokenRepository;
-    private final UserService userService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
+    private final OAuth2AuthorizationCookieRepository oAuth2AuthorizationCookieRepository;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler; // ✨ [추가]
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(AbstractHttpConfigurer::disable) //CSRF비활성화
-                .httpBasic(AbstractHttpConfigurer::disable) //브라우저 팝업 제거
-                .formLogin(AbstractHttpConfigurer::disable)//Form Login 제거
-                .logout(AbstractHttpConfigurer::disable) // 세션기반이 아니므로 서버가 로그아웃 처리 필요X
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(AbstractHttpConfigurer::disable)
+                .httpBasic(AbstractHttpConfigurer::disable)
+                .formLogin(AbstractHttpConfigurer::disable)
+                .logout(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
-                //세션 생성, 저장X ->JWT는 요청마다 인증 정보를 포함 -> 서버에 세션 저장소 필요X
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .anyRequest().permitAll() //현재는 모든 요청을 허용 -> 실 운영에서는 분리
+                        // 1. 인증/보안 관련 경로 허용
+                        .requestMatchers(
+                                "api/**",
+                                "/api/auth/**",
+                                "/login/**",
+                                "/oauth2/**",
+                                "/error"
+                        ).permitAll()
+
+                        // 2. API 문서(Swagger) 관련 경로 허용
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-resources/**"
+                        ).permitAll()
+
+                        // 3. 관리자용 API 전체 허용
+                        .requestMatchers("/api/admin/**").permitAll()
+
+                        // 4. 일반 사용자용 공개 API 허용 
+                        .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll()
+
+                        // 5. 위에서 지정한 경로 외 모든 요청은 인증 필요
+                        .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(endpoint -> endpoint
-                                .authorizationRequestRepository(oAuth2AuthorizationRequestBasedOnCookieRepository()))
-                        //인가 요청 정보를 세션이 아니라 쿠키에 저장하기 위해 설정
+                                .authorizationRequestRepository(oAuth2AuthorizationCookieRepository))
                         .userInfoEndpoint(info -> info
-                                .userService(kakaoOAuth2Service)) //카카오에서 사용자 정보를 받아서 DB저장
-                        .successHandler(oAuth2SuccessHandler())   //OAuth2 인증 후 -> AccessToken, RefreshToken 발급 -> 쿠키로 응답
-                        .failureHandler((request, response, exception) -> {
-                            // 로그인 실패 시 프론트 로그인 에러 페이지로 리다이렉트
-                            response.sendRedirect("http://192.168.100.37:3000/login?error");
-                        })
+                                .userService(kakaoOAuth2Service))
+                        .successHandler(oAuth2SuccessHandler)
+                        .failureHandler(oAuth2LoginFailureHandler)
                 )
-                .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
-                // Filter보다 앞단에서 JWT를 먼저 검사하도록 설정
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // 인증/인가 예외 처리 핸들러 등록
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint(
-                                (request, response, authException) -> response.setStatus(HttpStatus.UNAUTHORIZED.value())
-                        )
-                ) //JWT가 유효하지 않거나 로그인되지 않은 상태에서 인증 필요한 요청 보낼 경우 401에러
+                        .authenticationEntryPoint(customAuthenticationEntryPoint) // 인증 실패(401)
+                        .accessDeniedHandler(customAccessDeniedHandler)         // 인가 실패(403)
+                )
                 .build();
     }
 
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        return new JwtAuthenticationFilter(jwtTokenProvider);
-    }
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://moneyway-572cf.web.app"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
 
-    @Bean
-    public OAuth2SuccessHandler oAuth2SuccessHandler() {
-        return new OAuth2SuccessHandler(
-                jwtTokenProvider,
-                refreshTokenRepository,
-                oAuth2AuthorizationRequestBasedOnCookieRepository(),
-                userService
-        );
-    }
-
-    @Bean
-    public OAuth2AuthorizationCookieRepository oAuth2AuthorizationRequestBasedOnCookieRepository() {
-        return new OAuth2AuthorizationCookieRepository();
-    }
-
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder(); // 기본 strength=10
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }

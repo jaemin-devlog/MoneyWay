@@ -1,86 +1,110 @@
-/*
- * 한국관광공사 TourAPI로부터 수집된 장소 데이터를 저장하는 엔티티.
- * 관광지, 음식점, 숙소 등 다양한 장소 정보를 포함하며,
- * AI 여행 일정 추천 및 지도 시각화에 사용된다.
- */
 package com.example.moneyway.place.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
 @Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Setter // TourUpdateHelper에서 필드를 업데이트하기 위해 필요
+@SuperBuilder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@PrimaryKeyJoinColumn(name = "place_pk_id")
 @Table(name = "tour_place")
-public class TourPlace {
+public class TourPlace extends Place {
 
-    @Id
+    @Column(unique = true, nullable = false)
     private String contentid;
-
     private String contenttypeid;
-    private String title;
+    private String createdtime;
+    private String modifiedtime;
     private String addr1;
-    private String addr2;
     private String areacode;
-    private String zipcode;
     private String mapx;
     private String mapy;
-
     private String firstimage;
     private String firstimage2;
-    private String tel;
-
     private String cat1;
     private String cat2;
     private String cat3;
-
-    private String showflag;
-    private String createdtime;
-    private String modifiedtime;
     private String mlevel;
     private String sigungucode;
-    private String dist;
-    private String cpyrhtDivCd;
 
-    private int price;
+    private String priceInfo;
 
-    // 💰 detailInfo 저장용 필드 추가
     @Column(columnDefinition = "TEXT")
     private String infotext;
 
-    private String subname;
+    @Override
+    protected PlaceCategory calculateCategory() {
+        if (this.contenttypeid == null) {
+            return PlaceCategory.TOURIST_ATTRACTION;
+        }
+        return switch (this.contenttypeid) {
+            case "32" -> PlaceCategory.ACCOMMODATION;
+            case "38" -> PlaceCategory.SHOPPING;
+            case "28" -> PlaceCategory.ACTIVITY;
+            case "12", "14", "15" -> PlaceCategory.TOURIST_ATTRACTION;
+            default -> null;
+        };
+    }
 
-    @Column(columnDefinition = "TEXT")
-    private String subdetailoverview;
+    @Override
+    public String getDisplayPrice() {
+        if (this.priceInfo == null || this.priceInfo.isBlank()) {
+            if (PlaceCategory.ACCOMMODATION.equals(getCategory())) {
+                return "가격 문의";
+            }
+            return "무료";
+        }
 
-    private Integer roomoffseasonminfee1;
-    private Integer roomoffseasonminfee2;
-    private Integer roompeakseasonminfee1;
-    private Integer roompeakseasonminfee2;
+        return switch (getCategory()) {
+            case ACCOMMODATION -> this.priceInfo + "원~";
+            case ACTIVITY, SHOPPING, TOURIST_ATTRACTION -> "입장료 " + this.priceInfo + "원";
+            default -> this.priceInfo + "원";
+        };
+    }
 
-    @Column(columnDefinition = "TEXT")
-    private String overview; // 관광지 설명
+    @Override
+    public String getAddress() {
+        return this.addr1;
+    }
 
-    @Column(columnDefinition = "TEXT")
-    private String infoCenter; // 관광안내소 전화번호
+    @Override
+    public String getThumbnailUrl() {
+        if (this.firstimage != null && !this.firstimage.isBlank()) {
+            return this.firstimage;
+        }
+        return this.firstimage2;
+    }
 
-    @Column(columnDefinition = "TEXT")
-    private String useTime; // 운영 시간
+    @Override
+    public List<String> getImageUrls() {
+        return Stream.of(this.firstimage, this.firstimage2)
+                .filter(Objects::nonNull)
+                .filter(url -> !url.isBlank())
+                .collect(Collectors.toList());
+    }
 
-    @Column(columnDefinition = "TEXT")
-    private String restDate; // 휴무일
+    @Override
+    public String getDescription() {
+        return this.infotext;
+    }
 
-    @Column(columnDefinition = "TEXT")
-    private String useFee; // 이용요금
+    @Override
+    public String getMenu() {
+        return null;
+    }
 
-    @Column(columnDefinition = "TEXT")
-    private String useTimeCulture; // 이용시간 (문화)
+    public void updatePriceInfo(String newPriceInfo) {
+        this.priceInfo = newPriceInfo;
+    }
 }

@@ -1,85 +1,67 @@
 package com.example.moneyway.community.domain;
 
+import com.example.moneyway.common.domain.BaseTimeEntity; // createdAt, updatedAt 자동 관리를 위해 상속
+import com.example.moneyway.user.domain.User; // User 엔티티 임포트
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
-
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@EntityListeners(AuditingEntityListener.class)
 @Table(name = "post")
-public class Post {
+public class Post extends BaseTimeEntity { // BaseTimeEntity 상속
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private Long userId;
+    //User user (직접적인 객체 연관)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    @Column(nullable = false)
-    private String writerNickname;
-
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 50)
     private String title;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    // [반영] nullable=false 제약조건 추가
     @Column(nullable = false)
     private Integer totalCost;
 
-    // [반영] primitive type 'boolean'으로 변경하여 null 가능성 원천 차단
     @Column(nullable = false)
     private boolean isChallenge;
 
+    // 카운트 필드들은 성능을 위해 비정규화된 데이터로 유지하는 것이 좋음
     @Column(nullable = false)
-    private Integer likeCount;
+    private int likeCount = 0;
 
     @Column(nullable = false)
-    private Integer commentCount;
+    private int commentCount = 0;
 
     @Column(nullable = false)
-    private Integer scrapCount;
+    private int scrapCount = 0;
 
     @Column(nullable = false)
-    private Integer viewCount;
+    private int viewCount = 0;
 
-    @Column(nullable = false)
+    @Column(columnDefinition = "TEXT")
     private String thumbnailUrl;
 
-    @CreatedDate
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
     @Builder
-    public Post(Long userId, String writerNickname, String title, String content,
-                Integer totalCost, Boolean isChallenge, String thumbnailUrl) {
-        this.userId = userId;
-        this.writerNickname = writerNickname;
+    public Post(User user, String title, String content, Integer totalCost, Boolean isChallenge, String thumbnailUrl) {
+        this.user = user; // User 객체 할당
         this.title = title;
         this.content = content;
         this.thumbnailUrl = thumbnailUrl;
-        // [반영] totalCost가 null일 경우 0으로 초기화하여 제약조건 위반 방지
         this.totalCost = totalCost != null ? totalCost : 0;
-        // [반영] isChallenge가 null일 경우 false로 초기화
         this.isChallenge = isChallenge != null ? isChallenge : false;
-        // count 필드들의 초기값을 0으로 보장
-        this.likeCount = 0;
-        this.commentCount = 0;
-        this.scrapCount = 0;
-        this.viewCount = 0;
     }
 
-    //== 비즈니스 로직 (상태 변경 메서드) ==//
+    //== 비즈니스 로직 ==//
 
     public void updatePost(String title, String content, Integer totalCost, String thumbnailUrl) {
         this.title = title;
@@ -88,31 +70,17 @@ public class Post {
         this.thumbnailUrl = thumbnailUrl;
     }
 
-    public void increaseViewCount() {
-        this.viewCount++;
+    // [추가] 편의를 위한 작성자 닉네임 조회 메서드
+    public String getWriterNickname() {
+        return this.user.getNickname();
     }
 
-    public void increaseCommentCount() {
-        this.commentCount++;
-    }
-
-    public void decreaseCommentCount() {
-        this.commentCount = Math.max(0, this.commentCount - 1);
-    }
-
-    public void increaseLikeCount() {
-        this.likeCount++;
-    }
-
-    public void decreaseLikeCount() {
-        this.likeCount = Math.max(0, this.likeCount - 1);
-    }
-
-    public void increaseScrapCount() {
-        this.scrapCount++;
-    }
-
-    public void decreaseScrapCount() {
-        this.scrapCount = Math.max(0, this.scrapCount - 1);
-    }
+    // ... (카운트 증가/감소 관련 비즈니스 메서드들은 그대로 유지) ...
+    public void increaseViewCount() { this.viewCount++; }
+    public void increaseCommentCount() { this.commentCount++; }
+    public void decreaseCommentCount() { this.commentCount = Math.max(0, this.commentCount - 1); }
+    public void increaseLikeCount() { this.likeCount++; }
+    public void decreaseLikeCount() { this.likeCount = Math.max(0, this.likeCount - 1); }
+    public void increaseScrapCount() { this.scrapCount++; }
+    public void decreaseScrapCount() { this.scrapCount = Math.max(0, this.scrapCount - 1); }
 }

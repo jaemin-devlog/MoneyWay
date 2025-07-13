@@ -1,33 +1,80 @@
 package com.example.moneyway.place.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.PrimaryKeyJoinColumn;
+import jakarta.persistence.Transient; // Import added
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
+import java.util.Collections;
+import java.util.List;
 
 @Entity
-@Table(name = "jeju_restaurants")
 @Getter
-public class RestaurantJeju {
-
-    @Id
-    @Column(name = "title")
-    private String title;
-
-    private String score;
-
-    @Column(name = "review")
-    private String review;
+@SuperBuilder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@PrimaryKeyJoinColumn(name = "place_pk_id")
+public class RestaurantJeju extends Place {
 
     private String address;
-
-    private String tel;
-
-    @Column(columnDefinition = "TEXT")
+    private String score;
+    private String review;
     private String menu;
-
-    @Column(name = "url")
     private String url;
 
-    @Column(name = "category_code")
-    private String categoryCode;
-}
+    private String thumbnailUrl;
 
+    private String priceInfo;
+
+    private String categoryCode;
+
+    @Override
+    protected PlaceCategory calculateCategory() {
+        if ("c2".equals(this.categoryCode)) {
+            return PlaceCategory.CAFE;
+        }
+        return PlaceCategory.RESTAURANT;
+    }
+
+    @Override
+    public String getDisplayPrice() {
+        if (this.priceInfo == null || this.priceInfo.isBlank()) {
+            return "가격 정보 없음";
+        }
+        String prefix = PlaceCategory.CAFE.equals(getCategory()) ? "약 " : "평균 ";
+        return prefix + this.priceInfo + "원";
+    }
+
+    @Override
+    public String getAddress() {
+        return this.address;
+    }
+
+    @Override
+    public String getThumbnailUrl() {
+        return this.thumbnailUrl;
+    }
+
+    @Override
+    @Transient
+    public List<String> getImageUrls() {
+        if (this.thumbnailUrl == null || this.thumbnailUrl.isBlank()) {
+            return Collections.emptyList();
+        }
+        return List.of(this.thumbnailUrl);
+    }
+
+    @Override
+    public String getDescription() {
+        return null; // 맛집/카페에는 별도의 상세 설명이 없음
+    }
+
+    @Override
+    public String getMenu() {
+        return this.menu;
+    }
+}

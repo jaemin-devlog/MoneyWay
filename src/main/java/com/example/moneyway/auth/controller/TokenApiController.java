@@ -1,17 +1,24 @@
 package com.example.moneyway.auth.controller;
 
-import com.example.moneyway.auth.dto.CreateAccessTokenRequest;
 import com.example.moneyway.auth.dto.CreateAccessTokenResponse;
 import com.example.moneyway.auth.token.service.TokenService;
+import com.example.moneyway.common.util.CookieUtil; // ✅ CookieUtil 임포트
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CookieValue; // ✅ @CookieValue 임포트
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * 클라이언트가 RefreshToken을 이용해 AccessToken을 재발급 받을 수 있도록 처리하는 API 컨트롤러
- * 역할: /api/auth/token/token 엔드포인트를 통해 새로운 AccessToken 발급
+ * 역할: /api/token/reissue 엔드포인트를 통해 새로운 AccessToken 발급
  */
+@Tag(name = "인증 - 토큰", description = "토큰 재발급 관련 API")
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/auth")
@@ -20,31 +27,25 @@ public class TokenApiController {
     private final TokenService tokenService;
 
     /**
-     * ✅ POST 요청으로 RefreshToken을 전달받아 AccessToken을 새로 발급하는 메서드
-     * 요청: { refreshToken: "..." }
+     * ✅ HttpOnly 쿠키에 담긴 RefreshToken을 전달받아 AccessToken을 새로 발급하는 메서드
+     * 요청: Body 없음 (브라우저가 쿠키를 자동으로 전송)
      * 응답: { accessToken: "..." }
      */
-    @PostMapping("/token")
+    @Operation(
+            summary = "Access Token 재발급",
+            description = "HttpOnly 쿠키에 담겨 전달된 유효한 Refresh Token을 사용하여 새로운 Access Token을 발급합니다."
+    )
+    @ApiResponse(responseCode = "200", description = "토큰 재발급 성공")
+    @ApiResponse(responseCode = "401", description = "쿠키가 없거나, 유효하지 않거나, 만료된 Refresh Token")
+    @PostMapping("/refresh")
     public ResponseEntity<CreateAccessTokenResponse> reissueAccessToken(
-            @RequestBody CreateAccessTokenRequest request) {
-
+            // ✅ [핵심] @RequestBody 대신 @CookieValue를 사용하여 쿠키에서 값을 직접 추출합니다.
+            @CookieValue(CookieUtil.REFRESH_TOKEN_COOKIE_NAME) String refreshToken
+    ) {
         // 1️⃣ 전달받은 RefreshToken으로 새 AccessToken 생성 시도
-        String newAccessToken = tokenService.reissueAccessToken(request.getRefreshToken());
+        String newAccessToken = tokenService.reissueAccessToken(refreshToken);
 
-        // 2️⃣ 생성된 AccessToken을 JSON 형태로 반환 (201 Created)
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new CreateAccessTokenResponse(newAccessToken));
+        // 2️⃣ 생성된 AccessToken을 JSON 형태로 반환 (200 OK)
+        return ResponseEntity.ok(new CreateAccessTokenResponse(newAccessToken));
     }
 }
-
-/**
- * ✅ 전체 동작 흐름 설명
- *
- * 1. 클라이언트가 POST /api/auth/token/token 요청을 보냄 (Body에 refreshToken 포함)
- * 2. TokenApiController가 요청을 받아 TokenService.reissueAccessToken() 호출
- * 3. TokenService 내부에서 토큰 유효성 확인 + DB에서 RefreshToken 조회
- * 4. 정상 토큰이면 새로운 AccessToken을 생성하여 반환
- * 5. 컨트롤러는 201 상태 코드와 함께 JSON 형태로 토큰을 응답함
- *
- * → 요약 흐름: RefreshToken 전달 → 서비스 처리 → AccessToken 재발급 후 반환
- */
