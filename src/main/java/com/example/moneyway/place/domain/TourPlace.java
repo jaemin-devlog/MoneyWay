@@ -52,7 +52,8 @@ public class TourPlace extends Place {
             case "32" -> PlaceCategory.ACCOMMODATION;
             case "38" -> PlaceCategory.SHOPPING;
             case "28" -> PlaceCategory.ACTIVITY;
-            default -> PlaceCategory.TOURIST_ATTRACTION;
+            case "12", "14", "15" -> PlaceCategory.TOURIST_ATTRACTION;
+            default -> null;
         };
     }
 

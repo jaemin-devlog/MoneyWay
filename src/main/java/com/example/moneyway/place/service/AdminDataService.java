@@ -79,8 +79,10 @@ public class AdminDataService {
 
                 if (pageNo == 1) totalCount = body.totalCount();
 
-                List<TourApiResponseDto.Item> items = body.items().item();
-                if (items.isEmpty()) break;
+                List<TourApiResponseDto.Item> items = body.items().item().stream()
+                        .filter(item -> List.of("12", "14", "15", "28", "32", "38").contains(item.contenttypeid()))
+                        .toList();
+
 
                 List<String> contentIdsFromApi = items.stream().map(TourApiResponseDto.Item::contentid).toList();
                 Set<String> existingContentIds = placeRepository.findExistingContentIds(contentIdsFromApi);

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 @Repository
@@ -67,5 +68,8 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
      */
     @Query("SELECT t FROM TourPlace t WHERE t.contentid IN :contentIds")
     List<TourPlace> findTourPlacesByContentIds(@Param("contentIds") Collection<String> contentIds);
+
+    @Query("SELECT t FROM TourPlace t WHERE t.contentid = :contentId")
+    Optional<TourPlace> findTourPlaceByContentid(@Param("contentId") String contentId);
 
 }

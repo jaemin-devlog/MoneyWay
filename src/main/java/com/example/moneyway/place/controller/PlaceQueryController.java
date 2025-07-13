@@ -56,11 +56,17 @@ public class PlaceQueryController {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
             @ApiResponse(responseCode = "404", description = "해당 ID의 장소를 찾을 수 없음", content = @Content)
     })
-    @GetMapping("/{placeId}")
+//    @GetMapping("/{placeId}")
+//    public ResponseEntity<PlaceDetailResponseDto> getPlaceDetails(
+//            @Parameter(description = "조회할 장소의 ID") @PathVariable Long placeId) {
+//
+//        PlaceDetailResponseDto responseDto = placeQueryService.findPlaceDetailById(placeId);
+//        return ResponseEntity.ok(responseDto);
+//    }
+    @GetMapping("/{contentId}")
     public ResponseEntity<PlaceDetailResponseDto> getPlaceDetails(
-            @Parameter(description = "조회할 장소의 ID") @PathVariable Long placeId) {
-
-        PlaceDetailResponseDto responseDto = placeQueryService.findPlaceDetailById(placeId);
+            @Parameter(description = "조회할 장소의 contentId") @PathVariable String contentId) {
+        PlaceDetailResponseDto responseDto = placeQueryService.findPlaceDetailByContentId(contentId);
         return ResponseEntity.ok(responseDto);
     }
 }

@@ -5,6 +5,7 @@ import com.example.moneyway.common.exception.CustomException.CustomPlaceExceptio
 import com.example.moneyway.common.exception.ErrorCode;
 import com.example.moneyway.place.domain.Place;
 import com.example.moneyway.place.domain.PlaceCategory;
+import com.example.moneyway.place.domain.TourPlace;
 import com.example.moneyway.place.dto.response.PlaceDetailResponseDto; // DTO 임포트 변경
 import com.example.moneyway.place.dto.response.PlaceInfoResponseDto;
 import com.example.moneyway.place.repository.PlaceRepository;
@@ -65,12 +66,12 @@ public class PlaceQueryService {
     /**
      * ✅ [개선] ID로 장소 상세 정보를 찾아 DTO로 반환합니다.
      * 서비스 계층은 외부(컨트롤러)에 엔티티가 아닌 DTO를 반환하는 것을 원칙으로 합니다.
-     * @param placeId 장소 ID
+     * @param contentId 장소 ID
      * @return 장소 상세 정보 DTO
      * @throws CustomPlaceException 해당 ID의 장소를 찾지 못했을 경우
      */
-    public PlaceDetailResponseDto findPlaceDetailById(Long placeId) {
-        Place place = findPlaceById(placeId); // 내부 헬퍼 메서드 사용
+    public PlaceDetailResponseDto findPlaceDetailById(Long contentId) {
+        Place place = findPlaceById(contentId); // 내부 헬퍼 메서드 사용
         return PlaceDetailResponseDto.from(place);
     }
 
@@ -92,5 +93,11 @@ public class PlaceQueryService {
     private Place findPlaceById(Long placeId) {
         return placeRepository.findById(placeId)
                 .orElseThrow(() -> new CustomPlaceException(ErrorCode.PLACE_NOT_FOUND));
+    }
+
+    public PlaceDetailResponseDto findPlaceDetailByContentId(String contentId) {
+        TourPlace place = placeRepository.findTourPlaceByContentid(contentId)
+                .orElseThrow(() -> new CustomPlaceException(ErrorCode.PLACE_NOT_FOUND));
+        return PlaceDetailResponseDto.from(place);
     }
 }
