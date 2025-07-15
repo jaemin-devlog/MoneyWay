@@ -117,7 +117,7 @@ public class UserAuthService {
     }
 
     /**
-     * ✅ [신규] 소셜 로그인 계정이 아닌지 검증하는 private 헬퍼 메서드
+     *  소셜 로그인 계정이 아닌지 검증하는 private 헬퍼 메서드
      */
     private void validateEmailAccount(User user) {
         if (user.getLoginType() != LoginType.EMAIL) {
