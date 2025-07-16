@@ -1,11 +1,38 @@
 package com.example.moneyway.cart.repository;
 
 import com.example.moneyway.cart.domain.Cart;
+import com.example.moneyway.place.domain.Place;
 import com.example.moneyway.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface CartRepository extends JpaRepository<Cart, Long> {
-    Optional<Cart> findByUser(User user);
+
+    /**
+     * 특정 사용자의 모든 장바구니 항목을 조회합니다.
+     * @param user 조회할 사용자
+     * @return 사용자의 장바구니 항목 리스트
+     */
+    List<Cart> findByUser(User user);
+
+    /**
+     * 특정 사용자와 장소에 해당하는 장바구니 항목이 존재하는지 확인합니다.
+     * 장바구니에 중복 추가를 방지하는 로직에서 유용하게 사용됩니다.
+     * @param user 사용자
+     * @param place 장소
+     * @return 존재 여부 (true/false)
+     */
+    boolean existsByUserAndPlace(User user, Place place);
+
+    /**
+     * 특정 사용자와 장소에 해당하는 장바구니 항목을 조회합니다.
+     */
+    Optional<Cart> findByUserAndPlace(User user, Place place);
+
+    /**
+     * 특정 장소를 포함하는 모든 장바구니 항목을 삭제합니다.
+     */
+    void deleteAllByPlace(Place place);
 }
