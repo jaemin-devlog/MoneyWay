@@ -1,11 +1,12 @@
 package com.example.moneyway.auth.jwt;
 
-import com.example.moneyway.common.util.CookieUtil; // ✅ [추가] CookieUtil을 import 합니다.
+import com.example.moneyway.common.util.CookieUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Optional;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -29,21 +31,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
+        String token = resolveToken(request);
 
-        String jwt = resolveToken(request);
+        if (StringUtils.hasText(token)) {
+            if (jwtTokenProvider.validToken(token)) {
+                Authentication authentication = jwtTokenProvider.getAuthentication(token);
 
-        if (StringUtils.hasText(jwt)) {
-            Authentication authentication = jwtTokenProvider.getAuthentication(jwt);
-            if (authentication != null) {
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                // ✅ authentication null 방지
+                if (authentication != null) {
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    log.debug("[JwtAuthenticationFilter] 인증 성공: {}", authentication.getName());
+                } else {
+                    log.warn("[JwtAuthenticationFilter] 유효한 토큰이지만 인증 객체 생성 실패. token: {}", token);
+                }
+            } else {
+                log.warn("[JwtAuthenticationFilter] 유효하지 않은 토큰: {}", token);
             }
+        } else {
+            // 요청 URI가 로그인/회원가입 등이 아닐 때만 로그를 남기도록 개선할 수 있습니다. (현재는 모든 요청에 대해 로그 발생)
+            // if (!request.getRequestURI().startsWith("/api/auth")) {
+            //     log.debug("[JwtAuthenticationFilter] 토큰 없음. URI: {}", request.getRequestURI());
+            // }
         }
 
         filterChain.doFilter(request, response);
     }
 
     /**
-     * ✅ [수정] 요청에서 토큰을 해석하는 메서드.
+     * 요청에서 토큰을 해석하는 메서드.
      * 1순위: 쿠키에서 Access Token을 찾습니다. (웹 브라우저 로그인)
      * 2순위: Authorization 헤더에서 Bearer 토큰을 찾습니다. (API 클라이언트, 모바일 앱 등)
      */

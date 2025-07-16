@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -38,7 +39,7 @@ public class CartServiceImpl implements CartService {
         Place place = placeRepository.findById(request.getPlaceId())
                 .orElseThrow(() -> new EntityNotFoundException("장소를 찾을 수 없습니다. ID: " + request.getPlaceId()));
 
-        // [수정] 동일한 장소 중복 추가 시, 예외 대신 조용히 무시 (멱등성 보장)
+        // 동일한 장소 중복 추가 시, 예외 대신 조용히 무시 (멱등성 보장)
         if (cartRepository.existsByUserAndPlace(user, place)) {
             return;
         }
@@ -61,9 +62,9 @@ public class CartServiceImpl implements CartService {
         List<Cart> cartItems = cartRepository.findByUser(user);
 
         List<CartItemResponse> itemResponses = cartItems.stream()
-                // ✅ [개선] 연관된 Place가 삭제되어 null인 경우를 안전하게 필터링
-                .filter(cart -> cart.getPlace() != null)
                 .map(CartItemResponse::from)
+                // ✅ [개선] DTO 변환 시 null인 항목(삭제된 장소)은 결과에서 제외
+                .filter(Objects::nonNull)
                 .toList();
 
         return new CartResponse(itemResponses);
@@ -77,8 +78,8 @@ public class CartServiceImpl implements CartService {
      */
     @Override
     public void updateCartItemPrice(Long userId, Long cartId, UpdateCartPriceRequest request) {
-        Cart cartItem = findCartById(cartId);
-        validateCartOwner(userId, cartItem);
+        // ✅ [개선] 조회와 권한 검증을 한 번에 처리
+        Cart cartItem = findAndValidateCartItem(userId, cartId);
 
         // 가격 변경 로직은 Cart 엔티티에 위임
         cartItem.updatePrice(request.getPrice());
@@ -91,13 +92,23 @@ public class CartServiceImpl implements CartService {
      */
     @Override
     public void removeCartItem(Long userId, Long cartId) {
-        Cart cartItem = findCartById(cartId);
-        validateCartOwner(userId, cartItem);
+        // ✅ [개선] 조회와 권한 검증을 한 번에 처리
+        Cart cartItem = findAndValidateCartItem(userId, cartId);
 
         cartRepository.delete(cartItem);
     }
 
     // --- Private Helper Methods ---
+
+    /**
+     * ✅ [추가] ID로 Cart를 조회하고, 현재 사용자가 소유주인지 검증합니다.
+     * @return 검증이 완료된 Cart 엔티티
+     */
+    private Cart findAndValidateCartItem(Long userId, Long cartId) {
+        Cart cart = findCartById(cartId);
+        validateCartOwner(userId, cart);
+        return cart;
+    }
 
     /**
      * ID로 User 엔티티를 조회합니다. 없으면 예외를 발생시킵니다.

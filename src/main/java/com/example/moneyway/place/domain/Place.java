@@ -41,10 +41,6 @@ public abstract class Place {
 
     protected abstract PlaceCategory calculateCategory();
 
-    public PlaceCategory getCategory() {
-        return this.category;
-    }
-
     public abstract String getDisplayPrice();
 
     public abstract int getNumericPrice();

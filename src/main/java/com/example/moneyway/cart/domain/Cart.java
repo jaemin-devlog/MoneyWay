@@ -34,7 +34,7 @@ public class Cart extends BaseTimeEntity {
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "place_id", nullable = false)
+    @JoinColumn(name = "place_id", referencedColumnName = "place_pk_id", nullable = false) // ✅ [수정] 참조할 부모 테이블의 컬럼명을 명시적으로 지정
     private Place place;
 
     @Column(nullable = false)

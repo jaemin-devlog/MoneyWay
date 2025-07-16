@@ -40,59 +40,53 @@ public class SwaggerConfig {
     }
 
     @Bean
-    public GroupedOpenApi authApi() {
+    public GroupedOpenApi aiApi() {
         return GroupedOpenApi.builder()
-                .group("auth-api")
-                .pathsToMatch("/api/auth/**")
+                .group("ai")
+                .pathsToMatch("/api/ai/**")
                 .build();
     }
 
     @Bean
-    public GroupedOpenApi userApi() {
+    public GroupedOpenApi authApi() {
+        String[] paths = {"/api/auth/**", "/api/token/**"};
         return GroupedOpenApi.builder()
-                .group("user-api")
-                .pathsToMatch("/api/users/**")
+                .group("auth")
+                .pathsToMatch(paths)
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi communityApi() {
+        String[] paths = {"/api/community/**", "/api/review/**"};
+        return GroupedOpenApi.builder()
+                .group("community")
+                .pathsToMatch(paths)
+                .build();
+    }
+
+    @Bean
+    public GroupedOpenApi placeApi() {
+        String[] paths = {"/api/place/**", "/api/tour/**"};
+        return GroupedOpenApi.builder()
+                .group("place")
+                .pathsToMatch(paths)
                 .build();
     }
 
     @Bean
     public GroupedOpenApi planApi() {
         return GroupedOpenApi.builder()
-                .group("plan-api")
-                .pathsToMatch("/plans/**") // 여기!
+                .group("plan")
+                .pathsToMatch("/api/plans/**")
                 .build();
     }
 
     @Bean
-    public GroupedOpenApi reviewApi() {
+    public GroupedOpenApi userApi() {
         return GroupedOpenApi.builder()
-                .group("review-api")
-                .pathsToMatch("/api/review/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi planTagApi() {
-        return GroupedOpenApi.builder()
-                .group("plan-tag-api")
-                .pathsToMatch("/api/plans/*/tags/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi tourApi() {
-        return GroupedOpenApi.builder()
-                .group("tour-api")
-                .pathsToMatch("/api/tour/**")
-                .build();
-    }
-
-    @Bean
-    public GroupedOpenApi tokenApi() {
-        return GroupedOpenApi.builder()
-                .group("token-api")
-                .pathsToMatch("/api/token/**")
+                .group("user")
+                .pathsToMatch("/api/users/**")
                 .build();
     }
 }
-
