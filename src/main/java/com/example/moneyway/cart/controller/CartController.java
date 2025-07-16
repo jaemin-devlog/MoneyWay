@@ -1,5 +1,6 @@
 package com.example.moneyway.cart.controller;
 
+import com.example.moneyway.auth.userdetails.UserDetailsImpl;
 import com.example.moneyway.cart.dto.request.AddCartRequest;
 import com.example.moneyway.cart.dto.request.UpdateCartPriceRequest;
 import com.example.moneyway.cart.dto.response.CartResponse;
@@ -10,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -26,10 +26,10 @@ public class CartController {
      */
     @PostMapping
     public ResponseEntity<Void> addPlaceToCart(
-            @AuthenticationPrincipal User principal,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Valid @RequestBody AddCartRequest request) {
-        
-        com.example.moneyway.user.domain.User user = authUserHelper.getUser(principal);
+
+        com.example.moneyway.user.domain.User user = authUserHelper.getUser(userDetails);
         cartService.addPlaceToCart(user.getId(), request);
 
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -40,9 +40,9 @@ public class CartController {
      */
     @GetMapping
     public ResponseEntity<CartResponse> getCart(
-            @AuthenticationPrincipal User principal) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        com.example.moneyway.user.domain.User user = authUserHelper.getUser(principal);
+        com.example.moneyway.user.domain.User user = authUserHelper.getUser(userDetails);
         CartResponse response = cartService.getCart(user.getId());
 
         return ResponseEntity.ok(response);
@@ -53,13 +53,13 @@ public class CartController {
      */
     @PatchMapping("/{cartId}")
     public ResponseEntity<Void> updateCartItemPrice(
-            @AuthenticationPrincipal User principal,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable Long cartId,
             @Valid @RequestBody UpdateCartPriceRequest request) {
-        
-        com.example.moneyway.user.domain.User user = authUserHelper.getUser(principal);
+
+        com.example.moneyway.user.domain.User user = authUserHelper.getUser(userDetails);
         cartService.updateCartItemPrice(user.getId(), cartId, request);
-        
+
         return ResponseEntity.ok().build();
     }
 
@@ -68,10 +68,10 @@ public class CartController {
      */
     @DeleteMapping("/{cartId}")
     public ResponseEntity<Void> removeCartItem(
-            @AuthenticationPrincipal User principal,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable Long cartId) {
-        
-        com.example.moneyway.user.domain.User user = authUserHelper.getUser(principal);
+
+        com.example.moneyway.user.domain.User user = authUserHelper.getUser(userDetails);
         cartService.removeCartItem(user.getId(), cartId);
 
         return ResponseEntity.noContent().build();
