@@ -67,10 +67,18 @@ public class TourPlace extends Place {
         }
 
         return switch (getCategory()) {
-            case ACCOMMODATION -> this.priceInfo + "원~";
+            case ACCOMMODATION -> this.priceInfo + "원";
             case ACTIVITY, SHOPPING, TOURIST_ATTRACTION -> "입장료 " + this.priceInfo + "원";
             default -> this.priceInfo + "원";
         };
+    }
+
+    @Override
+    public int getNumericPrice() {
+        if (this.priceInfo == null || this.priceInfo.isBlank() || !this.priceInfo.matches("\\d+")) {
+            return 0;
+        }
+        return Integer.parseInt(this.priceInfo);
     }
 
     @Override
@@ -107,4 +115,15 @@ public class TourPlace extends Place {
     public void updatePriceInfo(String newPriceInfo) {
         this.priceInfo = newPriceInfo;
     }
+
+    @Override
+    public String getMapX() {
+        return this.mapx;
+    }
+
+    @Override
+    public String getMapY() {
+        return this.mapy;
+    }
+
 }

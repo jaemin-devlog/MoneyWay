@@ -21,6 +21,14 @@ public class UserDetailsImpl implements UserDetails {
         this.user = user;
     }
 
+    /**
+     * ✅ [추가] 컨트롤러 등에서 인증된 사용자의 DB ID를 쉽게 가져오기 위한 편의 메소드
+     * @return User ID
+     */
+    public Long getUserId() {
+        return user.getId();
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.emptyList();
@@ -56,8 +64,7 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        // User 엔티티에 isDeleted 필드가 있다면, 아래와 같이 연동하는 것이 보안상 더 좋습니다.
-        // return !user.isDeleted();
-        return true; // 계정이 활성화되어 있음
+        // ✅ [수정] User 엔티티의 삭제 여부와 연동하여 실제 계정 활성화 상태를 반환
+        return !user.isDeleted();
     }
 }

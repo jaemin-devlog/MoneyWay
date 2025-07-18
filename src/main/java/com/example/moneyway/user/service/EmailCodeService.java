@@ -84,7 +84,7 @@ public class EmailCodeService {
      * @return 00000 ~ 99999 사이 문자열 코드
      */
     private String generateCode() {
-        return String.format("%05d", new Random().nextInt(100000));
+        return String.format("%06d", new Random().nextInt(1000000));
     }
 
     /**

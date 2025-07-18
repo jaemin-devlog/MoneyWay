@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
  * 사용자 데이터 CRUD 및 핵심 비즈니스 로직을 담당하는 서비스
  * (인증, 마이페이지 액션 관련 로직은 포함하지 않음)
  */
-// C:/Users/jjm02/IdeaProjects/MoneyWay1/src/main/java/com/example/moneyway/user/service/UserService.java
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -34,9 +33,6 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    /**
-     * ✅ [SUGGESTION] A helper method to encapsulate validation logic.
-     */
     private void validateNewUser(String email, String nickname) {
         if (userRepository.existsByEmail(email)) {
             throw new CustomUserException(ErrorCode.DUPLICATE_EMAIL);
@@ -46,7 +42,6 @@ public class UserService {
         }
     }
 
-    // ... other methods remain the same
     public User findActiveUserById(Long id) {
         return userRepository.findById(id)
                 .filter(user -> !user.isDeleted())

@@ -1,12 +1,11 @@
 package com.example.moneyway.community.controller;
 
+import com.example.moneyway.auth.userdetails.UserDetailsImpl;
 import com.example.moneyway.community.service.like.PostLikeService;
 import com.example.moneyway.community.service.scrap.PostScrapService;
-import com.example.moneyway.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,7 +20,6 @@ public class PostActionController {
 
     private final PostLikeService postLikeService;
     private final PostScrapService postScrapService;
-    private final UserService userService;
 
     /**
      * 게시글 좋아요 토글 API
@@ -29,12 +27,10 @@ public class PostActionController {
     @PostMapping("/{postId}/like")
     public ResponseEntity<Map<String, Boolean>> toggleLike(
             @PathVariable Long postId,
-            @AuthenticationPrincipal User principal) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        Long userId = userService.findByEmail(principal.getUsername()).getId();
-        boolean isLiked = postLikeService.toggleLike(postId, userId);
+        boolean isLiked = postLikeService.toggleLike(postId, userDetails.getUserId());
 
-        // 클라이언트가 상태를 바로 알 수 있도록 boolean 값을 반환
         return ResponseEntity.ok(Map.of("isLiked", isLiked));
     }
 
@@ -44,10 +40,9 @@ public class PostActionController {
     @PostMapping("/{postId}/scrap")
     public ResponseEntity<Map<String, Boolean>> toggleScrap(
             @PathVariable Long postId,
-            @AuthenticationPrincipal User principal) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        Long userId = userService.findByEmail(principal.getUsername()).getId();
-        boolean isScrapped = postScrapService.toggleScrap(postId, userId);
+        boolean isScrapped = postScrapService.toggleScrap(postId, userDetails.getUserId());
 
         return ResponseEntity.ok(Map.of("isScrapped", isScrapped));
     }

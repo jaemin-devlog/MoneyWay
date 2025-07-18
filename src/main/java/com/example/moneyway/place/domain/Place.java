@@ -41,11 +41,9 @@ public abstract class Place {
 
     protected abstract PlaceCategory calculateCategory();
 
-    public PlaceCategory getCategory() {
-        return this.category;
-    }
-
     public abstract String getDisplayPrice();
+
+    public abstract int getNumericPrice();
 
     public abstract String getAddress();
 
@@ -56,6 +54,17 @@ public abstract class Place {
     public abstract String getDescription();
 
     public abstract String getMenu();
+
+    public abstract String getMapX(); // 경도(Longitude)
+
+    public abstract String getMapY(); // 위도(Latitude)
+    /**
+     * 장소의 이름을 반환하는 공통 메서드.
+     * 모든 Place 자식 클래스에서 title 필드를 이름으로 사용합니다.
+     */
+    public String getPlaceName() {
+        return this.title;
+    }
 
     @Override
     public boolean equals(Object o) {

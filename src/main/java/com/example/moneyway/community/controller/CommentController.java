@@ -1,9 +1,8 @@
 package com.example.moneyway.community.controller;
 
+import com.example.moneyway.auth.userdetails.UserDetailsImpl;
 import com.example.moneyway.community.dto.request.CreateCommentRequest;
 import com.example.moneyway.community.service.comment.CommentService;
-import com.example.moneyway.user.domain.User;
-import com.example.moneyway.user.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,24 +18,18 @@ import java.net.URI;
 public class CommentController {
 
     private final CommentService commentService;
-    private final UserService userService; // principal(email)로부터 User ID를 얻기 위해 필요
 
     /**
      * 댓글 생성 API
      */
     @PostMapping
     public ResponseEntity<Void> createComment(
-            // Spring Security를 통해 현재 로그인한 사용자의 정보를 가져옵니다.
-            @AuthenticationPrincipal org.springframework.security.core.userdetails.User principal,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Valid @RequestBody CreateCommentRequest request
     ) {
-        // 1. principal에서 사용자 이메일(username)을 가져와 우리 시스템의 User 객체를 조회합니다.
-        User user = userService.findByEmail(principal.getUsername());
+        // 인증된 사용자 ID로 댓글을 생성합니다.
+        Long commentId = commentService.createComment(userDetails.getUserId(), request);
 
-        // 2. 조회한 사용자의 ID와 요청 데이터를 서비스에 전달합니다.
-        Long commentId = commentService.createComment(user.getId(), request);
-
-        // 3. 생성된 댓글의 위치를 Location 헤더에 담아 201 Created 응답을 반환합니다.
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(commentId)
@@ -50,14 +43,12 @@ public class CommentController {
      */
     @DeleteMapping("/{commentId}")
     public ResponseEntity<Void> deleteComment(
-            @AuthenticationPrincipal org.springframework.security.core.userdetails.User principal,
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
             @PathVariable Long commentId
     ) {
-        // 댓글을 삭제할 권한이 있는지 확인하기 위해 현재 로그인한 사용자의 ID가 필요합니다.
-        User user = userService.findByEmail(principal.getUsername());
-        commentService.deleteComment(commentId, user.getId());
+        // 권한 확인을 위해 사용자 ID를 함께 전달합니다.
+        commentService.deleteComment(commentId, userDetails.getUserId());
 
-        // 성공적으로 삭제되었음을 의미하는 204 No Content 응답을 반환합니다.
         return ResponseEntity.noContent().build();
     }
 }

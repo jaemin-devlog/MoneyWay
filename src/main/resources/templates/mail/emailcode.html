@@ -3,36 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <title>이메일 인증번호</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
 </head>
 
-<body style="margin:0; padding:0; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f6f8fa;">
-<div style="max-width: 600px; margin: 50px auto; background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); padding: 40px;">
+<body style="margin:0; padding:0; font-family: 'Noto Sans KR', 'Malgun Gothic', '맑은 고딕', sans-serif; background-color: #f4f7fc;">
+<div style="width: 100%; background-color: #f4f7fc; padding: 40px 0;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.08);">
 
-    <h2 style="color: #333333; margin-bottom: 10px;">MoneyWay</h2>
-    <h1 style="font-size: 24px; color: #222;">이메일 인증번호 안내</h1>
-
-    <p style="color: #555555; font-size: 16px; line-height: 1.5;">
-        본 메일은 <strong>MoneyWay</strong>의 비밀번호 재설정을 위한 이메일 인증입니다.<br/>
-        아래의 인증코드를 입력하여 본인확인을 진행해 주세요.
-    </p>
-
-    <div style="margin: 30px 0; text-align: center;">
-        <div style="display: inline-block; background-color: #f0f4ff; color: #1a53ff; font-size: 24px; font-weight: bold; padding: 15px 30px; border-radius: 6px;" th:text="${code}">
-            123456
+        <!-- 1. 헤더: 브랜드 로고 영역 -->
+        <div style="background-color: #346df1; color: #ffffff; padding: 25px 40px; text-align: left;">
+            <h2 style="margin: 0; font-size: 24px; font-weight: bold;">MoneyWay</h2>
         </div>
+
+        <div style="padding: 40px;">
+            <!-- 2. 본문: 제목과 설명 -->
+            <h1 style="font-size: 26px; color: #1a1a1a; margin-top: 0; margin-bottom: 20px; font-weight: 700;">이메일 인증번호 안내</h1>
+            <p style="color: #555555; font-size: 16px; line-height: 1.6;">
+                본 메일은 <strong>MoneyWay</strong>의 비밀번호 재설정을 위한 이메일 인증입니다.<br/>
+                아래 인증코드를 입력하여 본인확인을 진행해 주세요.
+            </p>
+
+            <!-- 3. 인증 코드: 가장 중요한 영역 -->
+            <div style="margin: 35px 0; text-align: center;">
+                <!-- ✅ [수정] letter-spacing 값을 0.3em에서 0.2em으로 줄였습니다. -->
+                <div style="display: inline-block; background-color: #eef2ff; border: 1px solid #dbe4ff; color: #346df1; font-size: 32px; font-weight: bold; padding: 18px 40px; border-radius: 8px; letter-spacing: 0.0em;" th:text="${code}">
+                    123456
+                </div>
+            </div>
+
+            <p style="color: #777777; font-size: 15px;">
+                인증코드는 발송 시점부터 <strong>5분간 유효</strong>합니다.
+            </p>
+            <p style="color: #777777; font-size: 15px; margin-top: 10px;">
+                본인 요청이 아니라면 이 메일을 무시하셔도 됩니다.
+            </p>
+        </div>
+
+        <!-- 4. 푸터: 저작권 정보 -->
+        <div style="background-color: #f8f9fa; padding: 20px 40px; text-align: center; border-top: 1px solid #e9ecef;">
+            <p style="font-size: 12px; color: #999999; margin: 0;">
+                ⓒ 2025 MoneyWay. All rights reserved.
+            </p>
+        </div>
+
     </div>
-
-    <p style="color: #999999; font-size: 14px;">
-        인증코드는 발송 시점부터 <strong>5분간 유효</strong>합니다.<br/>
-        인증을 요청하지 않았다면 이 메일은 무시하셔도 됩니다.
-    </p>
-
-    <hr style="margin-top: 40px; border: none; border-top: 1px solid #e0e0e0;"/>
-
-    <p style="font-size: 12px; color: #aaaaaa; text-align: center;">
-        ⓒ 2025 MoneyWay. All rights reserved.
-    </p>
-
 </div>
 </body>
 </html>

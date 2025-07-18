@@ -53,6 +53,13 @@ public class RestaurantJeju extends Place {
     public String getAddress() {
         return this.address;
     }
+    @Override
+    public int getNumericPrice() {
+        if (this.priceInfo == null || this.priceInfo.isBlank() || !this.priceInfo.matches("\\d+")) {
+            return 0;
+        }
+        return Integer.parseInt(this.priceInfo);
+    }
 
     @Override
     public String getThumbnailUrl() {
@@ -73,6 +80,15 @@ public class RestaurantJeju extends Place {
         return null; // 맛집/카페에는 별도의 상세 설명이 없음
     }
 
+    @Override
+    public String getMapX() {
+        return null;
+    }
+
+    @Override
+    public String getMapY() {
+        return null;
+    }
     @Override
     public String getMenu() {
         return this.menu;
