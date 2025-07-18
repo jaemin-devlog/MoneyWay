@@ -25,19 +25,13 @@ public class CartItemResponse {
      * Cart 엔티티를 CartItemResponse로 변환하는 정적 팩토리 메서드
      *
      * @param cart 장바구니 엔티티
-     * @return CartItemResponse 객체 또는 place가 없을 경우 null
+     * @return CartItemResponse 객체
      *
      * - Place 엔티티의 주요 정보(이름, 주소, 이미지)와 Cart의 가격 정보를 조합해 응답을 구성함
      * - 프론트에서 장소별 장바구니 항목을 리스트 형태로 보여줄 때 사용됨
      */
     public static CartItemResponse from(Cart cart) {
         Place place = cart.getPlace();
-
-        //  연관된 Place가 삭제되어 null일 경우, NullPointerException 방지
-        if (place == null) {
-            return null;
-        }
-
         return CartItemResponse.builder()
                 .cartId(cart.getId())                      // 장바구니 고유 ID
                 .placeId(place.getId())                    // 장소 ID
