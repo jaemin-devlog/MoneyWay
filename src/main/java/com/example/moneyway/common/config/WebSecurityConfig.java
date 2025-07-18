@@ -63,11 +63,7 @@ public class WebSecurityConfig {
                                 "/swagger-resources/**"
                         ).permitAll()
 
-                        // 3. 관리자용 API 전체 허용
-                        .requestMatchers("/api/admin/**").permitAll()
 
-                        // 4. 일반 사용자용 공개 API 허용 
-                        .requestMatchers(HttpMethod.GET, "/api/places/**").permitAll()
 
                         // 5. 위에서 지정한 경로 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
