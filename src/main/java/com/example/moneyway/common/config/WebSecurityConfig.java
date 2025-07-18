@@ -57,9 +57,14 @@ public class WebSecurityConfig {
                                 "/api/auth/login",  // 로그인
                                 "/login/**",         // 소셜 로그인 과정
                                 "/oauth2/**",        // 소셜 로그인 과정
-                                "/error"             // 에러 페이지
+                                "/error",             // 에러 페이지
+                                "/api/admin/**",      //admin
+                                "/api/places/**"      //place
                         ).permitAll()
+
+           
                         // 2. 그 외 모든 요청은 반드시 인증을 거쳐야 함
+
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
