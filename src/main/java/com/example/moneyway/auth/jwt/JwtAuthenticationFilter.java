@@ -77,4 +77,20 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         return null;
     }
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String[] permitAllPatterns = {
+                "/swagger-ui/**",
+                "/v3/api-docs/**"
+        };
+        String path = request.getRequestURI();
+
+        for (String pattern : permitAllPatterns) {
+            if (path.startsWith(pattern.replace("/**", ""))) {
+                return true; // true를 반환하면 이 필터는 실행되지 않습니다.
+            }
+        }
+        return false;
+    }
+
 }

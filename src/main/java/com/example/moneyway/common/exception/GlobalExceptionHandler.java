@@ -1,6 +1,6 @@
 package com.example.moneyway.common.exception;
 
-import com.example.moneyway.common.exception.CustomException.CustomException; // [개선] 공통 부모 예외
+import com.example.moneyway.common.exception.CustomException.CustomException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,7 @@ public class GlobalExceptionHandler {
      * 1️⃣ 모든 사용자 정의 예외 처리 핸들러
      * CustomException을 상속하는 모든 예외(CustomUserException, CustomPostException 등)를 처리
      */
-    @ExceptionHandler(CustomException.class) // [개선] 부모 클래스를 처리
+    @ExceptionHandler(CustomException.class)
     public ResponseEntity<ErrorResponse> handleCustomException(CustomException ex) {
         ErrorCode errorCode = ex.getErrorCode();
         log.warn("CustomException 발생: {}", errorCode.getMessage());

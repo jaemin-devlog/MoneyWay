@@ -5,14 +5,14 @@ import com.example.moneyway.auth.oauth.KakaoOAuth2Service;
 import com.example.moneyway.auth.oauth.OAuth2LoginFailureHandler;
 import com.example.moneyway.auth.oauth.OAuth2SuccessHandler;
 import com.example.moneyway.auth.oauth.repository.OAuth2AuthorizationCookieRepository;
-import com.example.moneyway.common.exception.CustomAccessDeniedHandler; // ✨ [추가]
+import com.example.moneyway.common.exception.CustomAccessDeniedHandler;
 import com.example.moneyway.common.exception.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
@@ -34,7 +34,7 @@ public class WebSecurityConfig {
     private final OAuth2LoginFailureHandler oAuth2LoginFailureHandler;
     private final OAuth2AuthorizationCookieRepository oAuth2AuthorizationCookieRepository;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
-    private final CustomAccessDeniedHandler customAccessDeniedHandler; // ✨ [추가]
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -49,15 +49,17 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 1. 인증 없이 접근을 허용할 경로들
                         .requestMatchers(
+                                // Swagger UI and API docs
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                // Auth and OAuth endpoints
                                 "/api/auth/signup", // 회원가입
                                 "/api/auth/login",  // 로그인
                                 "/login/**",         // 소셜 로그인 과정
                                 "/oauth2/**",        // 소셜 로그인 과정
                                 "/error"             // 에러 페이지
                         ).permitAll()
-                        // 2. Swagger API 문서 경로 허용
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        // 3. 위에서 지정한 경로 외의 모든 요청은 반드시 인증을 거쳐야 함
+                        // 2. 그 외 모든 요청은 반드시 인증을 거쳐야 함
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
@@ -80,7 +82,7 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://moneyway-572cf.web.app"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://moneyway-572cf.web.app", "http://localhost:8081"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

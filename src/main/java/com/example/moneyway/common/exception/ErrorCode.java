@@ -90,7 +90,13 @@ public enum ErrorCode {
     ALREADY_IN_CART(HttpStatus.BAD_REQUEST, "이미 장바구니에 담긴 장소입니다."),
     CART_NOT_FOUND(HttpStatus.NOT_FOUND, "장바구니에서 해당 항목을 찾을 수 없습니다."),
     INVALID_PLACE_TYPE(HttpStatus.BAD_REQUEST, "유효하지 않은 장소 타입입니다."),
-    PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 장소입니다.");
+    PLACE_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 장소입니다."),
+
+    // ================== PLAN (여행 계획) ==================
+    PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "여행 계획을 찾을 수 없습니다."),
+    PLAN_ACCESS_DENIED(HttpStatus.FORBIDDEN, "해당 여행 계획에 대한 접근 권한이 없습니다."),
+    INVALID_CART_ITEM_FOR_PLAN(HttpStatus.BAD_REQUEST, "유효하지 않거나 권한이 없는 장바구니 항목이 포함되어 있습니다.");
+
 
     private final HttpStatus status;
     private final String message;
