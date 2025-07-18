@@ -63,7 +63,7 @@ public class WebSecurityConfig {
                                 "/swagger-resources/**"
                         ).permitAll()
 
-
+                       
 
                         // 5. 위에서 지정한 경로 외 모든 요청은 인증 필요
                         .anyRequest().authenticated()
