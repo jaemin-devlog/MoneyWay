@@ -53,13 +53,13 @@ public class WebSecurityConfig {
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 // Auth and OAuth endpoints
-                                "/api/auth/signup", // 회원가입
-                                "/api/auth/login",  // 로그인
+                                "/api/auth/**", // 계정관련 
                                 "/login/**",         // 소셜 로그인 과정
                                 "/oauth2/**",        // 소셜 로그인 과정
                                 "/error",             // 에러 페이지
                                 "/api/admin/**",      //admin
-                                "/api/places/**"      //place
+                                "/api/places/**",      //place
+                                 "api/users/**"
                         ).permitAll()
 
            
