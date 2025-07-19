@@ -95,6 +95,7 @@ public class UserAuthService {
         }
 
         user.updatePassword(passwordEncoder.encode(request.getNewPassword()));
+        emailCodeService.deleteVerificationStatus(request.getEmail()); // ✅ 인증 상태 삭제
     }
 
     /**

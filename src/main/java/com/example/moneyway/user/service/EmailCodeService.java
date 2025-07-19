@@ -76,7 +76,7 @@ public class EmailCodeService {
         }
 
         // 성공적으로 확인 후, 재사용을 막기 위해 인증 상태 키를 삭제
-        redisTemplate.delete(verifiedKey);
+        
     }
 
     /**
@@ -94,5 +94,14 @@ public class EmailCodeService {
      */
     private String buildRedisKey(String email) {
         return VERIFICATION_KEY_PREFIX + email;
+    }
+
+    /**
+     * 이메일 인증 상태를 Redis에서 삭제합니다.
+     * @param email 삭제할 이메일
+     */
+    public void deleteVerificationStatus(String email) {
+        String verifiedKey = VERIFIED_STATUS_KEY_PREFIX + email;
+        redisTemplate.delete(verifiedKey);
     }
 }
