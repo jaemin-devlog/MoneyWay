@@ -6,7 +6,7 @@ import com.example.moneyway.plan.domain.PlanPlace;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Getter
 public class PlanPlaceResponseDto {
@@ -16,11 +16,11 @@ public class PlanPlaceResponseDto {
     private final String category;
     private final Integer cost;
     private final Integer dayNumber;
-    private final LocalDateTime startTime;
-    private final LocalDateTime endTime;
+    private final LocalTime startTime;
+    private final LocalTime endTime;
 
     @Builder
-    private PlanPlaceResponseDto(Long placeId, String placeName, String category, Integer cost, Integer dayNumber, LocalDateTime startTime, LocalDateTime endTime) {
+    private PlanPlaceResponseDto(Long placeId, String placeName, String category, Integer cost, Integer dayNumber, LocalTime startTime, LocalTime endTime) {
         this.placeId = placeId;
         this.placeName = placeName;
         this.category = category;

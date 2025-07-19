@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 
-import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Getter
 public class PlanPlaceCreateDto {
@@ -17,11 +17,11 @@ public class PlanPlaceCreateDto {
     @NotNull(message = "일차 정보는 필수입니다.")
     private Integer dayNumber;
 
-    @Schema(description = "방문 시작 시간", example = "2024-08-10T10:00:00")
+    @Schema(description = "방문 시작 시간", example = "10:00")
     @NotNull(message = "방문 시작 시간은 필수입니다.")
-    private LocalDateTime startTime;
+    private LocalTime startTime;
 
-    @Schema(description = "방문 종료 시간", example = "2024-08-10T12:30:00")
+    @Schema(description = "방문 종료 시간", example = "12:30")
     @NotNull(message = "방문 종료 시간은 필수입니다.")
-    private LocalDateTime endTime;
+    private LocalTime endTime;
 }

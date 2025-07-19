@@ -4,6 +4,7 @@ import com.example.moneyway.auth.userdetails.UserDetailsImpl;
 import com.example.moneyway.common.exception.ErrorResponse;
 import com.example.moneyway.plan.domain.Plan;
 import com.example.moneyway.plan.dto.request.PlanCreateRequestDto;
+import com.example.moneyway.plan.dto.request.PlanUpdateRequestDto;
 import com.example.moneyway.plan.dto.response.PlanDetailResponseDto;
 import com.example.moneyway.plan.dto.response.PlanSummaryResponseDto;
 import com.example.moneyway.plan.service.PlanService;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+
 import java.util.List;
 
 @Tag(name = "여행 계획(Plan)")
@@ -83,6 +85,26 @@ public class PlanController {
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         // 변수 할당 없이 바로 반환하여 코드 간소화
         return ResponseEntity.ok(planService.getAllPlans(userDetails.getUser()));
+    }
+
+    @Operation(summary = "여행 계획 수정", description = "ID로 특정 여행 계획의 전체 내용을 수정합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "수정 성공"),
+            @ApiResponse(responseCode = "400", description = "입력 값 유효성 검증 실패",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "접근 권한 없음",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 여행 계획",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    @PatchMapping("/{planId}") // 또는 @PutMapping
+    public ResponseEntity<Void> updatePlan(
+            @PathVariable Long planId,
+            @Valid @RequestBody PlanUpdateRequestDto requestDto,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+
+        planService.updatePlan(planId, requestDto, userDetails.getUser());
+        return ResponseEntity.ok().build();
     }
 
     

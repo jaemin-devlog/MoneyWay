@@ -3,17 +3,17 @@ package com.example.moneyway.plan.domain;
 import com.example.moneyway.common.domain.BaseTimeEntity;
 import com.example.moneyway.user.domain.User;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor
+@Builder
 @Table(name = "plan")
 public class Plan extends BaseTimeEntity {
     @Id
@@ -28,13 +28,8 @@ public class Plan extends BaseTimeEntity {
     private User user;
 
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<PlanPlace> planPlaces = new ArrayList<>();
-
-    @Builder
-    public Plan(String title, User user) {
-        this.title = title;
-        this.user = user;
-    }
 
     /**
      * 양방향 연관관계 편의 메소드.
@@ -45,6 +40,4 @@ public class Plan extends BaseTimeEntity {
         this.planPlaces.add(planPlace);
         planPlace.setPlan(this);
     }
-
-    
 }
