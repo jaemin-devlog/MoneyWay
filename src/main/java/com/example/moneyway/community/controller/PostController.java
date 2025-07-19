@@ -47,6 +47,7 @@ public class PostController {
         return ResponseEntity.created(location).build();
     }
 
+
     /**
      * ✅ 게시글 수정
      */

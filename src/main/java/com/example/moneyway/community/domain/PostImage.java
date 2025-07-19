@@ -21,7 +21,7 @@ public class PostImage {
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "TEXT") // ✅ columnDefinition = "TEXT" 추가
     private String imageUrl;
 
     @Builder

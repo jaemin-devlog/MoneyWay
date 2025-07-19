@@ -26,11 +26,16 @@ public class TourPlace extends Place {
     private String contenttypeid;
     private String createdtime;
     private String modifiedtime;
+    @Column
     private String addr1;
     private String areacode;
+    @Column
     private String mapx;
+    @Column
     private String mapy;
+    @Column
     private String firstimage;
+    @Column
     private String firstimage2;
     private String cat1;
     private String cat2;

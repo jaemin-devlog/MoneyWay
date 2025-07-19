@@ -92,10 +92,7 @@ public class CommentServiceImpl implements CommentService {
         User writer = comment.getUser();
 
         // [개선] WriterInfo 공통 DTO를 사용하여 작성자 정보를 만듭니다.
-        WriterInfo writerInfo = WriterInfo.builder()
-                .userId(writer.getId())
-                .nickname(writer.getNickname())
-                .build();
+        WriterInfo writerInfo = WriterInfo.from(writer);
 
         return CommentResponse.builder()
                 .commentId(comment.getId())

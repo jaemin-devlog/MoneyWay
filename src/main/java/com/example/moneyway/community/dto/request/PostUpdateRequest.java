@@ -1,22 +1,45 @@
 package com.example.moneyway.community.dto.request;
 
-import com.example.moneyway.community.dto.request.common.BasePostRequest;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
-// [제거] import lombok.Setter;
 
 import java.util.List;
 
 /**
- * 게시글 수정 요청 DTO (불변 객체 및 구조 개선)
- * - 수정 대상 postId는 URL 경로에서 받으므로 DTO에서 제거합니다.
+ * 게시글 수정 요청 DTO (불변 객체)
  */
 @Getter
-// [제거] @Setter
-public class PostUpdateRequest extends BasePostRequest {
-    // [제거] private Long postId;
+public class PostUpdateRequest {
 
-    // [개선] 생성자를 통해 필드 주입
-    public PostUpdateRequest(String title, String content, Integer totalCost, String thumbnailUrl, List<String> imageUrls) {
+    @NotBlank(message = "제목은 필수입니다.")
+    @Size(max = 20, message = "제목은 20자 이하로 작성해주세요.")
+    private final String title; // 게시글 제목
+
+    @NotBlank(message = "본문 내용은 필수입니다.")
+    private final String content; // 게시글 본문
+
+    @NotNull(message = "지출 비용은 필수입니다.")
+    @PositiveOrZero(message = "지출 비용은 0 이상의 값이어야 합니다.")
+    private final Integer totalCost; // 총 지출 비용
+
+    @NotBlank(message = "썸네일 이미지는 필수입니다.")
+    private final String thumbnailUrl; // 대표 썸네일 URL
+
+    @Size(max = 10, message = "첨부 이미지는 최대 10개까지만 등록할 수 있습니다.")
+    private final List<String> imageUrls; // 첨부 이미지 리스트
+
+    @JsonCreator
+    public PostUpdateRequest(
+            @JsonProperty("title") String title,
+            @JsonProperty("content") String content,
+            @JsonProperty("totalCost") Integer totalCost,
+            @JsonProperty("thumbnailUrl") String thumbnailUrl,
+            @JsonProperty("imageUrls") List<String> imageUrls) {
         this.title = title;
         this.content = content;
         this.totalCost = totalCost;

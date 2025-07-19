@@ -2,6 +2,7 @@ package com.example.moneyway.community.controller;
 
 import com.example.moneyway.auth.userdetails.UserDetailsImpl;
 import com.example.moneyway.community.dto.request.CreateCommentRequest;
+import com.example.moneyway.community.dto.response.CommentResponse;
 import com.example.moneyway.community.service.comment.CommentService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -50,5 +52,18 @@ public class CommentController {
         commentService.deleteComment(commentId, userDetails.getUserId());
 
         return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * ✅ 댓글 목록 조회 API
+     */
+    @GetMapping("/post/{postId}")
+    public ResponseEntity<List<CommentResponse>> getCommentsByPostId(
+            @PathVariable Long postId,
+            @AuthenticationPrincipal UserDetailsImpl userDetails
+    ) {
+        Long viewerId = (userDetails != null) ? userDetails.getUserId() : null;
+        List<CommentResponse> comments = commentService.getActiveCommentsByPostId(postId, viewerId);
+        return ResponseEntity.ok(comments);
     }
 }

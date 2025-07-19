@@ -14,10 +14,7 @@ import java.util.Optional;
 
 public interface PostScrapRepository extends JpaRepository<PostScrap, Long> {
 
-    // ✅ [추가] 특정 게시글을 특정 사용자가 '스크랩'했는지 여부를 확인합니다.
     boolean existsByPostAndUser(Post post, User user);
-
-    boolean existsByPostAndUser_Id(Post post, Long userId);
 
     void deleteByPostAndUser(Post post, User user);
 

@@ -30,6 +30,9 @@ public class PostDetailResponse {
     private Integer scrapCount;
     private Integer viewCount;
 
+    // ✅ [추가] 댓글 목록
+    private List<CommentResponse> comments;
+
     // --- 현재 사용자의 상태 정보 ---
     private boolean isMine;     // 내가 쓴 글인지 여부
     private boolean isLiked;    // 내가 좋아요를 눌렀는지 여부

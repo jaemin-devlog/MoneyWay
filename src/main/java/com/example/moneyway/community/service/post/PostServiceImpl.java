@@ -5,6 +5,7 @@ import com.example.moneyway.common.exception.ErrorCode;
 import com.example.moneyway.community.domain.*;
 import com.example.moneyway.community.dto.request.CreatePostRequest;
 import com.example.moneyway.community.dto.request.PostUpdateRequest;
+import com.example.moneyway.community.dto.response.CommentResponse;
 import com.example.moneyway.community.dto.response.PostDetailResponse;
 import com.example.moneyway.community.dto.response.PostSummaryResponse;
 import com.example.moneyway.community.dto.response.common.WriterInfo;
@@ -12,6 +13,7 @@ import com.example.moneyway.community.repository.action.*;
 import com.example.moneyway.community.repository.comment.CommentRepository;
 import com.example.moneyway.community.repository.post.PostImageRepository;
 import com.example.moneyway.community.repository.post.PostRepository;
+import com.example.moneyway.community.service.comment.CommentService;
 import com.example.moneyway.community.type.PostSortType;
 import com.example.moneyway.user.domain.User;
 import com.example.moneyway.user.service.UserService;
@@ -36,6 +38,7 @@ public class PostServiceImpl implements PostService {
     private final PostScrapRepository postScrapRepository;
     private final PostViewRepository postViewRepository;
     private final UserService userService;
+    private final CommentService commentService;
 
     @Override
     public Long createPost(Long userId, CreatePostRequest request) {
@@ -46,7 +49,7 @@ public class PostServiceImpl implements PostService {
                 .title(request.getTitle())
                 .content(request.getContent())
                 .totalCost(request.getTotalCost())
-                .isChallenge(request.getIsChallenge())
+                .isChallenge(request.isChallenge())
                 .thumbnailUrl(request.getThumbnailUrl())
                 .build();
         postRepository.save(post);
@@ -104,7 +107,9 @@ public class PostServiceImpl implements PostService {
                 .map(PostImage::getImageUrl)
                 .toList();
 
-        return toDetailResponse(post, viewerId, imageUrls);
+        List<CommentResponse> comments = commentService.getActiveCommentsByPostId(postId, viewerId);
+
+        return toDetailResponse(post, viewerId, imageUrls, comments);
     }
 
     @Override
@@ -157,13 +162,14 @@ public class PostServiceImpl implements PostService {
         };
     }
 
-    private PostDetailResponse toDetailResponse(Post post, Long viewerId, List<String> imageUrls) {
+    private PostDetailResponse toDetailResponse(Post post, Long viewerId, List<String> imageUrls, List<CommentResponse> comments) {
         boolean isLiked = false;
         boolean isScrapped = false;
 
         if (viewerId != null) {
-            isLiked = postLikeRepository.existsByPostAndUser_Id(post, viewerId);
-            isScrapped = postScrapRepository.existsByPostAndUser_Id(post, viewerId);
+            User viewerUser = userService.findActiveUserById(viewerId);
+            isLiked = postLikeRepository.existsByPostAndUser(post, viewerUser);
+            isScrapped = postScrapRepository.existsByPostAndUser(post, viewerUser);
         }
 
         return PostDetailResponse.builder()
@@ -179,13 +185,11 @@ public class PostServiceImpl implements PostService {
                 .scrapCount(post.getScrapCount())
                 .viewCount(post.getViewCount())
                 .createdAt(post.getCreatedAt())
-                .writerInfo(WriterInfo.builder()
-                        .userId(post.getUser().getId())
-                        .nickname(post.getUser().getNickname())
-                        .build())
+                .writerInfo(WriterInfo.from(post.getUser()))
                 .isMine(Objects.equals(post.getUser().getId(), viewerId))
                 .isLiked(isLiked)
                 .isScrapped(isScrapped)
+                .comments(comments)
                 .build();
     }
 
@@ -194,8 +198,9 @@ public class PostServiceImpl implements PostService {
         boolean isScrapped = false;
 
         if (viewerId != null) {
-            isLiked = postLikeRepository.existsByPostAndUser_Id(post, viewerId);
-            isScrapped = postScrapRepository.existsByPostAndUser_Id(post, viewerId);
+            User viewerUser = userService.findActiveUserById(viewerId);
+            isLiked = postLikeRepository.existsByPostAndUser(post, viewerUser);
+            isScrapped = postScrapRepository.existsByPostAndUser(post, viewerUser);
         }
 
         return PostSummaryResponse.builder()
@@ -206,10 +211,7 @@ public class PostServiceImpl implements PostService {
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getCommentCount())
                 .scrapCount(post.getScrapCount())
-                .writerInfo(WriterInfo.builder()
-                        .userId(post.getUser().getId())
-                        .nickname(post.getUser().getNickname())
-                        .build())
+                .writerInfo(WriterInfo.from(post.getUser()))
                 .createdAt(post.getCreatedAt())
                 .isLiked(isLiked)
                 .isScrapped(isScrapped)
