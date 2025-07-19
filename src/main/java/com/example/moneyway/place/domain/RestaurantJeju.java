@@ -1,8 +1,9 @@
 package com.example.moneyway.place.domain;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
-import jakarta.persistence.Transient; // Import added
+import jakarta.persistence.Transient;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -20,17 +21,24 @@ import java.util.List;
 @PrimaryKeyJoinColumn(name = "place_pk_id")
 public class RestaurantJeju extends Place {
 
+    @Column(name = "address")
     private String address;
     private String score;
     private String review;
     private String menu;
     private String url;
 
+    @Column(name = "img")
     private String thumbnailUrl;
 
     private String priceInfo;
 
     private String categoryCode;
+
+    @Column(name = "mapx")
+    private String mapX;
+    @Column(name = "mapy")
+    private String mapY;
 
     @Override
     protected PlaceCategory calculateCategory() {
@@ -82,12 +90,12 @@ public class RestaurantJeju extends Place {
 
     @Override
     public String getMapX() {
-        return null;
+        return this.mapX; // 추가된 mapX 필드 반환
     }
 
     @Override
     public String getMapY() {
-        return null;
+        return this.mapY; // 추가된 mapY 필드 반환
     }
     @Override
     public String getMenu() {

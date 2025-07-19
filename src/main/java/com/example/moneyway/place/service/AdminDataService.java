@@ -49,7 +49,9 @@ public class AdminDataService {
     private static final String HEADER_PRICE_INFO = "price2";
     private static final String HEADER_THUMBNAIL_URL = "img";
     private static final String HEADER_CATEGORY_CODE = "category_code";
-    private static final String HEADER_CONTENT_ID = "contentid"; // ✅ [추가] 관광지 가격 업데이트용 헤더
+    private static final String HEADER_MAP_X = "mapx"; // 맛집/카페 위경도용
+    private static final String HEADER_MAP_Y = "mapy"; //  맛집/카페 위경도용
+    private static final String HEADER_CONTENT_ID = "contentid"; //  관광지 가격 업데이트용 헤더
     private static final int TOUR_API_FETCH_SIZE = 100;
     private static final int DB_QUERY_BATCH_SIZE = 1000;
 
@@ -60,7 +62,6 @@ public class AdminDataService {
     private final TourUpdateHelper tourUpdateHelper;
     private final ExecutorService dataSyncTaskExecutor;
 
-    // ... syncAllTourData, syncAllTourDetails 메서드는 변경 없이 그대로 유지 ...
     @Async("dataSyncTaskExecutor")
     public void syncAllTourData() {
         log.info("TourAPI 전체 데이터 동기화 작업을 시작합니다...");
@@ -119,7 +120,7 @@ public class AdminDataService {
 
         try (InputStream is = file.getInputStream(); Workbook workbook = new XSSFWorkbook(is)) {
             Sheet sheet = workbook.getSheetAt(0);
-            Map<String, Integer> columnIndexMap = findExcelColumnIndices(sheet.getRow(0), HEADER_TITLE, HEADER_ADDRESS);
+            Map<String, Integer> columnIndexMap = findExcelColumnIndices(sheet.getRow(0), HEADER_TITLE, HEADER_ADDRESS, HEADER_MAP_X, HEADER_MAP_Y);
 
             // 1. 엑셀에서 고유한 맛집 후보 목록 읽기
             Map<String, RestaurantJeju> candidatesFromExcel = readUniqueRestaurantsFromSheet(sheet, columnIndexMap);
@@ -333,6 +334,8 @@ public class AdminDataService {
                 .thumbnailUrl(getStringValue(row, columnIndexMap, HEADER_THUMBNAIL_URL))
                 .priceInfo(getStringValue(row, columnIndexMap, HEADER_PRICE_INFO))
                 .categoryCode(getStringValue(row, columnIndexMap, HEADER_CATEGORY_CODE))
+                .mapX(getStringValue(row, columnIndexMap, HEADER_MAP_X)) // ✅ [추가] mapX 필드 설정
+                .mapY(getStringValue(row, columnIndexMap, HEADER_MAP_Y)) // ✅ [추가] mapY 필드 설정
                 .build();
     }
 
