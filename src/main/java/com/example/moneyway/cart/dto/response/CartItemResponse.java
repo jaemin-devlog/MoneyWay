@@ -2,6 +2,7 @@ package com.example.moneyway.cart.dto.response;
 
 import com.example.moneyway.cart.domain.Cart;
 import com.example.moneyway.place.domain.Place;
+import com.example.moneyway.place.domain.PlaceCategory;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -20,6 +21,7 @@ public class CartItemResponse {
     private final String address;     // 장소 주소
     private final String imageUrl;    // 장소 대표 이미지 URL
     private final int price;          // 유저가 해당 장소에 설정한 금액
+    private final String category;    // ✅ [추가] 장소 카테고리
 
     /**
      * Cart 엔티티를 CartItemResponse로 변환하는 정적 팩토리 메서드
@@ -32,6 +34,9 @@ public class CartItemResponse {
      */
     public static CartItemResponse from(Cart cart) {
         Place place = cart.getPlace();
+        // ✅ [추가] 카테고리 정보가 null일 경우를 대비하여 안전하게 처리
+        String categoryName = place.getCategory() != null ? place.getCategory().getDisplayName() : "기타";
+
         return CartItemResponse.builder()
                 .cartId(cart.getId())                      // 장바구니 고유 ID
                 .placeId(place.getId())                    // 장소 ID
@@ -39,6 +44,7 @@ public class CartItemResponse {
                 .address(place.getAddress())               // 장소 주소
                 .imageUrl(place.getThumbnailUrl())         // 장소 썸네일 이미지 URL
                 .price(cart.getPrice())                    // 설정된 가격
+                .category(categoryName)                    // ✅ [추가] 카테고리 정보 추가
                 .build();
     }
 }
