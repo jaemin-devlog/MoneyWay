@@ -72,4 +72,6 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
     @Query("SELECT t FROM TourPlace t WHERE t.contentid = :contentId")
     Optional<TourPlace> findTourPlaceByContentid(@Param("contentId") String contentId);
 
+    List<Place> findAllByTitleIn(List<String> titles);
+
 }

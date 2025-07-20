@@ -5,7 +5,6 @@ import com.example.moneyway.common.exception.CustomException.CustomPlaceExceptio
 import com.example.moneyway.common.exception.ErrorCode;
 import com.example.moneyway.place.domain.Place;
 import com.example.moneyway.place.domain.PlaceCategory;
-import com.example.moneyway.place.domain.TourPlace;
 import com.example.moneyway.place.dto.response.PlaceDetailResponseDto;
 import com.example.moneyway.place.dto.response.PlaceInfoResponseDto;
 import com.example.moneyway.place.repository.PlaceRepository;
@@ -31,8 +30,6 @@ import java.util.List;
 public class PlaceQueryService {
 
     private final PlaceRepository placeRepository;
-
-    private static final String JEJU_AREA_CODE = "39";
 
     /**
      * 카테고리별 장소 목록을 조회합니다.
@@ -104,7 +101,7 @@ public class PlaceQueryService {
             log.warn("AI 추천 요청에 테마 정보가 비어있어 빈 목록을 반환합니다.");
             return Collections.emptyList();
         }
-        return placeRepository.findCandidatesByThemes(JEJU_AREA_CODE, request.getThemes());
+        return placeRepository.findCandidatesByThemes(request.getThemes());
     }
 
     /**
