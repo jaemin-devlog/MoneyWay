@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum PlaceCategory {
-    RESTAURANT("맛집"),
+    RESTAURANT("식당"),
     CAFE("카페"),
     ACCOMMODATION("숙소"),
     TOURIST_ATTRACTION("관광지"),
