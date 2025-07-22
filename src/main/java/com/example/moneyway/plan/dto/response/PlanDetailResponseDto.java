@@ -12,14 +12,16 @@ public class PlanDetailResponseDto {
 
     private final Long id;
     private final String title;
-    private final long totalCost;
+    private final String username;
+    private final int totalPrice;
     private final List<PlanPlaceResponseDto> places;
 
     @Builder
-    private PlanDetailResponseDto(Long id, String title, long totalCost, List<PlanPlaceResponseDto> places) {
+    private PlanDetailResponseDto(Long id, String title, String username, int totalPrice, List<PlanPlaceResponseDto> places) {
         this.id = id;
         this.title = title;
-        this.totalCost = totalCost;
+        this.username = username;
+        this.totalPrice = totalPrice;
         this.places = places;
     }
 
@@ -28,15 +30,12 @@ public class PlanDetailResponseDto {
                 .map(PlanPlaceResponseDto::from)
                 .collect(Collectors.toList());
 
-        long totalCost = placeDtos.stream()
-                .mapToLong(PlanPlaceResponseDto::getCost)
-                .sum();
-
         return PlanDetailResponseDto.builder()
                 .id(plan.getId())
                 .title(plan.getTitle())
+                .username(plan.getUser().getNickname())
+                .totalPrice(plan.getTotalPrice())
                 .places(placeDtos)
-                .totalCost(totalCost)
                 .build();
     }
 }

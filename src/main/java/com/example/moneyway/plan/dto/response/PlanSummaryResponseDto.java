@@ -1,19 +1,23 @@
 package com.example.moneyway.plan.dto.response;
 
 import com.example.moneyway.plan.domain.Plan;
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
+@Builder
 public class PlanSummaryResponseDto {
-    private final Long id;
-    private final String title;
-
-    private PlanSummaryResponseDto(Long id, String title) {
-        this.id = id;
-        this.title = title;
-    }
+    private Long id;
+    private String title;
+    private String username;
+    private int totalPrice;
 
     public static PlanSummaryResponseDto from(Plan plan) {
-        return new PlanSummaryResponseDto(plan.getId(), plan.getTitle());
+        return PlanSummaryResponseDto.builder()
+                .id(plan.getId())
+                .title(plan.getTitle())
+                .username(plan.getUser().getNickname())
+                .totalPrice(plan.getTotalPrice())
+                .build();
     }
 }

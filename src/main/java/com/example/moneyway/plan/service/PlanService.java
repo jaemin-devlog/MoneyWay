@@ -35,6 +35,7 @@ public class PlanService {
     public Plan createPlan(PlanCreateRequestDto requestDto, User user) {
         Plan plan = Plan.builder()
                 .title(requestDto.getTitle())
+                .totalPrice(requestDto.getTotalPrice())
                 .user(user)
                 .build();
 
@@ -83,6 +84,7 @@ public class PlanService {
 
         // 2. 계획의 제목 등 기본 정보를 업데이트합니다.
         plan.setTitle(requestDto.getTitle());
+        plan.setTotalPrice(requestDto.getTotalPrice());
 
         // 3. 기존에 있던 모든 장소(PlanPlace)들을 DB에서 삭제합니다.
         planPlaceRepository.deleteAll(plan.getPlanPlaces());
