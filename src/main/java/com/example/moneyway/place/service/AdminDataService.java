@@ -290,7 +290,7 @@ public class AdminDataService {
             if (row == null) continue;
 
             String contentId = getStringValue(row, columnIndexMap, HEADER_CONTENT_ID);
-            String priceInfo = getStringValue(row, columnIndexMap, HEADER_PRICE_INFO);
+            String priceInfo = getStringValue(row, columnIndexMap, HEADER_PRICE_INFO).replaceAll("[^\\d]", "");
 
             if (!contentId.isBlank()) {
                 priceUpdates.put(contentId, priceInfo);
