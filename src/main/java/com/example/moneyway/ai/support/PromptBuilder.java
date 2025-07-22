@@ -45,7 +45,7 @@ public class PromptBuilder {
     private String buildUserConditions(TravelPlanRequestDto request) {
         StringBuilder sb = new StringBuilder();
         sb.append("- 여행 기간: ").append(request.getDuration()).append("일\n");
-        sb.append("- 인원: ").append(request.getCompanion()).append("명\n");
+//        sb.append("- 인원: ").append(request.getCompanion()).append("명\n");
         sb.append("- 예산: ").append(request.getBudget()).append("원\n");
         if (request.getThemes() != null && !request.getThemes().isEmpty()) {
             sb.append("- 선호 카테고리: ").append(String.join(", ", request.getThemes())).append("\n");

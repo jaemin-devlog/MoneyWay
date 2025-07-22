@@ -57,7 +57,8 @@ public class WebSecurityConfig {
                                 "/oauth2/**",         // 소셜 로그인 과정
                                 "/error",             // 에러 페이지
                                 "/api/admin/**",      // admin
-                                "/api/places/**"      // place
+                                "/api/places/**",      // place
+                                "/api/ai/**"
                         ).permitAll()
 
            
