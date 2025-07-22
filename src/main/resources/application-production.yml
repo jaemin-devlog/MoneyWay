@@ -9,7 +9,7 @@ server:
 spring:
   # 운영 DB 연결 정보 (환경 변수 사용)
   datasource:
-    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?allowPublicKeyRetrieval=true
     username: ${MYSQLUSER}
     password: ${MYSQLPASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
