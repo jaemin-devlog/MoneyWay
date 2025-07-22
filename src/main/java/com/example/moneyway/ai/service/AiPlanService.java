@@ -103,8 +103,8 @@ public class AiPlanService {
             // 예산 남으면 오전/오후 추가
             int remaining = dailyActivityBudget - usedBudget;
             if (remaining > 0) {
-                usedBudget += addOptimizedActivity(grouped.get("관광지"), remaining / 2, "오전", 1, dayPlaces);
-                usedBudget += addOptimizedActivity(afternoonMix, remaining / 2, "오후", 1, dayPlaces);
+                usedBudget += addOptimizedActivity(grouped.get("관광지"), remaining / 2, "추가 활동", 1, dayPlaces);
+                usedBudget += addOptimizedActivity(afternoonMix, remaining / 2, "추가 활동", 1, dayPlaces);
             }
 
             // 숙소 추가
