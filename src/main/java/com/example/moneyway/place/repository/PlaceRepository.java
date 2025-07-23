@@ -26,9 +26,9 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
      * LEFT JOIN을 통해 TourPlace와 RestaurantJeju 데이터를 함께 가져와 N+1 문제를 해결합니다.
      */
     @Query("SELECT p FROM Place p " +
-           "LEFT JOIN TourPlace tp ON p.id = tp.id " +
-           "LEFT JOIN RestaurantJeju rj ON p.id = rj.id " +
-           "WHERE p.category = :category")
+            "LEFT JOIN TourPlace tp ON p.id = tp.id " +
+            "LEFT JOIN RestaurantJeju rj ON p.id = rj.id " +
+            "WHERE p.category = :category")
     Page<Place> findByCategory(@Param("category") PlaceCategory category, Pageable pageable);
 
     /**
@@ -36,8 +36,8 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
      * LEFT JOIN을 통해 TourPlace와 RestaurantJeju 데이터를 함께 가져와 N+1 문제를 해결합니다.
      */
     @Query("SELECT p FROM Place p " +
-           "LEFT JOIN TourPlace tp ON p.id = tp.id " +
-           "LEFT JOIN RestaurantJeju rj ON p.id = rj.id")
+            "LEFT JOIN TourPlace tp ON p.id = tp.id " +
+            "LEFT JOIN RestaurantJeju rj ON p.id = rj.id")
     Page<Place> findAll(Pageable pageable);
 
     /**
