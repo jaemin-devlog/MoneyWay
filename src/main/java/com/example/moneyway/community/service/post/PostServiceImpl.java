@@ -22,9 +22,11 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -33,10 +35,8 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final PostImageRepository postImageRepository;
-    private final CommentRepository commentRepository;
     private final PostLikeRepository postLikeRepository;
     private final PostScrapRepository postScrapRepository;
-    private final PostViewRepository postViewRepository;
     private final UserService userService;
     private final CommentService commentService;
 
@@ -75,7 +75,8 @@ public class PostServiceImpl implements PostService {
                 request.getThumbnailUrl()
         );
 
-        postImageRepository.deleteAllByPost(post);
+        // 기존 이미지를 모두 삭제하고 새로 저장
+        post.getImages().clear();
         savePostImages(post, request.getImageUrls());
     }
 
@@ -88,12 +89,6 @@ public class PostServiceImpl implements PostService {
             throw new CustomPostException(ErrorCode.POST_FORBIDDEN_UPDATE);
         }
 
-        postImageRepository.deleteAllByPost(post);
-        commentRepository.deleteAllByPost(post);
-        postLikeRepository.deleteAllByPost(post);
-        postScrapRepository.deleteAllByPost(post);
-        postViewRepository.deleteAllByPost(post);
-
         postRepository.delete(post);
     }
 
@@ -103,7 +98,7 @@ public class PostServiceImpl implements PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomPostException(ErrorCode.POST_NOT_FOUND));
 
-        List<String> imageUrls = postImageRepository.findByPost(post).stream()
+        List<String> imageUrls = post.getImages().stream()
                 .map(PostImage::getImageUrl)
                 .toList();
 
@@ -117,11 +112,13 @@ public class PostServiceImpl implements PostService {
     public Page<PostSummaryResponse> getPostList(PostSortType sort, Boolean challenge, Long viewerId, Pageable pageable) {
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), getSort(sort));
 
-        Page<Post> posts = (challenge != null && challenge)
+        Page<Post> postsPage = (challenge != null && challenge)
                 ? postRepository.findByIsChallenge(true, sortedPageable)
                 : postRepository.findAll(sortedPageable);
 
-        return posts.map(post -> toSummaryResponse(post, viewerId));
+        List<PostSummaryResponse> summaryResponses = convertPostsToSummaryResponse(postsPage.getContent(), viewerId);
+
+        return new PageImpl<>(summaryResponses, pageable, postsPage.getTotalElements());
     }
 
     @Override
@@ -129,25 +126,46 @@ public class PostServiceImpl implements PostService {
     public List<PostSummaryResponse> getUserPosts(Long userId, Long viewerId) {
         User user = userService.findActiveUserById(userId);
         List<Post> userPosts = postRepository.findByUser(user);
-
-        return userPosts.stream()
-                .map(post -> toSummaryResponse(post, viewerId))
-                .toList();
+        return convertPostsToSummaryResponse(userPosts, viewerId);
     }
 
     // ========================= Private Helper Methods =========================
+
+    private List<PostSummaryResponse> convertPostsToSummaryResponse(List<Post> posts, Long viewerId) {
+        if (posts.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Set<Long> likedPostIds = Collections.emptySet();
+        Set<Long> scrappedPostIds = Collections.emptySet();
+
+        if (viewerId != null) {
+            User viewer = userService.findActiveUserById(viewerId);
+            List<Long> postIds = posts.stream().map(Post::getId).collect(Collectors.toList());
+            likedPostIds = postLikeRepository.findPostIdsByUserAndPostIdsIn(viewer, postIds);
+            scrappedPostIds = postScrapRepository.findPostIdsByUserAndPostIdsIn(viewer, postIds);
+        }
+
+        final Set<Long> finalLikedPostIds = likedPostIds;
+        final Set<Long> finalScrappedPostIds = scrappedPostIds;
+
+        return posts.stream()
+                .map(post -> toSummaryResponse(post, finalLikedPostIds, finalScrappedPostIds))
+                .collect(Collectors.toList());
+    }
 
     private void savePostImages(Post post, List<String> imageUrls) {
         if (imageUrls == null || imageUrls.isEmpty()) {
             return;
         }
         List<PostImage> postImages = imageUrls.stream()
-                .map(url -> PostImage.builder()
-                        .post(post)
-                        .imageUrl(url)
-                        .build())
+                .map(url -> {
+                    PostImage postImage = PostImage.builder().imageUrl(url).build();
+                    postImage.setPost(post); // 연관관계 설정
+                    return postImage;
+                })
                 .toList();
-        postImageRepository.saveAll(postImages);
+        post.getImages().addAll(postImages);
     }
 
     private Sort getSort(PostSortType type) {
@@ -156,7 +174,7 @@ public class PostServiceImpl implements PostService {
         }
         return switch (type) {
             case LIKES -> Sort.by(Sort.Direction.DESC, "likeCount", "createdAt");
-            case COMMENTS -> Sort.by(Sort.Direction.DESC, "commentCount", "createdAt");
+            case COMMENTS -> Sort.by(Sort.Direction.DESC, "commentCount", "createdAt
             case SCRAPS -> Sort.by(Sort.Direction.DESC, "scrapCount", "createdAt");
             default -> Sort.by(Sort.Direction.DESC, "createdAt");
         };
@@ -193,20 +211,21 @@ public class PostServiceImpl implements PostService {
                 .build();
     }
 
-    private PostSummaryResponse toSummaryResponse(Post post, Long viewerId) {
-        boolean isLiked = false;
-        boolean isScrapped = false;
+    private PostSummaryResponse toSummaryResponse(Post post, Set<Long> likedPostIds, Set<Long> scrappedPostIds) {
+        boolean isLiked = likedPostIds.contains(post.getId());
+        boolean isScrapped = scrappedPostIds.contains(post.getId());
 
-        if (viewerId != null) {
-            User viewerUser = userService.findActiveUserById(viewerId);
-            isLiked = postLikeRepository.existsByPostAndUser(post, viewerUser);
-            isScrapped = postScrapRepository.existsByPostAndUser(post, viewerUser);
+        String summaryContent = post.getContent();
+        if (summaryContent != null && summaryContent.length() > 100) {
+            summaryContent = summaryContent.substring(0, 100);
         }
 
         return PostSummaryResponse.builder()
                 .postId(post.getId())
                 .title(post.getTitle())
+                .content(summaryContent)
                 .thumbnailUrl(post.getThumbnailUrl())
+                .totalCost(post.getTotalCost())
                 .isChallenge(post.isChallenge())
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getCommentCount())

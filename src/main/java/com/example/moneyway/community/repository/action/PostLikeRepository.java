@@ -5,7 +5,12 @@ import com.example.moneyway.community.domain.PostLike;
 import com.example.moneyway.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
 
@@ -18,4 +23,7 @@ public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
     void deleteAllByPost(Post post);
 
     Optional<PostLike> findByPostAndUser(Post post, User user);
+
+    @Query("SELECT pl.post.id FROM PostLike pl WHERE pl.user = :user AND pl.post.id IN :postIds")
+    Set<Long> findPostIdsByUserAndPostIdsIn(@Param("user") User user, @Param("postIds") List<Long> postIds);
 }

@@ -13,7 +13,9 @@ public class PostSummaryResponse {
     // --- 게시글 정보 ---
     private Long postId;
     private String title;
+    private String content; // [추가]
     private String thumbnailUrl;
+    private Integer totalCost; // [추가]
     private boolean isChallenge; // [개선] primitive boolean 타입 사용
     private LocalDateTime createdAt;
 

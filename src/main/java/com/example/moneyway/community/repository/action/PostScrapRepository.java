@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface PostScrapRepository extends JpaRepository<PostScrap, Long> {
 
@@ -28,4 +29,7 @@ public interface PostScrapRepository extends JpaRepository<PostScrap, Long> {
     void deleteAllByPost(Post post);
 
     Optional<PostScrap> findByPostAndUser(Post post, User user);
+
+    @Query("SELECT ps.post.id FROM PostScrap ps WHERE ps.user = :user AND ps.post.id IN :postIds")
+    Set<Long> findPostIdsByUserAndPostIdsIn(@Param("user") User user, @Param("postIds") List<Long> postIds);
 }
