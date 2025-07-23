@@ -8,6 +8,7 @@ import com.example.moneyway.place.domain.Place;
 import com.example.moneyway.place.repository.PlaceRepository;
 import com.example.moneyway.place.service.PlaceQueryService;
 import com.example.moneyway.plan.domain.Plan;
+import com.example.moneyway.plan.domain.PlanPlace;
 import com.example.moneyway.plan.repository.PlanRepository;
 import com.example.moneyway.user.domain.User;
 import jakarta.transaction.Transactional;
@@ -145,8 +146,47 @@ public class AiPlanService {
 
     @Transactional
     public Long createPlanByAi(AiPlanCreateRequestDto request, User user) {
+        // 1. AI로 여행 계획 생성
         List<DayPlanDto> dayPlanDtos = generatePlan(request);
-        Plan savedPlan = planRepository.save(null); // TODO: 실제 저장 로직 구현 필요
+
+        // 2. Plan 엔티티 생성
+        Plan plan = Plan.builder()
+                .title(request.getPlanTitle())
+                .budget(request.getBudget())
+                .duration(request.getDuration())
+                .totalPrice(request.getBudget())  // 전체 예산
+                .usedCost(dayPlanDtos.stream().mapToInt(DayPlanDto::usedCost).sum()) // 실제 사용 비용 합산
+                .user(user)
+                .build();
+
+        // 3. PlanPlace 리스트 생성 및 Plan에 추가
+        for (int dayIndex = 0; dayIndex < dayPlanDtos.size(); dayIndex++) {
+            DayPlanDto dayPlan = dayPlanDtos.get(dayIndex);
+            int dayNumber = dayIndex + 1;
+
+            for (PlaceDto placeDto : dayPlan.places()) {
+                // DB의 Place 엔티티 찾기 (placeName으로 검색)
+                Place place = placeRepository.findByTitle(placeDto.place())
+                        .orElse(null); // DB에 없으면 null (혹은 예외처리)
+
+                PlanPlace planPlace = PlanPlace.builder()
+                        .plan(plan)
+                        .place(place)
+                        .dayNumber(dayNumber)
+                        .cost(placeDto.cost())
+                        .type(placeDto.type())
+                        .time(placeDto.time())
+                        .budget(dayPlan.totalBudget())
+                        .totalPrice(dayPlan.usedCost())
+                        .build();
+
+                plan.addPlanPlace(planPlace);
+            }
+        }
+
+        // 4. 저장
+        Plan savedPlan = planRepository.save(plan);
         return savedPlan.getId();
     }
+
 }

@@ -94,4 +94,5 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
 
     Optional<Place> findByTitle(String title);
 
+
 }

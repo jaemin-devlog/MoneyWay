@@ -28,14 +28,19 @@ public class PlanPlace {
     @Column(nullable = false)
     private Integer dayNumber;
 
-    /**
-     * 장바구니에서 가져온, 사용자가 수정했을 수 있는 최종 비용
-     */
+    @Column
     private Integer cost;
 
+    @Column(name = "type") // ✅ DB 컬럼명 같으면 생략 가능
     private String type;
+
+    @Column(name = "time_slot") // ✅ DB 컬럼명 맞춤
     private String time;
+
+    @Column
     private Integer budget;
+
+    @Column(name = "totalPrice") // ✅ DB 컬럼명 정확히 매핑
     private Integer totalPrice;
 
     @Builder
@@ -44,7 +49,7 @@ public class PlanPlace {
         this.plan = plan;
         this.place = place;
         this.dayNumber = dayNumber;
-        this.cost = cost;  // ✅ 추가
+        this.cost = cost;
         this.type = type;
         this.time = time;
         this.budget = budget;
@@ -55,3 +60,4 @@ public class PlanPlace {
         this.plan = plan;
     }
 }
+
