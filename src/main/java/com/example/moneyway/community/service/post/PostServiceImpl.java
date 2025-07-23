@@ -174,7 +174,7 @@ public class PostServiceImpl implements PostService {
         }
         return switch (type) {
             case LIKES -> Sort.by(Sort.Direction.DESC, "likeCount", "createdAt");
-            case COMMENTS -> Sort.by(Sort.Direction.DESC, "commentCount", "createdAt
+            case COMMENTS -> Sort.by(Sort.Direction.DESC, "commentCount", "createdAt");
             case SCRAPS -> Sort.by(Sort.Direction.DESC, "scrapCount", "createdAt");
             default -> Sort.by(Sort.Direction.DESC, "createdAt");
         };
