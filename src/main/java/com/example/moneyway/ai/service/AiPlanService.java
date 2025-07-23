@@ -67,6 +67,7 @@ public class AiPlanService {
         int activityBudget = totalBudget - totalLodgingCost;
 
         int dailyActivityBudget = activityBudget / totalDays;
+        int usedCost = totalBudget - activityBudget;
 
         double ratioMorning = 0.20;
         double ratioLunch = 0.20;
@@ -115,7 +116,7 @@ public class AiPlanService {
                     lodgingPerNight
             ));
 
-            result.add(new DayPlanDto(day + "일차", dayPlaces));
+            result.add(new DayPlanDto(day + "일차", dayPlaces, totalBudget, usedCost));
         }
 
         return result;

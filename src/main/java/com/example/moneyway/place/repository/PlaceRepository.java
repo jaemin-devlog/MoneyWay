@@ -92,4 +92,6 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
 
     List<Place> findAllByTitleIn(List<String> titles);
 
+    Optional<Place> findByTitle(String title);
+
 }

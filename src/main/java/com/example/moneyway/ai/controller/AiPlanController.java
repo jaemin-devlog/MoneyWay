@@ -40,6 +40,10 @@ public class AiPlanController {
             @RequestBody AiPlanCreateRequestDto request,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
+        if (userDetails == null) {
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
+
         Long planId = AiPlanService.createPlanByAi(request, userDetails.getUser());
         return ResponseEntity.ok(Map.of("planId", planId));
     }

@@ -49,8 +49,6 @@ public class PlanService {
                     .place(cart.getPlace())
                     .cost(cart.getPrice())
                     .dayNumber(placeDto.getDayNumber())
-                    .startTime(placeDto.getStartTime())
-                    .endTime(placeDto.getEndTime())
                     .build();
 
             plan.addPlanPlace(planPlace);
@@ -99,8 +97,6 @@ public class PlanService {
                     .place(place)
                     .cost(placeDto.getCost())
                     .dayNumber(placeDto.getDayNumber())
-                    .startTime(placeDto.getStartTime())
-                    .endTime(placeDto.getEndTime())
                     .build();
 
             plan.addPlanPlace(planPlace);

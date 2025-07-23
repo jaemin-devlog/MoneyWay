@@ -4,6 +4,7 @@ import com.example.moneyway.common.domain.BaseTimeEntity;
 import com.example.moneyway.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.engine.FetchStyle;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,8 +24,13 @@ public class Plan extends BaseTimeEntity {
     @Column(nullable = false)
     private String title;
 
+    private int budget;
+    private int duration;
+
     @Column(nullable = false)
     private int totalPrice;
+
+    private int usedCost;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -33,6 +39,8 @@ public class Plan extends BaseTimeEntity {
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<PlanPlace> planPlaces = new ArrayList<>();
+
+
 
     /**
      * 양방향 연관관계 편의 메소드.

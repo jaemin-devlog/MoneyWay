@@ -7,13 +7,12 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalTime;
-
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "plan_place")
 public class PlanPlace {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,34 +22,35 @@ public class PlanPlace {
     private Plan plan;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "place_pk_id") // Place 엔티티의 PK 컬럼명과 일치
+    @JoinColumn(name = "place_pk_id")
     private Place place;
 
     @Column(nullable = false)
-    private Integer dayNumber; // 1일차, 2일차 등을 나타내는 필드
-
-    @Column(nullable = false)
-    private LocalTime startTime; // 방문 시작 시간
-
-    @Column(nullable = false)
-    private LocalTime endTime; // 방문 종료 시간
+    private Integer dayNumber;
 
     /**
-     *  장바구니에서 가져온, 사용자가 수정했을 수 있는 최종 비용을 저장하는 필드
+     * 장바구니에서 가져온, 사용자가 수정했을 수 있는 최종 비용
      */
     private Integer cost;
 
+    private String type;
+    private String time;
+    private Integer budget;
+    private Integer totalPrice;
+
     @Builder
-    public PlanPlace(Plan plan, Place place, Integer dayNumber, LocalTime startTime, LocalTime endTime, Integer cost) {
+    public PlanPlace(Plan plan, Place place, Integer dayNumber, Integer cost,
+                     String type, String time, Integer budget, Integer totalPrice) {
         this.plan = plan;
         this.place = place;
         this.dayNumber = dayNumber;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.cost = cost;
+        this.cost = cost;  // ✅ 추가
+        this.type = type;
+        this.time = time;
+        this.budget = budget;
+        this.totalPrice = totalPrice;
     }
 
-    // 양방향 연관관계를 위해 Plan을 설정하는 package-private 메소드
     void setPlan(Plan plan) {
         this.plan = plan;
     }
