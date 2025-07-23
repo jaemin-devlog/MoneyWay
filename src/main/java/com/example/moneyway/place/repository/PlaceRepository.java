@@ -2,6 +2,7 @@ package com.example.moneyway.place.repository;
 
 import com.example.moneyway.place.domain.Place;
 import com.example.moneyway.place.domain.PlaceCategory;
+import com.example.moneyway.place.domain.RestaurantJeju;
 import com.example.moneyway.place.domain.TourPlace;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,23 +23,40 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
 
     /**
      * 특정 카테고리에 해당하는 장소 목록을 페이징하여 조회합니다.
+     * LEFT JOIN을 통해 TourPlace와 RestaurantJeju 데이터를 함께 가져와 N+1 문제를 해결합니다.
      */
-    Page<Place> findByCategory(PlaceCategory category, Pageable pageable);
+    @Query("SELECT p FROM Place p " +
+           "LEFT JOIN TourPlace tp ON p.id = tp.id " +
+           "LEFT JOIN RestaurantJeju rj ON p.id = rj.id " +
+           "WHERE p.category = :category")
+    Page<Place> findByCategory(@Param("category") PlaceCategory category, Pageable pageable);
+
+    /**
+     * 모든 장소 목록을 페이징하여 조회합니다.
+     * LEFT JOIN을 통해 TourPlace와 RestaurantJeju 데이터를 함께 가져와 N+1 문제를 해결합니다.
+     */
+    @Query("SELECT p FROM Place p " +
+           "LEFT JOIN TourPlace tp ON p.id = tp.id " +
+           "LEFT JOIN RestaurantJeju rj ON p.id = rj.id")
+    Page<Place> findAll(Pageable pageable);
 
     /**
      * 키워드로 모든 종류의 장소를 한 번에 검색합니다.
+     * LEFT JOIN을 통해 TourPlace와 RestaurantJeju 데이터를 함께 가져와 N+1 문제를 해결합니다.
      */
     @Query(value = """
         SELECT p FROM Place p
-        LEFT JOIN RestaurantJeju r ON p.id = r.id
+        LEFT JOIN TourPlace tp ON p.id = tp.id
+        LEFT JOIN RestaurantJeju rj ON p.id = rj.id
         WHERE LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-           OR (TYPE(p) = RestaurantJeju AND LOWER(r.menu) LIKE LOWER(CONCAT('%', :keyword, '%')))
+           OR (TYPE(p) = RestaurantJeju AND LOWER(rj.menu) LIKE LOWER(CONCAT('%', :keyword, '%')))
         """,
             countQuery = """
         SELECT COUNT(p) FROM Place p
-        LEFT JOIN RestaurantJeju r ON p.id = r.id
+        LEFT JOIN TourPlace tp ON p.id = tp.id
+        LEFT JOIN RestaurantJeju rj ON p.id = rj.id
         WHERE LOWER(p.title) LIKE LOWER(CONCAT('%', :keyword, '%'))
-           OR (TYPE(p) = RestaurantJeju AND LOWER(r.menu) LIKE LOWER(CONCAT('%', :keyword, '%')))
+           OR (TYPE(p) = RestaurantJeju AND LOWER(rj.menu) LIKE LOWER(CONCAT('%', :keyword, '%')))
         """)
     Page<Place> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
