@@ -112,8 +112,8 @@ public class PostServiceImpl implements PostService {
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), getSort(sort));
 
         Page<Post> postsPage = (challenge != null && challenge)
-                ? postRepository.findByIsChallenge(true, sortedPageable)
-                : postRepository.findAll(sortedPageable);
+                ? postRepository.findByIsChallengeWithUser(true, sortedPageable)
+                : postRepository.findAllWithUser(sortedPageable);
 
         List<PostSummaryResponse> summaryResponses = convertPostsToSummaryResponse(postsPage.getContent(), viewerId);
 
