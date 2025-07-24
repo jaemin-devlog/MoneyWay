@@ -78,7 +78,7 @@ public class CommentServiceImpl implements CommentService {
             throw new CustomPostException(ErrorCode.POST_NOT_FOUND);
         }
 
-        List<Comment> comments = commentRepository.findByPost_IdAndDeletedFalseOrderByCreatedAtAsc(postId);
+        List<Comment> comments = commentRepository.findByPostIdWithUser(postId);
 
         return comments.stream()
                 .map(comment -> toCommentResponse(comment, viewerId)) // viewerId를 함께 전달
