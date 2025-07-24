@@ -94,7 +94,7 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public PostDetailResponse getPostDetail(Long postId, Long viewerId) {
-        Post post = postRepository.findById(postId)
+        Post post = postRepository.findByIdWithUserAndImages(postId)
                 .orElseThrow(() -> new CustomPostException(ErrorCode.POST_NOT_FOUND));
 
         List<String> imageUrls = post.getImages().stream()
