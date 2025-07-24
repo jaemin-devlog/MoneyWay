@@ -30,7 +30,7 @@ public class AiPlanService {
 
     private static final double EARTH_RADIUS = 6371.0; // km
 
-    /** ✅ 거리 계산 (Haversine 공식) */
+    /** 거리 계산 (Haversine 공식) */
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
         double dLat = Math.toRadians(lat2 - lat1);
         double dLon = Math.toRadians(lon2 - lon1);
@@ -41,7 +41,7 @@ public class AiPlanService {
         return EARTH_RADIUS * c;
     }
 
-    /** ✅ 안전한 좌표 파싱 */
+    /** 안전한 좌표 파싱 */
     private Double safeParseDouble(String value) {
         if (value == null || value.trim().isEmpty()) return null;
         try {
@@ -51,7 +51,7 @@ public class AiPlanService {
         }
     }
 
-    /** ✅ 시간대 매핑 로직 */
+    /** 시간대 매핑 로직 */
     private final Map<String, LocalTime[]> timeMap = new HashMap<>() {{
         put("오전", new LocalTime[]{LocalTime.of(9, 0), LocalTime.of(11, 0)});
         put("점심", new LocalTime[]{LocalTime.of(11, 30), LocalTime.of(13, 0)});
@@ -63,7 +63,7 @@ public class AiPlanService {
     }};
 
 
-    /** ✅ 여행 플랜 생성 */
+    /** 여행 플랜 생성 */
     public PlanResponseDto generatePlan(TravelPlanRequestDto request) {
         int totalBudget = request.getBudget();
         int totalDays = request.getDuration();
@@ -76,7 +76,7 @@ public class AiPlanService {
         Map<String, List<Place>> grouped = validPlaces.stream()
                 .collect(Collectors.groupingBy(p -> p.getCategory().getDisplayName()));
 
-        // ✅ 숙소 선택
+        // 숙소 선택
         List<Place> lodgings = grouped.getOrDefault("숙소", Collections.emptyList()).stream()
                 .filter(p -> p.getPlaceName().contains("호텔"))
                 .filter(p -> p.getNumericPrice() * totalDays <= totalBudget)
@@ -138,7 +138,7 @@ public class AiPlanService {
                     Double lon = safeParseDouble(p.getMapX());
                     return lat != null && lon != null && calculateDistance(baseLat, baseLon, lat, lon) <= 5.0;
                 })
-                .collect(Collectors.toList()); // ✅ 불변 리스트 → 가변 리스트로 변경
+                .collect(Collectors.toList()); // 불변 리스트 → 가변 리스트로 변경
 
         if (filtered.isEmpty()) return 0;
         Collections.shuffle(filtered);
@@ -149,7 +149,7 @@ public class AiPlanService {
         return p.getNumericPrice();
     }
 
-    /** ✅ 플랜 저장 */
+    /** 플랜 저장 */
     @Transactional
     public Long createPlanByAi(AiPlanCreateRequestDto request, User user) {
         PlanResponseDto planResponse = generatePlan(request);
