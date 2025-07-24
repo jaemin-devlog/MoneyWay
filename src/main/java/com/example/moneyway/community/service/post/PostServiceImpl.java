@@ -93,7 +93,6 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public PostDetailResponse getPostDetail(Long postId, Long viewerId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomPostException(ErrorCode.POST_NOT_FOUND));
