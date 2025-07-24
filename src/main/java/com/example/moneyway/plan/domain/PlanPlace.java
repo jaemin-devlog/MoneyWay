@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalTime;
+
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -18,34 +20,42 @@ public class PlanPlace {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plan_id")
+    @JoinColumn(name = "plan_id", nullable = false)
     private Plan plan;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "place_pk_id")
+    @JoinColumn(name = "place_pk_id", nullable = false)
     private Place place;
 
     @Column(nullable = false)
-    private Integer dayNumber;
+    private Integer dayNumber; // 1일차, 2일차 등
 
     @Column
-    private Integer cost;
+    private Integer cost; // 개별 장소 비용
 
-    @Column(name = "type") // ✅ DB 컬럼명 같으면 생략 가능
-    private String type;
+    @Column(name = "type")
+    private String type; // 카테고리명
 
-    @Column(name = "time_slot") // ✅ DB 컬럼명 맞춤
-    private String time;
+    @Column(name = "time_slot")
+    private String time; // 오전 / 오후 등
 
     @Column
-    private Integer budget;
+    private Integer budget; // 예산
 
-    @Column(name = "totalPrice") // ✅ DB 컬럼명 정확히 매핑
-    private Integer totalPrice;
+    @Column(name = "totalPrice")
+    private Integer totalPrice; // 하루 총 비용
+
+    // ✅ 새로 추가된 필드
+    @Column(name = "start_time", nullable = false)
+    private LocalTime startTime; // 방문 시작 시간
+
+    @Column(name = "end_time", nullable = false)
+    private LocalTime endTime; // 방문 종료 시간
 
     @Builder
     public PlanPlace(Plan plan, Place place, Integer dayNumber, Integer cost,
-                     String type, String time, Integer budget, Integer totalPrice) {
+                     String type, String time, Integer budget, Integer totalPrice,
+                     LocalTime startTime, LocalTime endTime) {
         this.plan = plan;
         this.place = place;
         this.dayNumber = dayNumber;
@@ -54,10 +64,11 @@ public class PlanPlace {
         this.time = time;
         this.budget = budget;
         this.totalPrice = totalPrice;
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 
     void setPlan(Plan plan) {
         this.plan = plan;
     }
 }
-

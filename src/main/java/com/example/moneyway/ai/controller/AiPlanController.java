@@ -4,6 +4,7 @@ package com.example.moneyway.ai.controller;
 import com.example.moneyway.ai.dto.request.AiPlanCreateRequestDto;
 import com.example.moneyway.ai.dto.request.TravelPlanRequestDto;
 import com.example.moneyway.ai.dto.response.DayPlanDto;
+import com.example.moneyway.ai.dto.response.PlanResponseDto;
 import com.example.moneyway.ai.service.AiPlanService;
 import com.example.moneyway.auth.userdetails.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
@@ -26,10 +27,11 @@ public class AiPlanController {
     private final AiPlanService AiPlanService;
     //예산 미리보기
     @PostMapping("/plan")
-    public ResponseEntity<List<DayPlanDto>> getFreePlan(@RequestBody TravelPlanRequestDto request) {
-        List<DayPlanDto> plan = AiPlanService.generatePlan(request);
-        return ResponseEntity.ok(plan);
+    public ResponseEntity<PlanResponseDto> getFreePlan(@RequestBody TravelPlanRequestDto request) {
+        PlanResponseDto planResponse = AiPlanService.generatePlan(request);
+        return ResponseEntity.ok(planResponse);
     }
+
 
     /**
      * 무료 AI 기반 여행 계획 생성 및 저장
