@@ -43,8 +43,6 @@ public class PlanPlaceResponseDto {
                 .category(categoryName)
                 .cost(planPlace.getCost())
                 .dayNumber(planPlace.getDayNumber())
-                .startTime(planPlace.getStartTime())
-                .endTime(planPlace.getEndTime())
                 .build();
     }
 }

@@ -14,43 +14,60 @@ import java.time.LocalTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "plan_place")
 public class PlanPlace {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plan_id")
+    @JoinColumn(name = "plan_id", nullable = false)
     private Plan plan;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "place_pk_id") // Place 엔티티의 PK 컬럼명과 일치
+    @JoinColumn(name = "place_pk_id", nullable = false)
     private Place place;
 
     @Column(nullable = false)
-    private Integer dayNumber; // 1일차, 2일차 등을 나타내는 필드
+    private Integer dayNumber; // 1일차, 2일차 등
 
-    @Column(nullable = false)
+    @Column
+    private Integer cost; // 개별 장소 비용
+
+    @Column(name = "type")
+    private String type; // 카테고리명
+
+    @Column(name = "time_slot")
+    private String time; // 오전 / 오후 등
+
+    @Column
+    private Integer budget; // 예산
+
+    @Column(name = "totalPrice")
+    private Integer totalPrice; // 하루 총 비용
+
+    // ✅ 새로 추가된 필드
+    @Column(name = "start_time", nullable = false)
     private LocalTime startTime; // 방문 시작 시간
 
-    @Column(nullable = false)
+    @Column(name = "end_time", nullable = false)
     private LocalTime endTime; // 방문 종료 시간
 
-    /**
-     *  장바구니에서 가져온, 사용자가 수정했을 수 있는 최종 비용을 저장하는 필드
-     */
-    private Integer cost;
-
     @Builder
-    public PlanPlace(Plan plan, Place place, Integer dayNumber, LocalTime startTime, LocalTime endTime, Integer cost) {
+    public PlanPlace(Plan plan, Place place, Integer dayNumber, Integer cost,
+                     String type, String time, Integer budget, Integer totalPrice,
+                     LocalTime startTime, LocalTime endTime) {
         this.plan = plan;
         this.place = place;
         this.dayNumber = dayNumber;
+        this.cost = cost;
+        this.type = type;
+        this.time = time;
+        this.budget = budget;
+        this.totalPrice = totalPrice;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.cost = cost;
     }
 
-    // 양방향 연관관계를 위해 Plan을 설정하는 package-private 메소드
     void setPlan(Plan plan) {
         this.plan = plan;
     }
