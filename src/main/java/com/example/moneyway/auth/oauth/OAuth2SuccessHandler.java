@@ -43,26 +43,32 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
-        // CustomOAuth2User에서 User 정보를 직접 가져와 불필요한 DB 조회를 방지합니다.
-        CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
-        User user = oAuth2User.getUser();
+        try {
+            // CustomOAuth2User에서 User 정보를 직접 가져와 불필요한 DB 조회를 방지합니다.
+            CustomOAuth2User oAuth2User = (CustomOAuth2User) authentication.getPrincipal();
+            User user = oAuth2User.getUser();
 
-        // Access Token과 Refresh Token 생성
-        String accessToken = tokenProvider.generateToken(user, ACCESS_TOKEN_DURATION);
-        String refreshToken = tokenProvider.generateToken(user, REFRESH_TOKEN_DURATION);
+            // Access Token과 Refresh Token 생성
+            String accessToken = tokenProvider.generateToken(user, ACCESS_TOKEN_DURATION);
+            String refreshToken = tokenProvider.generateToken(user, REFRESH_TOKEN_DURATION);
 
-        // Refresh Token을 DB에 저장 또는 업데이트
-        saveRefreshToken(user, refreshToken);
+            // Refresh Token을 DB에 저장 또는 업데이트
+            saveRefreshToken(user, refreshToken);
 
-        // 기존 쿠키를 삭제하고 새로운 토큰을 쿠키에 추가
-        addTokensToCookie(request, response, accessToken, refreshToken);
+            // 기존 쿠키를 삭제하고 새로운 토큰을 쿠키에 추가
+            addTokensToCookie(request, response, accessToken, refreshToken);
 
-        // 인증 관련 임시 쿠키들을 정리
-        clearAuthenticationAttributes(request, response);
+            // 인증 관련 임시 쿠키들을 정리
+            clearAuthenticationAttributes(request, response);
 
-        // 설정된 프론트엔드 주소로 리다이렉트
-        String targetUrl = determineTargetUrl(request, response, authentication);
-        getRedirectStrategy().sendRedirect(request, response, targetUrl);
+            // 설정된 프론트엔드 주소로 리다이렉트
+            String targetUrl = determineTargetUrl(request, response, authentication);
+            getRedirectStrategy().sendRedirect(request, response, targetUrl);
+        } catch (Exception e) {
+            log.error("OAuth2 로그인 성공 처리 중 예외 발생: {}", e.getMessage(), e);
+            // 실패 시 프론트엔드 에러 페이지로 리다이렉트 (선택 사항)
+            // response.sendRedirect(defaultRedirectUri + "?error=oauth_login_failed");
+        }
     }
 
     private void saveRefreshToken(User user, String newRefreshToken) {

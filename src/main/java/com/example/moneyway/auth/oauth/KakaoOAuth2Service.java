@@ -41,7 +41,16 @@ public class KakaoOAuth2Service extends DefaultOAuth2UserService {
 
         return userRepository.findByKakaoId(kakaoId)
                 .map(user -> {
-                    user.updateNickname(nickname);
+                    String uniqueNickname = nickname; // 카카오에서 받은 닉네임으로 초기화
+                    // ✅ [추가] 닉네임 중복 방지 처리 (업데이트 시)
+                    // 단, 현재 업데이트하려는 사용자의 닉네임이 이미 'uniqueNickname'과 같다면 중복 검사를 건너뜁니다.
+                    // 이는 사용자가 자신의 닉네임을 그대로 유지하려는 경우를 처리합니다.
+                    if (!user.getNickname().equals(uniqueNickname) && userRepository.existsByNickname(uniqueNickname)) {
+                        while (userRepository.existsByNickname(uniqueNickname)) {
+                            uniqueNickname = nickname + (int)(Math.random() * 10000);
+                        }
+                    }
+                    user.updateNickname(uniqueNickname);
                     if (profileImageUrl != null && !profileImageUrl.isEmpty()) {
                         user.updateProfileImage(profileImageUrl);
                     }
@@ -53,7 +62,13 @@ public class KakaoOAuth2Service extends DefaultOAuth2UserService {
                             ? profileImageUrl
                             : avatarService.generateAvatar(email);
 
-                    User newUser = User.createKakaoUser(email, kakaoId, nickname, finalProfileImageUrl);
+                    // ✅ [추가] 닉네임 중복 방지 처리
+                    String uniqueNickname = nickname;
+                    while (userRepository.existsByNickname(uniqueNickname)) {
+                        uniqueNickname = nickname + (int)(Math.random() * 10000);
+                    }
+
+                    User newUser = User.createKakaoUser(email, kakaoId, uniqueNickname, finalProfileImageUrl);
                     return userRepository.save(newUser);
                 });
     }
