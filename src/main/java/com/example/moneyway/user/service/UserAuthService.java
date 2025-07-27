@@ -43,7 +43,7 @@ public class UserAuthService {
         saveOrUpdateRefreshToken(user, tokenInfo.refreshToken());
 
         return AuthResponse.builder()
-                .accessToken(tokenInfo.accessToken())
+                .tokenInfo(tokenInfo)
                 .userInfo(UserResponse.from(user))
                 .build();
     }
@@ -62,7 +62,7 @@ public class UserAuthService {
         saveOrUpdateRefreshToken(user, tokenInfo.refreshToken());
 
         return AuthResponse.builder()
-                .accessToken(tokenInfo.accessToken())
+                .tokenInfo(tokenInfo)
                 .userInfo(UserResponse.from(user))
                 .build();
     }

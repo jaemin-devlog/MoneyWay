@@ -70,11 +70,17 @@ public class UserAuthController {
      *  AuthResponse를 받아 RefreshToken 쿠키를 설정하고 ResponseEntity를 생성하는 헬퍼 메서드
      */
     private ResponseEntity<AuthResponse> createAuthResponseWithCookie(HttpServletResponse httpServletResponse, AuthResponse authResponse) {
-        // 이 부분은 UserAuthService에서 처리되므로 컨트롤러에서는 쿠키 설정만 담당
-        // 서비스 로직에서 이미 토큰이 생성되고 AuthResponse에 accessToken이 담겨있음
-        // 여기서는 RefreshToken을 쿠키에 담는 역할만 수행해야 함.
-        // 하지만 현재 AuthResponse에는 refreshToken이 없으므로, 서비스에서 처리하도록 변경해야 함.
-        // 이 메서드는 이제 사용되지 않음.
+        // 1. RefreshToken을 HttpOnly 쿠키에 담아 클라이언트에 전달
+        cookieUtil.addCookie(
+                httpServletResponse,
+                CookieUtil.REFRESH_TOKEN_COOKIE_NAME,
+                authResponse.getTokenInfo().refreshToken(),
+                REFRESH_TOKEN_MAX_AGE
+        );
+
+        // 2. 응답 본문에서는 RefreshToken을 제외한 나머지 정보만 전달
+        //    (TokenInfo에서 refreshToken을 null로 만들어 새로운 AuthResponse를 생성하는 것이 좋지만,
+        //     간단하게 현재 구조를 유지하고 프론트에서 refreshToken을 사용하지 않도록 약속)
         return ResponseEntity.ok(authResponse);
     }
 }
