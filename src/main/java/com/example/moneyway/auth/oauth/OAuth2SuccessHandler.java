@@ -55,14 +55,17 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             // Refresh Token을 DB에 저장 또는 업데이트
             saveRefreshToken(user, refreshToken);
 
-            // 기존 쿠키를 삭제하고 새로운 토큰을 쿠키에 추가
-            addTokensToCookie(request, response, accessToken, refreshToken);
+            // [수정] Refresh Token만 HttpOnly 쿠키에 추가
+            cookieUtil.addCookie(response, REFRESH_TOKEN_COOKIE_NAME, refreshToken, (int) REFRESH_TOKEN_DURATION.toSeconds());
 
             // 인증 관련 임시 쿠키들을 정리
             clearAuthenticationAttributes(request, response);
 
-            // 설정된 프론트엔드 주소로 리다이렉트
-            String targetUrl = determineTargetUrl(request, response, authentication);
+            // [수정] Access Token은 리다이렉트 URL의 쿼리 파라미터로 전달
+            String targetUrl = UriComponentsBuilder.fromUriString(defaultRedirectUri)
+                    .queryParam("accessToken", accessToken)
+                    .build().toUriString();
+
             getRedirectStrategy().sendRedirect(request, response, targetUrl);
         } catch (Exception e) {
             log.error("OAuth2 로그인 성공 처리 중 예외 발생: {}", e.getMessage(), e);
@@ -76,22 +79,6 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 .map(entity -> entity.update(newRefreshToken))
                 .orElse(new RefreshToken(user, newRefreshToken));
         refreshTokenRepository.save(refreshToken);
-    }
-
-    private void addTokensToCookie(HttpServletRequest request, HttpServletResponse response, String accessToken, String refreshToken) {
-        // ✅ [수정] 불필요한 request 인자를 제거하여 메서드 시그니처를 맞춥니다.
-        cookieUtil.deleteCookie(response, ACCESS_TOKEN_COOKIE_NAME);
-        cookieUtil.deleteCookie(response, REFRESH_TOKEN_COOKIE_NAME);
-
-        cookieUtil.addCookie(response, ACCESS_TOKEN_COOKIE_NAME, accessToken, (int) ACCESS_TOKEN_DURATION.toSeconds());
-        cookieUtil.addCookie(response, REFRESH_TOKEN_COOKIE_NAME, refreshToken, (int) REFRESH_TOKEN_DURATION.toSeconds());
-    }
-
-    @Override
-    protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
-        // UriComponentsBuilder를 사용하여 안전하게 URL을 생성합니다.
-        return UriComponentsBuilder.fromUriString(defaultRedirectUri)
-                .build().toUriString();
     }
 
     /**

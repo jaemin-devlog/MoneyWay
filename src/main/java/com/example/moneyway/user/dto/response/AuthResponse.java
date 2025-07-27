@@ -10,6 +10,6 @@ import lombok.Getter;
 @Getter
 @Builder
 public class AuthResponse {
-    private final TokenInfo tokenInfo;
+    private final String accessToken;
     private final UserResponse userInfo;
 }

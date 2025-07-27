@@ -49,16 +49,12 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 1. 인증 없이 접근을 허용할 경로들
                         .requestMatchers(
+                                "/api/**", // [임시 디버깅용]
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/api/auth/**",       // 계정관련
-                                "/api/users/**",
                                 "/login/**",          // 소셜 로그인 과정
                                 "/oauth2/**",         // 소셜 로그인 과정
-                                "/error",             // 에러 페이지
-                                "/api/admin/**",      // admin
-                                "/api/places/**",      // place
-                                "/api/ai/**"
+                                "/error"             // 에러 페이지
                         ).permitAll()
 
            
