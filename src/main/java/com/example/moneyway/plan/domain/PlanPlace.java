@@ -27,6 +27,9 @@ public class PlanPlace {
     @JoinColumn(name = "place_pk_id", nullable = false)
     private Place place;
 
+    @Column(name = "place_name", nullable = false)
+    private String placeName;
+
     @Column(nullable = false)
     private Integer dayNumber; // 1일차, 2일차 등
 
@@ -53,11 +56,12 @@ public class PlanPlace {
     private LocalTime endTime; // 방문 종료 시간
 
     @Builder
-    public PlanPlace(Plan plan, Place place, Integer dayNumber, Integer cost,
+    public PlanPlace(Plan plan, Place place, String placeName, Integer dayNumber, Integer cost,
                      String type, String time, Integer budget, Integer totalPrice,
                      LocalTime startTime, LocalTime endTime) {
         this.plan = plan;
         this.place = place;
+        this.placeName = placeName;   // 장소 이름 문자열 저장
         this.dayNumber = dayNumber;
         this.cost = cost;
         this.type = type;

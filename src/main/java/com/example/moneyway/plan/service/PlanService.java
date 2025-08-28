@@ -47,8 +47,11 @@ public class PlanService {
 
             PlanPlace planPlace = PlanPlace.builder()
                     .place(cart.getPlace())
+                    .placeName(cart.getPlace().getPlaceName())
                     .cost(cart.getPrice())
                     .dayNumber(placeDto.getDayNumber())
+                    .startTime(placeDto.getStartTime())
+                    .endTime(placeDto.getEndTime())
                     .build();
 
             plan.addPlanPlace(planPlace);
@@ -95,8 +98,11 @@ public class PlanService {
 
             PlanPlace planPlace = PlanPlace.builder()
                     .place(place)
+                    .placeName(place.getPlaceName())
                     .cost(placeDto.getCost())
                     .dayNumber(placeDto.getDayNumber())
+                    .startTime(placeDto.getStartTime())
+                    .endTime(placeDto.getEndTime())
                     .build();
 
             plan.addPlanPlace(planPlace);
