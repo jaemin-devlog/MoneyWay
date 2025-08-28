@@ -16,10 +16,10 @@ services:
     container_name: moneyway-mysql
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
-      MYSQL_DATABASE: moneyway_db
-      MYSQL_USER: moneyway
-      MYSQL_PASSWORD: Moneyway123!
+      MYSQL_ROOT_PASSWORD: ${MYSQLROOTPASSWORD}
+      MYSQL_DATABASE: ${MYSQLDATABASE}
+      MYSQL_USER: ${MYSQLUSER}
+      MYSQL_PASSWORD: ${MYSQLPASSWORD}
     ports:
       - "3306:3306"
     volumes:
@@ -29,7 +29,7 @@ services:
     image: redis:7.2
     container_name: moneyway-redis
     restart: always
-    command: redis-server --requirepass super-redis-pass
+    command: redis-server --requirepass ${REDISPASSWORD}
     ports:
       - "6379:6379"
     volumes:
