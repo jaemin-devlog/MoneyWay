@@ -7,37 +7,31 @@ server:
   port: ${SERVER_PORT:8080} # 기본 포트는 8080
 
 spring:
-  # 운영 DB 연결 정보 (환경 변수 사용)
   datasource:
     url: jdbc:mysql://${MYSQLHOST}:${MYSQLPORT}/${MYSQLDATABASE}?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
-    username: ${MYSQLUSER}
+    username: root
     password: ${MYSQLPASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-  # 운영 Redis 연결 정보 (환경 변수 사용)
   data:
     redis:
       host: ${REDISHOST}
       port: ${REDISPORT}
       password: ${REDISPASSWORD}
 
-  # JPA 및 Hibernate 설정
   jpa:
     hibernate:
-      # [매우 중요] 운영 환경의 데이터 보호를 위해 반드시 'validate'를 사용합니다.
-      # 애플리케이션 시작 시 Entity와 DB 스키마가 일치하는지 검증만 하고, 다르면 실행을 중단시켜 문제를 즉시 알립니다.
-      ddl-auto: update
-    # 성능을 위해 SQL 쿼리를 로그로 출력하지 않습니다.
+      ddl-auto: update   # 공모전용 → update 허용
     show-sql: false
     properties:
       hibernate:
         format_sql: false
-        # [권장] MySQL Dialect를 명시적으로 설정하여 안정성을 높입니다.
         dialect: org.hibernate.dialect.MySQLDialect
+
   jackson:
     serialization:
       write-dates-as-timestamps: false
-  # 이메일 발송 설정 (환경 변수 사용)
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -50,14 +44,12 @@ spring:
           starttls:
             enable: true
 
-  # OAuth2 클라이언트 설정 (카카오)
   security:
     oauth2:
       client:
         registration:
           kakao:
             client-id: ${KAKAO_CLIENT_ID}
-            # 카카오 개발자 콘솔에 등록된, Spring Security가 처리하는 백엔드의 콜백 주소입니다.
             redirect-uri: ${OAUTH_BACKEND_CALLBACK_URI}
             authorization-grant-type: authorization_code
             client-name: kakao
@@ -72,16 +64,13 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
-# 로깅 레벨 설정
 logging:
   level:
-    # 운영 환경에서는 필요한 정보만 기록하도록 INFO 레벨로 설정합니다.
     com.example.moneyway: INFO
     org.springframework.web: INFO
     org.springframework.security: INFO
     org.hibernate: INFO
 
-# JWT, 외부 API 키 등 (환경 변수 사용)
 jwt:
   issuer: ${JWT_ISSUER}
   secret-key: ${JWT_SECRET_KEY}
@@ -93,11 +82,8 @@ OPENAI:
   API:
     KEY: ${OPENAI_API_KEY}
 
-# 쿠키 보안 설정을 위한 커스텀 프로퍼티
 cookie:
-  # 운영 환경에서는 환경 변수(COOKIE_SECURE=true)에 의해 이 값이 true로 덮어쓰여집니다.
   secure: ${COOKIE_SECURE:true}
 
-# OAuth2 로그인 성공/실패 후 리다이렉트 될 프론트엔드 운영 주소
 oauth:
   default-redirect-uri: ${OAUTH_FRONTEND_REDIRECT_URI}
