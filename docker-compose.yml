@@ -38,13 +38,16 @@ services:
     image: redis:7.2
     container_name: moneyway-redis
     restart: always
+    # 컨테이너 내부에도 REDISPASSWORD 주입
+    env_file: .env
     command: redis-server --requirepass ${REDISPASSWORD}
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a $$REDISPASSWORD ping | grep -q PONG"]
+      # 컨테이너 내부 변수($REDISPASSWORD)를 쓰려면 $$를 사용
+      test: [ "CMD-SHELL", "redis-cli -a $$REDISPASSWORD ping | grep -q PONG" ]
       interval: 5s
       timeout: 3s
       retries: 30
