@@ -3,6 +3,7 @@ package com.example.moneyway.user.repository;
 import com.example.moneyway.user.domain.User;
 import jakarta.validation.constraints.NotBlank;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
@@ -10,6 +11,7 @@ import java.util.Optional;
  * 사용자 정보를 DB에서 조회하고 저장하는 JPA 리포지토리
  * 역할: 이메일, 닉네임, ID, KakaoId 기준으로 사용자 엔티티를 찾거나 중복 여부 확인
  */
+@Repository
 public interface UserRepository extends JpaRepository<User, Long> {
 
     //이메일로 사용자 조회 (일반 로그인용)

@@ -68,6 +68,9 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
+    implementation 'net.bytebuddy:byte-buddy:1.14.15'
+    implementation 'net.bytebuddy:byte-buddy-agent:1.14.15'
+
 }
 
 bootJar {
