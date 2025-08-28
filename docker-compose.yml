@@ -1,0 +1,26 @@
+version: "3.8"
+services:
+  moneyway:
+    build: .
+    container_name: moneyway-app
+    restart: always
+    env_file: .env
+    ports:
+      - "8081:8080"
+    depends_on:
+      - redis
+    extra_hosts:
+      - "host.docker.internal:host-gateway"  # 컨테이너에서 호스트 DB 접근
+
+  redis:
+    image: redis:7.2
+    container_name: moneyway-redis
+    restart: always
+    command: redis-server --requirepass super-redis-pass
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:
