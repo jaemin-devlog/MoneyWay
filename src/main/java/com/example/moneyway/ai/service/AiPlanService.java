@@ -175,6 +175,7 @@ public class AiPlanService {
                 PlanPlace planPlace = PlanPlace.builder()
                         .plan(plan)
                         .place(place)
+                        .placeName(placeDto.place())
                         .dayNumber(dayNumber)
                         .cost(placeDto.cost())
                         .type(placeDto.type())
