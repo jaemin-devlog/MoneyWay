@@ -1,11 +1,13 @@
+version: "3.8"
+
 services:
   moneyway:
     build: .
     container_name: moneyway-app
-    restart: always
+    restart: unless-stopped
     env_file: .env
     ports:
-      - "8081:8080"
+      - "8081:8080"   # 컨테이너 내부 8080을 호스트 8081로 노출
     depends_on:
       mysql:
         condition: service_healthy
@@ -15,39 +17,34 @@ services:
   mysql:
     image: mysql:8.0
     container_name: moneyway-mysql
-    restart: always
+    restart: unless-stopped
     environment:
-      # 초기화 시 root 비밀번호 설정
       MYSQL_ROOT_PASSWORD: ${MYSQLROOTPASSWORD}
-      # 생성할 기본 DB
       MYSQL_DATABASE: ${MYSQLDATABASE}
-      # root가 원격(다른 컨테이너 포함)에서 접속 가능하도록
-      MYSQL_ROOT_HOST: "%"
+      MYSQL_USER: ${MYSQLUSER}
+      MYSQL_PASSWORD: ${MYSQLPASSWORD}
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$$MYSQL_ROOT_PASSWORD --silent"]
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u${MYSQLUSER} -p${MYSQLPASSWORD} --silent"]
       interval: 5s
       timeout: 3s
       retries: 30
-      start_period: 20s
+      start_period: 10s
 
   redis:
     image: redis:7.2
     container_name: moneyway-redis
-    restart: always
-    # 컨테이너 내부에도 REDISPASSWORD 주입
-    env_file: .env
-    command: redis-server --requirepass ${REDISPASSWORD}
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDISPASSWORD}"]
     ports:
       - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
-      # 컨테이너 내부 변수($REDISPASSWORD)를 쓰려면 $$를 사용
-      test: [ "CMD-SHELL", "redis-cli -a $$REDISPASSWORD ping | grep -q PONG" ]
+      test: ["CMD-SHELL", "redis-cli -a $$REDISPASSWORD ping | grep -q PONG"]
       interval: 5s
       timeout: 3s
       retries: 30
