@@ -25,11 +25,11 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -uroot -p$MYSQLROOTPASSWORD --silent"]
+      test: [ "CMD-SHELL", "mysql --protocol=tcp -h 127.0.0.1 -uroot -p\"$MYSQLROOTPASSWORD\" -e 'SELECT 1' >/dev/null 2>&1 || exit 1" ]
       interval: 5s
-      timeout: 3s
-      retries: 30
-      start_period: 10s
+      timeout: 5s
+      retries: 60
+      start_period: 60s
 
   redis:
     image: redis:7.2
