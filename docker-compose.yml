@@ -1,0 +1,53 @@
+services:
+  moneyway:
+    build: .
+    container_name: moneyway-app
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8081:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      TZ: Asia/Seoul
+
+  mysql:
+    image: mysql:8.0
+    container_name: moneyway-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQLDATABASE}
+      TZ: Asia/Seoul
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD-SHELL", "mysql --protocol=tcp -h 127.0.0.1 -uroot -p\"$MYSQLROOTPASSWORD\" -e 'SELECT 1' >/dev/null 2>&1 || exit 1" ]
+      interval: 5s
+      timeout: 5s
+      retries: 60
+      start_period: 60s
+
+  redis:
+    image: redis:7.2
+    container_name: moneyway-redis
+    restart: unless-stopped
+    command: ["redis-server", "--requirepass", "${REDISPASSWORD}"]
+    environment:
+      REDISPASSWORD: ${REDISPASSWORD}
+      TZ: Asia/Seoul
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a $REDISPASSWORD ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  mysql_data:
+  redis_data:
