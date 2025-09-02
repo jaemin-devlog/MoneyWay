@@ -6,8 +6,9 @@ import com.example.moneyway.common.exception.CustomException.CustomPlanException
 import com.example.moneyway.common.exception.ErrorCode;
 import com.example.moneyway.plan.domain.Plan;
 import com.example.moneyway.plan.domain.PlanPlace;
-import com.example.moneyway.plan.dto.request.PlanCreateRequestDto;
-import com.example.moneyway.plan.dto.request.PlanPlaceCreateDto;
+//import com.example.moneyway.plan.dto.request.PlanCreateRequestDto;
+//import com.example.moneyway.plan.dto.request.PlanPlaceCreateDto;
+import com.example.moneyway.plan.dto.request.PlanTitleRequestDto;
 import com.example.moneyway.plan.dto.response.PlanDetailResponseDto;
 import com.example.moneyway.place.repository.PlaceRepository;
 import com.example.moneyway.plan.dto.response.PlanSummaryResponseDto;
@@ -32,36 +33,48 @@ public class PlanService {
     private final PlaceRepository placeRepository;       // 의존성 주입 추가
 
     @Transactional
-    public Plan createPlan(PlanCreateRequestDto requestDto, User user) {
+    public Plan createEmptyPlan(String title, User user) {
         Plan plan = Plan.builder()
-                .title(requestDto.getTitle())
-                .totalPrice(requestDto.getTotalPrice())
+                .title(title)
+                .totalPrice(0) // 초기값
                 .user(user)
                 .build();
 
-        List<Cart> usedCarts = new ArrayList<>();
-        for (PlanPlaceCreateDto placeDto : requestDto.getPlaces()) {
-            Cart cart = cartRepository.findByIdAndUserId(placeDto.getCartId(), user.getId())
-                    .orElseThrow(() -> new CustomPlanException(ErrorCode.INVALID_CART_ITEM_FOR_PLAN));
-            usedCarts.add(cart);
-
-            PlanPlace planPlace = PlanPlace.builder()
-                    .place(cart.getPlace())
-                    .placeName(cart.getPlace().getPlaceName())
-                    .cost(cart.getPrice())
-                    .dayNumber(placeDto.getDayNumber())
-                    .startTime(placeDto.getStartTime())
-                    .endTime(placeDto.getEndTime())
-                    .build();
-
-            plan.addPlanPlace(planPlace);
-        }
-
-        Plan savedPlan = planRepository.save(plan);
-        cartRepository.deleteAll(usedCarts);
-
-        return savedPlan;
+        return planRepository.save(plan);
     }
+
+
+//    @Transactional
+//    public Plan createPlan(PlanCreateRequestDto requestDto, User user) {
+//        Plan plan = Plan.builder()
+//                .title(requestDto.getTitle())
+//                .totalPrice(requestDto.getTotalPrice())
+//                .user(user)
+//                .build();
+//
+//        List<Cart> usedCarts = new ArrayList<>();
+//        for (PlanPlaceCreateDto placeDto : requestDto.getPlaces()) {
+//            Cart cart = cartRepository.findByIdAndUserId(placeDto.getCartId(), user.getId())
+//                    .orElseThrow(() -> new CustomPlanException(ErrorCode.INVALID_CART_ITEM_FOR_PLAN));
+//            usedCarts.add(cart);
+//
+//            PlanPlace planPlace = PlanPlace.builder()
+//                    .place(cart.getPlace())
+//                    .placeName(cart.getPlace().getPlaceName())
+//                    .cost(cart.getPrice())
+//                    .dayNumber(placeDto.getDayNumber())
+//                    .startTime(placeDto.getStartTime())
+//                    .endTime(placeDto.getEndTime())
+//                    .build();
+//
+//            plan.addPlanPlace(planPlace);
+//        }
+//
+//        Plan savedPlan = planRepository.save(plan);
+//        cartRepository.deleteAll(usedCarts);
+//
+//        return savedPlan;
+//    }
 
     
 

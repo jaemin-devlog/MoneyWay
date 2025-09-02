@@ -3,6 +3,7 @@ package com.example.moneyway.plan.dto.response;
 import com.example.moneyway.place.domain.Place;
 import com.example.moneyway.place.domain.PlaceCategory;
 import com.example.moneyway.plan.domain.PlanPlace;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -16,7 +17,10 @@ public class PlanPlaceResponseDto {
     private final String category;
     private final Integer cost;
     private final Integer dayNumber;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private final LocalTime startTime;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private final LocalTime endTime;
 
     @Builder
@@ -43,6 +47,8 @@ public class PlanPlaceResponseDto {
                 .category(categoryName)
                 .cost(planPlace.getCost())
                 .dayNumber(planPlace.getDayNumber())
+                .startTime(planPlace.getStartTime())   //  누락된 부분 추가
+                .endTime(planPlace.getEndTime())       //  누락된 부분 추가
                 .build();
     }
 }
