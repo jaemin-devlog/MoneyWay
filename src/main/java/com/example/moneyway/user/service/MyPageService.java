@@ -143,7 +143,6 @@ public class MyPageService {
                 .postId(post.getId()) // 게시글의 고유 ID를 DTO에 설정합니다.
                 .title(post.getTitle()) // 게시글의 제목을 DTO에 설정합니다.
                 .thumbnailUrl(post.getThumbnailUrl()) // 게시글의 썸네일 이미지 URL을 DTO에 설정합니다.
-                .isChallenge(post.isChallenge()) // 이 게시글이 챌린지 게시글인지 여부를 DTO에 설정합니다.
                 .createdAt(post.getCreatedAt()) // 게시글의 생성 시간을 DTO에 설정합니다.
                 .writerInfo(WriterInfo.from(post.getUser())) // 게시글 작성자(User) 정보를 WriterInfo DTO로 변환하여 설정합니다.
                 .likeCount(post.getLikeCount()) // 게시글의 전체 좋아요 개수를 DTO에 설정합니다.
