@@ -3,10 +3,13 @@ package com.example.moneyway.plan.controller;
 import com.example.moneyway.auth.userdetails.UserDetailsImpl;
 import com.example.moneyway.common.exception.ErrorResponse;
 import com.example.moneyway.plan.domain.Plan;
-import com.example.moneyway.plan.dto.request.PlanCreateRequestDto;
+import com.example.moneyway.plan.dto.request.EmptyPlanCreateRequestDto;
+//import com.example.moneyway.plan.dto.request.PlanCreateRequestDto;
+import com.example.moneyway.plan.dto.request.PlanTitleRequestDto;
 import com.example.moneyway.plan.dto.request.PlanUpdateRequestDto;
 import com.example.moneyway.plan.dto.response.PlanDetailResponseDto;
 import com.example.moneyway.plan.dto.response.PlanSummaryResponseDto;
+
 import com.example.moneyway.plan.service.PlanService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -25,6 +28,57 @@ import java.net.URI;
 
 import java.util.List;
 
+//@Tag(name = "여행 계획(Plan)")
+//@RestController
+//@RequestMapping("/api/plans")
+//@RequiredArgsConstructor
+//public class PlanController {
+//
+//    private final PlanService planService;
+//
+//    // ✅ 빈 플랜 생성
+//    @PostMapping("/empty")
+//    public ResponseEntity<PlanSummaryResponseDto> createEmptyPlan(
+//            @RequestBody(required = false) EmptyPlanCreateRequestDto requestDto,
+//            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+//
+//        String title = (requestDto != null && requestDto.getTitle() != null)
+//                ? requestDto.getTitle()
+//                : "새 여행 계획";
+//
+//        Plan createdPlan = planService.createEmptyPlan(title, userDetails.getUser());
+//
+//        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+//                .path("/{id}")
+//                .buildAndExpand(createdPlan.getId())
+//                .toUri();
+//
+//        return ResponseEntity.created(location).body(PlanSummaryResponseDto.from(createdPlan));
+//    }
+//
+//
+//    @Operation(summary = "여행 계획 생성", description = "사용자가 구성한 시간표를 바탕으로 새로운 여행 계획을 저장합니다.")
+//    @ApiResponses({
+//            @ApiResponse(responseCode = "201", description = "여행 계획 생성 성공"),
+//            @ApiResponse(responseCode = "400", description = "입력 값 유효성 검증 실패 또는 유효하지 않은 장바구니 항목 포함",
+//                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+//            @ApiResponse(responseCode = "401", description = "인증 실패 (JWT 만료 등)",
+//                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+//    })
+//    @PostMapping
+//    public ResponseEntity<Void> createPlan(
+//            @Valid @RequestBody PlanCreateRequestDto requestDto,
+//            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+//
+//        Plan createdPlan = planService.createPlan(requestDto, userDetails.getUser());
+//
+//        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+//                .path("/{id}")
+//                .buildAndExpand(createdPlan.getId())
+//                .toUri();
+//
+//        return ResponseEntity.created(location).build();
+//    }
 @Tag(name = "여행 계획(Plan)")
 @RestController
 @RequestMapping("/api/plans")
@@ -33,28 +87,32 @@ public class PlanController {
 
     private final PlanService planService;
 
-    @Operation(summary = "여행 계획 생성", description = "사용자가 구성한 시간표를 바탕으로 새로운 여행 계획을 저장합니다.")
+    @Operation(summary = "빈 여행 계획 생성", description = "제목만 지정된 빈 여행 계획을 생성합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "여행 계획 생성 성공"),
-            @ApiResponse(responseCode = "400", description = "입력 값 유효성 검증 실패 또는 유효하지 않은 장바구니 항목 포함",
-                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-            @ApiResponse(responseCode = "401", description = "인증 실패 (JWT 만료 등)",
+            @ApiResponse(responseCode = "401", description = "인증 실패",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    @PostMapping
-    public ResponseEntity<Void> createPlan(
-            @Valid @RequestBody PlanCreateRequestDto requestDto,
+    @PostMapping("/empty")
+    public ResponseEntity<PlanSummaryResponseDto> createEmptyPlan(
+            @RequestBody(required = false) PlanTitleRequestDto requestDto,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        Plan createdPlan = planService.createPlan(requestDto, userDetails.getUser());
+        String title = (requestDto != null && requestDto.getTitle() != null)
+                ? requestDto.getTitle()
+                : "새 여행 계획";
+
+        Plan createdPlan = planService.createEmptyPlan(title, userDetails.getUser());
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(createdPlan.getId())
                 .toUri();
 
-        return ResponseEntity.created(location).build();
+        return ResponseEntity.created(location).body(PlanSummaryResponseDto.from(createdPlan));
     }
+
+
 
     @Operation(summary = "특정 여행 계획 상세 조회", description = "ID로 특정 여행 계획의 상세 정보를 조회합니다.")
     @ApiResponses({
