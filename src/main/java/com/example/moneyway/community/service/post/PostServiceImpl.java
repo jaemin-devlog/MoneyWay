@@ -86,7 +86,7 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new CustomPostException(ErrorCode.POST_NOT_FOUND));
 
         if (!post.getUser().getId().equals(userId)) {
-            throw new CustomPostException(ErrorCode.POST_FORBIDDEN_UPDATE);
+            throw new CustomPostException(ErrorCode.POST_FORBIDDEN_DELETE);
         }
 
         postRepository.delete(post);
