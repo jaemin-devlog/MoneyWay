@@ -33,7 +33,7 @@ public class CreatePostRequest {
     @Size(max = 10, message = "첨부 이미지는 최대 10개까지만 등록할 수 있습니다.")
     private final List<String> imageUrls; // 첨부 이미지 리스트
 
-    private final boolean isChallenge; // primitive boolean 타입 사용
+    
 
     @JsonCreator
     public CreatePostRequest(
@@ -41,13 +41,13 @@ public class CreatePostRequest {
             @JsonProperty("content") String content,
             @JsonProperty("totalCost") Integer totalCost,
             @JsonProperty("thumbnailUrl") String thumbnailUrl,
-            @JsonProperty("imageUrls") List<String> imageUrls,
-            @JsonProperty("isChallenge") boolean isChallenge) {
+            @JsonProperty("imageUrls") List<String> imageUrls
+            ) {
         this.title = title;
         this.content = content;
         this.totalCost = totalCost;
         this.thumbnailUrl = thumbnailUrl;
         this.imageUrls = imageUrls;
-        this.isChallenge = isChallenge;
+        
     }
 }

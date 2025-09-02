@@ -24,7 +24,7 @@ public interface PostService {
     // 게시글 상세 조회
     PostDetailResponse getPostDetail(Long postId, Long viewerId);
 
-    Page<PostSummaryResponse> getPostList(PostSortType sort, Boolean challenge, Long viewerId, Pageable pageable);
+    Page<PostSummaryResponse> getPostList(PostSortType sort, Long viewerId, Pageable pageable);
 
     List<PostSummaryResponse> getUserPosts(Long userId, Long viewerId);
 
