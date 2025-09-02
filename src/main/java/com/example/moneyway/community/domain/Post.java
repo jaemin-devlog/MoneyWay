@@ -34,8 +34,7 @@ public class Post extends BaseTimeEntity {
     @Column(nullable = false)
     private Integer totalCost;
 
-    @Column(nullable = false)
-    private boolean isChallenge;
+    
 
     @Column(nullable = false)
     private int likeCount = 0;
@@ -68,13 +67,13 @@ public class Post extends BaseTimeEntity {
     private List<PostView> views = new ArrayList<>();
 
     @Builder
-    public Post(User user, String title, String content, Integer totalCost, Boolean isChallenge, String thumbnailUrl) {
+    public Post(User user, String title, String content, Integer totalCost, String thumbnailUrl) {
         this.user = user;
         this.title = title;
         this.content = content;
         this.thumbnailUrl = thumbnailUrl;
         this.totalCost = totalCost != null ? totalCost : 0;
-        this.isChallenge = isChallenge != null ? isChallenge : false;
+        
     }
 
     public void updatePost(String title, String content, Integer totalCost, String thumbnailUrl) {

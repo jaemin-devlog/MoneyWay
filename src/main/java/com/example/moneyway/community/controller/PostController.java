@@ -97,12 +97,12 @@ public class PostController {
     @GetMapping
     public ResponseEntity<Page<PostSummaryResponse>> getPostList(
             @RequestParam(required = false) PostSortType sort,
-            @RequestParam(required = false) Boolean challenge,
+            
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             Pageable pageable) {
 
         Long viewerId = (userDetails != null) ? userDetails.getUserId() : null;
-        Page<PostSummaryResponse> page = postService.getPostList(sort, challenge, viewerId, pageable);
+        Page<PostSummaryResponse> page = postService.getPostList(sort, viewerId, pageable);
         return ResponseEntity.ok(page);
     }
 

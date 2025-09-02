@@ -16,7 +16,7 @@ public class PostDetailResponse {
     private String title;
     private String content;
     private Integer totalCost;
-    private boolean isChallenge; // [개선] primitive boolean 타입 사용
+    
     private String thumbnailUrl;
     private List<String> imageUrls;
     private LocalDateTime createdAt;
