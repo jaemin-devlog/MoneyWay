@@ -29,14 +29,7 @@ public interface PostRepository extends JpaRepository<Post, Long> {
            countQuery = "SELECT count(p) FROM Post p")
     Page<Post> findAllWithUser(Pageable pageable);
 
-    // 챌린지 게시글 목록조회용 (N+1 문제 해결: User)
-    @Query(value = "SELECT p FROM Post p JOIN FETCH p.user WHERE p.isChallenge = :isChallenge",
-           countQuery = "SELECT count(p) FROM Post p WHERE p.isChallenge = :isChallenge")
-    Page<Post> findByIsChallengeWithUser(@Param("isChallenge") Boolean isChallenge, Pageable pageable);
-
-    Optional<Post> findById(Long id);
-
-    Page<Post> findByIsChallenge(Boolean isChallenge, Pageable pageable);
+    
 
     Page<Post> findByUser(User user, Pageable pageable);
 

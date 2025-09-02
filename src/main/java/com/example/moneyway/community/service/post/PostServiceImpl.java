@@ -49,7 +49,7 @@ public class PostServiceImpl implements PostService {
                 .title(request.getTitle())
                 .content(request.getContent())
                 .totalCost(request.getTotalCost())
-                .isChallenge(request.isChallenge())
+                
                 .thumbnailUrl(request.getThumbnailUrl())
                 .build();
         postRepository.save(post);
@@ -86,7 +86,7 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() -> new CustomPostException(ErrorCode.POST_NOT_FOUND));
 
         if (!post.getUser().getId().equals(userId)) {
-            throw new CustomPostException(ErrorCode.POST_FORBIDDEN_UPDATE);
+            throw new CustomPostException(ErrorCode.POST_FORBIDDEN_DELETE);
         }
 
         postRepository.delete(post);
@@ -108,12 +108,10 @@ public class PostServiceImpl implements PostService {
 
     @Override
     @Transactional(readOnly = true)
-    public Page<PostSummaryResponse> getPostList(PostSortType sort, Boolean challenge, Long viewerId, Pageable pageable) {
+    public Page<PostSummaryResponse> getPostList(PostSortType sort, Long viewerId, Pageable pageable) {
         Pageable sortedPageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), getSort(sort));
 
-        Page<Post> postsPage = (challenge != null && challenge)
-                ? postRepository.findByIsChallengeWithUser(true, sortedPageable)
-                : postRepository.findAllWithUser(sortedPageable);
+        Page<Post> postsPage = postRepository.findAllWithUser(sortedPageable);
 
         List<PostSummaryResponse> summaryResponses = convertPostsToSummaryResponse(postsPage.getContent(), viewerId);
 
@@ -194,7 +192,7 @@ public class PostServiceImpl implements PostService {
                 .title(post.getTitle())
                 .content(post.getContent())
                 .totalCost(post.getTotalCost())
-                .isChallenge(post.isChallenge())
+
                 .thumbnailUrl(post.getThumbnailUrl())
                 .imageUrls(imageUrls)
                 .likeCount(post.getLikeCount())
@@ -225,7 +223,7 @@ public class PostServiceImpl implements PostService {
                 .content(summaryContent)
                 .thumbnailUrl(post.getThumbnailUrl())
                 .totalCost(post.getTotalCost())
-                .isChallenge(post.isChallenge())
+
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getCommentCount())
                 .scrapCount(post.getScrapCount())

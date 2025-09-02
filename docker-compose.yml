@@ -37,7 +37,7 @@ services:
     image: redis:7.2
     container_name: moneyway-redis
     restart: unless-stopped
-    ports: # <--- 이 부분을 추가해주세요!
+    ports:
       - "127.0.0.1:6379:6379"
     command: [ "redis-server", "--requirepass", "${REDISPASSWORD}" ]
     environment:
