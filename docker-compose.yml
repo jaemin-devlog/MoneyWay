@@ -22,6 +22,8 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQLDATABASE}
       TZ: Asia/Seoul
+    ports:
+      - "127.0.0.1:3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
@@ -35,14 +37,16 @@ services:
     image: redis:7.2
     container_name: moneyway-redis
     restart: unless-stopped
-    command: ["redis-server", "--requirepass", "${REDISPASSWORD}"]
+    ports: # <--- 이 부분을 추가해주세요!
+      - "127.0.0.1:6379:6379"
+    command: [ "redis-server", "--requirepass", "${REDISPASSWORD}" ]
     environment:
       REDISPASSWORD: ${REDISPASSWORD}
       TZ: Asia/Seoul
     volumes:
       - redis_data:/data
     healthcheck:
-      test: ["CMD-SHELL", "redis-cli -a $REDISPASSWORD ping | grep -q PONG"]
+      test: [ "CMD-SHELL", "redis-cli -a $REDISPASSWORD ping | grep -q PONG" ]
       interval: 5s
       timeout: 3s
       retries: 30
