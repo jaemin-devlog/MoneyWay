@@ -1,5 +1,18 @@
-// C:/.../ai/dto/response/GPTPlaceDto.java
 package com.example.moneyway.ai.dto.response;
 
-// 이제 이 객체는 더 안전한 불변 데이터 전달 객체가 됩니다.
-public record PlaceDto(String place, String type, String time, int cost) {}
+import java.time.LocalTime;
+
+public record PlaceDto(
+        Long placeId,
+        String title,
+        String address,
+        String thumbnailUrl,
+        String categoryName,
+        String priceInfo,
+        Double latitude,
+        Double longitude,
+        String time,        // 오전, 점심, 숙소 ...
+        int cost,
+        String startTime,
+        String endTime
+) {}
