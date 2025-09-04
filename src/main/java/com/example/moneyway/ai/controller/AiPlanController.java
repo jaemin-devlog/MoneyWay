@@ -5,6 +5,7 @@ import com.example.moneyway.ai.dto.request.AiPlanCreateRequestDto;
 import com.example.moneyway.ai.dto.request.TravelPlanRequestDto;
 import com.example.moneyway.ai.dto.response.DayPlanDto;
 import com.example.moneyway.ai.dto.response.PlanResponseDto;
+import com.example.moneyway.ai.dto.response.PlanSaveResponseDto;
 import com.example.moneyway.ai.service.AiPlanService;
 import com.example.moneyway.auth.userdetails.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
@@ -38,7 +39,7 @@ public class AiPlanController {
      */
     //최종 저장 선택시 db에 저장
     @PostMapping("/plans")
-    public ResponseEntity<Map<String, Long>> createPlanByFreeAi(
+    public ResponseEntity<PlanSaveResponseDto> createPlanByFreeAi(
             @RequestBody AiPlanCreateRequestDto request,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
@@ -46,7 +47,8 @@ public class AiPlanController {
             throw new IllegalStateException("로그인이 필요합니다.");
         }
 
-        Long planId = AiPlanService.createPlanByAi(request, userDetails.getUser());
-        return ResponseEntity.ok(Map.of("planId", planId));
+        PlanSaveResponseDto response = AiPlanService.createPlanByAi(request, userDetails.getUser());
+        return ResponseEntity.ok(response);
     }
+
 }

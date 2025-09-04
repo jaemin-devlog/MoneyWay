@@ -5,6 +5,7 @@ import com.example.moneyway.ai.dto.request.TravelPlanRequestDto;
 import com.example.moneyway.ai.dto.response.DayPlanDto;
 import com.example.moneyway.ai.dto.response.PlaceDto;
 import com.example.moneyway.ai.dto.response.PlanResponseDto;
+import com.example.moneyway.ai.dto.response.PlanSaveResponseDto;
 import com.example.moneyway.place.domain.Place;
 import com.example.moneyway.place.repository.PlaceRepository;
 import com.example.moneyway.plan.domain.Plan;
@@ -30,7 +31,9 @@ public class AiPlanService {
 
     private static final double EARTH_RADIUS = 6371.0; // km
 
-    /** 거리 계산 (Haversine 공식) */
+    /**
+     * 거리 계산 (Haversine 공식)
+     */
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
         double dLat = Math.toRadians(lat2 - lat1);
         double dLon = Math.toRadians(lon2 - lon1);
@@ -41,7 +44,9 @@ public class AiPlanService {
         return EARTH_RADIUS * c;
     }
 
-    /** 안전한 좌표 파싱 */
+    /**
+     * 안전한 좌표 파싱
+     */
     private Double safeParseDouble(String value) {
         if (value == null || value.trim().isEmpty()) return null;
         try {
@@ -51,7 +56,9 @@ public class AiPlanService {
         }
     }
 
-    /** 시간대 매핑 로직 */
+    /**
+     * 시간대 매핑 로직
+     */
     private final Map<String, LocalTime[]> timeMap = new HashMap<>() {{
         put("오전", new LocalTime[]{LocalTime.of(9, 0), LocalTime.of(11, 0)});
         put("점심", new LocalTime[]{LocalTime.of(11, 30), LocalTime.of(13, 0)});
@@ -62,8 +69,35 @@ public class AiPlanService {
         put("숙소", new LocalTime[]{LocalTime.of(20, 0), LocalTime.of(23, 0)});
     }};
 
+    /**
+     * Place -> DTO 변환
+     */
+    private PlaceDto toDto(Place p, String time) {
+        Double lat = safeParseDouble(p.getMapY());
+        Double lon = safeParseDouble(p.getMapX());
 
-    /** 여행 플랜 생성 */
+        LocalTime[] times = timeMap.getOrDefault(time, new LocalTime[]{LocalTime.of(9, 0), LocalTime.of(10, 0)});
+
+        return new PlaceDto(
+                p.getId(),
+                p.getPlaceName(),
+                p.getAddress(),
+                p.getThumbnailUrl(),
+                p.getCategory() != null ? p.getCategory().getDisplayName() : null,
+                p.getDisplayPrice(),
+                lat,
+                lon,
+                time,
+                p.getNumericPrice(),
+                times[0].toString(),   // "09:00"
+                times[1].toString()    // "11:00"
+        );
+    }
+
+
+    /**
+     * 여행 플랜 생성
+     */
     public PlanResponseDto generatePlan(TravelPlanRequestDto request) {
         int totalBudget = request.getBudget();
         int totalDays = request.getDuration();
@@ -117,7 +151,7 @@ public class AiPlanService {
 
             usedBudget += addOptimizedActivity(grouped.get("식당"), (int) (dailyActivityBudget * ratioDinner), "저녁", dayPlaces, baseLat, baseLon);
 
-            dayPlaces.add(new PlaceDto(selectedLodging.getPlaceName(), selectedLodging.getCategory().getDisplayName(), "숙소", lodgingPerNight));
+            dayPlaces.add(toDto(selectedLodging, "숙소"));
 
             int dayUsedCost = dayPlaces.stream().mapToInt(PlaceDto::cost).sum();
             totalUsedCost += dayUsedCost;
@@ -138,20 +172,22 @@ public class AiPlanService {
                     Double lon = safeParseDouble(p.getMapX());
                     return lat != null && lon != null && calculateDistance(baseLat, baseLon, lat, lon) <= 5.0;
                 })
-                .collect(Collectors.toList()); // 불변 리스트 → 가변 리스트로 변경
+                .collect(Collectors.toList());
 
         if (filtered.isEmpty()) return 0;
         Collections.shuffle(filtered);
 
         Place p = filtered.get(0);
-        target.add(new PlaceDto(p.getPlaceName(), p.getCategory().getDisplayName(), time, p.getNumericPrice()));
+        target.add(toDto(p, time));
 
         return p.getNumericPrice();
     }
 
-    /** 플랜 저장 */
+    /**
+     * 플랜 저장
+     */
     @Transactional
-    public Long createPlanByAi(AiPlanCreateRequestDto request, User user) {
+    public PlanSaveResponseDto createPlanByAi(AiPlanCreateRequestDto request, User user) {
         PlanResponseDto planResponse = generatePlan(request);
 
         Plan plan = Plan.builder()
@@ -168,17 +204,16 @@ public class AiPlanService {
             int dayNumber = dayIndex + 1;
 
             for (PlaceDto placeDto : dayPlan.places()) {
-                List<Place> places = placeRepository.findByTitle(placeDto.place());
-                Place place = places.isEmpty() ? null : places.get(0);
+                Place place = placeRepository.findById(placeDto.placeId()).orElse(null);
                 LocalTime[] times = timeMap.getOrDefault(placeDto.time(), new LocalTime[]{LocalTime.of(9, 0), LocalTime.of(10, 0)});
 
                 PlanPlace planPlace = PlanPlace.builder()
                         .plan(plan)
                         .place(place)
-                        .placeName(placeDto.place())
+                        .placeName(placeDto.title())
                         .dayNumber(dayNumber)
                         .cost(placeDto.cost())
-                        .type(placeDto.type())
+                        .type(placeDto.categoryName())
                         .time(placeDto.time())
                         .budget(dayPlan.totalBudget())
                         .totalPrice(dayPlan.usedCost())
@@ -190,6 +225,7 @@ public class AiPlanService {
             }
         }
 
-        return planRepository.save(plan).getId();
+        Long planId = planRepository.save(plan).getId();
+        return new PlanSaveResponseDto(planId, planResponse);
     }
 }
