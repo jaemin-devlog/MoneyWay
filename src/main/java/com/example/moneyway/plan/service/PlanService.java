@@ -106,8 +106,11 @@ public class PlanService {
 
         // 4. 요청받은 새로운 장소 목록으로 PlanPlace를 다시 생성하여 추가합니다.
         for (com.example.moneyway.plan.dto.request.PlanPlaceUpdateRequestDto placeDto : requestDto.getPlaces()) {
-            com.example.moneyway.place.domain.Place place = placeRepository.findById(placeDto.getPlaceId())
-                    .orElseThrow(() -> new CustomPlanException(ErrorCode.PLACE_NOT_FOUND));
+            Cart cart = cartRepository.findById(placeDto.getCartId())
+                    .orElseThrow(() -> new CustomPlanException(ErrorCode.CART_NOT_FOUND));
+            
+            // Cart에 연결된 Place 정보 가져오기
+            com.example.moneyway.place.domain.Place place = cart.getPlace();
 
             PlanPlace planPlace = PlanPlace.builder()
                     .place(place)
