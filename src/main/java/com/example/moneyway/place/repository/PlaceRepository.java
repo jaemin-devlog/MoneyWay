@@ -4,6 +4,7 @@ import com.example.moneyway.place.domain.Place;
 import com.example.moneyway.place.domain.PlaceCategory;
 import com.example.moneyway.place.domain.RestaurantJeju;
 import com.example.moneyway.place.domain.TourPlace;
+import com.example.moneyway.place.dto.internal.NearbyPlaceDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -94,6 +95,33 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
 
 
     List<Place> findByTitle(String title);
+
+
+    /**
+     * ai place 추가 부분
+     */
+
+    @Query(value = """
+    SELECT place_pk_id AS id,
+           addr1 AS title,
+           mapx AS mapx,
+           mapy AS mapy,
+           (6371 * acos(
+               cos(radians(:lat)) * cos(radians(CAST(mapy AS DECIMAL(10,6)))) *
+               cos(radians(CAST(mapx AS DECIMAL(10,6))) - radians(:lon)) +
+               sin(radians(:lat)) * sin(radians(CAST(mapy AS DECIMAL(10,6))))
+           )) AS distance
+    FROM tour_place
+    HAVING distance <= :radius
+    ORDER BY distance ASC
+    LIMIT :limit
+    """, nativeQuery = true)
+    List<NearbyPlaceDto> findNearby(
+            @Param("lat") String lat,
+            @Param("lon") String lon,
+            @Param("radius") double radius,
+            @Param("limit") int limit
+    );
 
 
 }
