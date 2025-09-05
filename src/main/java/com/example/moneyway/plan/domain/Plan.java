@@ -51,4 +51,21 @@ public class Plan extends BaseTimeEntity {
         this.planPlaces.add(planPlace);
         planPlace.setPlan(this);
     }
+
+    public int getCurrentPrice() {
+        return this.planPlaces.stream().mapToInt(PlanPlace::getCost).sum();
+    }
+
+    public String getPeriod() {
+        if (this.planPlaces == null || this.planPlaces.isEmpty()) {
+            return "0박 1일";
+        }
+
+        int maxDay = this.planPlaces.stream()
+                .mapToInt(PlanPlace::getDayNumber)
+                .max()
+                .orElse(1);
+
+        return (maxDay - 1) + "박 " + maxDay + "일";
+    }
 }
