@@ -108,9 +108,14 @@ public class PlanService {
         for (com.example.moneyway.plan.dto.request.PlanPlaceUpdateRequestDto placeDto : requestDto.getPlaces()) {
             Cart cart = cartRepository.findById(placeDto.getCartId())
                     .orElseThrow(() -> new CustomPlanException(ErrorCode.CART_NOT_FOUND));
-            
+
             // Cart에 연결된 Place 정보 가져오기
             com.example.moneyway.place.domain.Place place = cart.getPlace();
+
+            // 요청된 placeId와 cart의 placeId가 일치하는지 검증
+            if (!place.getId().equals(placeDto.getPlaceId())) {
+                throw new CustomPlanException(ErrorCode.INVALID_PLAN_PLACE_MAPPING);
+            }
 
             PlanPlace planPlace = PlanPlace.builder()
                     .place(place)
