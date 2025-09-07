@@ -44,4 +44,9 @@
          * @return Cart 엔티티 Optional
          */
         Optional<Cart> findByIdAndUserId(Long cartId, Long userId);
-    }
+        /**
+     * 특정 사용자의 모든 장바구니 항목을 삭제합니다.
+     * @param user 삭제할 사용자의 정보
+     */
+    void deleteByUser(User user);
+}

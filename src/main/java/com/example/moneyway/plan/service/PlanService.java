@@ -123,6 +123,9 @@ public class PlanService {
 
             plan.addPlanPlace(planPlace);
         }
+
+        // 5. 수정한 사용자의 장바구니를 모두 비웁니다.
+        cartRepository.deleteByUser(user);
     }
 
     @Transactional
