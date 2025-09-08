@@ -76,7 +76,7 @@ public class PlanService {
 //        return savedPlan;
 //    }
 
-    
+
 
     @Transactional(readOnly = true)
     public PlanDetailResponseDto getPlanDetail(Long planId, User user) {
@@ -113,9 +113,9 @@ public class PlanService {
             com.example.moneyway.place.domain.Place place = cart.getPlace();
 
             // 요청된 placeId와 cart의 placeId가 일치하는지 검증
-            if (!place.getId().equals(placeDto.getPlaceId())) {
-                throw new CustomPlanException(ErrorCode.INVALID_PLAN_PLACE_MAPPING);
-            }
+//            if (!place.getId().equals(placeDto.getPlaceId())) {
+//                throw new CustomPlanException(ErrorCode.INVALID_PLAN_PLACE_MAPPING);
+//            }
 
             PlanPlace planPlace = PlanPlace.builder()
                     .place(place)
