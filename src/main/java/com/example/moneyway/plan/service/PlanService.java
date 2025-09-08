@@ -124,6 +124,7 @@ public class PlanService {
                     .dayNumber(placeDto.getDayNumber())
                     .startTime(placeDto.getStartTime())
                     .endTime(placeDto.getEndTime())
+                    .cartId(placeDto.getCartId())
                     .build();
 
             plan.addPlanPlace(planPlace);
