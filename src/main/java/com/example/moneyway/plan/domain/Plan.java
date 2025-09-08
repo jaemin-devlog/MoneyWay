@@ -53,7 +53,7 @@ public class Plan extends BaseTimeEntity {
     }
 
     public int getCurrentPrice() {
-        return this.planPlaces.stream().mapToInt(PlanPlace::getCost).sum();
+        return this.planPlaces.stream().filter(planPlace -> planPlace.getCost() != null).mapToInt(PlanPlace::getCost).sum();
     }
 
     public String getPeriod() {

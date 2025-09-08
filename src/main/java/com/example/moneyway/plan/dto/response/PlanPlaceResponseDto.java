@@ -14,6 +14,7 @@ public class PlanPlaceResponseDto {
 
     private final Long placeId;
     private final String placeName;
+    private final String thumbnailUrl;
     private final String category;
     private final Integer cost;
     private final Integer dayNumber;
@@ -24,9 +25,10 @@ public class PlanPlaceResponseDto {
     private final LocalTime endTime;
 
     @Builder
-    private PlanPlaceResponseDto(Long placeId, String placeName, String category, Integer cost, Integer dayNumber, LocalTime startTime, LocalTime endTime) {
+    private PlanPlaceResponseDto(Long placeId, String placeName, String thumbnailUrl, String category, Integer cost, Integer dayNumber, LocalTime startTime, LocalTime endTime) {
         this.placeId = placeId;
         this.placeName = placeName;
+        this.thumbnailUrl = thumbnailUrl;
         this.category = category;
         this.cost = cost;
         this.dayNumber = dayNumber;
@@ -44,6 +46,7 @@ public class PlanPlaceResponseDto {
         return PlanPlaceResponseDto.builder()
                 .placeId(place.getId())
                 .placeName(place.getPlaceName())
+                .thumbnailUrl(place.getThumbnailUrl())
                 .category(categoryName)
                 .cost(planPlace.getCost())
                 .dayNumber(planPlace.getDayNumber())

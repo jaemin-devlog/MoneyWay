@@ -95,7 +95,8 @@ public enum ErrorCode {
     // ================== PLAN (여행 계획) ==================
     PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "여행 계획을 찾을 수 없습니다."),
     PLAN_ACCESS_DENIED(HttpStatus.FORBIDDEN, "해당 여행 계획에 대한 접근 권한이 없습니다."),
-    INVALID_CART_ITEM_FOR_PLAN(HttpStatus.BAD_REQUEST, "유효하지 않거나 권한이 없는 장바구니 항목이 포함되어 있습니다.");
+    INVALID_CART_ITEM_FOR_PLAN(HttpStatus.BAD_REQUEST, "유효하지 않거나 권한이 없는 장바구니 항목이 포함되어 있습니다."),
+    INVALID_PLAN_PLACE_MAPPING(HttpStatus.BAD_REQUEST, "계획에 포함된 장소와 장바구니 정보가 일치하지 않습니다.");
 
 
     private final HttpStatus status;

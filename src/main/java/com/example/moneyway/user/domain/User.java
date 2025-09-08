@@ -120,6 +120,14 @@ public class User {
     }
 
     /**
+     * 기존 계정에 카카오 ID를 연결합니다.
+     */
+    public void linkKakaoAccount(String kakaoId) {
+        this.kakaoId = kakaoId;
+        this.loginType = LoginType.KAKAO;
+    }
+
+    /**
      * 탈퇴 처리 및 개인정보 비식별화
      * - 고유성 제약조건(unique) 위반을 피하기 위해 ID를 사용하여 닉네임과 이메일을 고유하게 만듭니다.
      */
