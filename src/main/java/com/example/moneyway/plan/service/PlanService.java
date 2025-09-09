@@ -76,7 +76,7 @@ public class PlanService {
 //        return savedPlan;
 //    }
 
-    
+
 
     @Transactional(readOnly = true)
     public PlanDetailResponseDto getPlanDetail(Long planId, User user) {
@@ -105,16 +105,33 @@ public class PlanService {
         plan.getPlanPlaces().clear(); // plan 엔티티의 리스트에서도 비워줍니다.
 
         // 4. 요청받은 새로운 장소 목록으로 PlanPlace를 다시 생성하여 추가합니다.
+        List<Cart> usedCarts = new ArrayList<>();
         for (com.example.moneyway.plan.dto.request.PlanPlaceUpdateRequestDto placeDto : requestDto.getPlaces()) {
-            Cart cart = cartRepository.findById(placeDto.getCartId())
-                    .orElseThrow(() -> new CustomPlanException(ErrorCode.CART_NOT_FOUND));
+            com.example.moneyway.place.domain.Place place;
 
-            // Cart에 연결된 Place 정보 가져오기
-            com.example.moneyway.place.domain.Place place = cart.getPlace();
+            // cartId가 있는지, 그리고 해당 cartId가 유효한지 확인
+            if (placeDto.getCartId() != null) {
+                java.util.Optional<Cart> cartItemOpt = cartRepository.findByIdAndUserId(placeDto.getCartId(), user.getId());
 
-            // 요청된 placeId와 cart의 placeId가 일치하는지 검증
-            if (!place.getId().equals(placeDto.getPlaceId())) {
-                throw new CustomPlanException(ErrorCode.INVALID_PLAN_PLACE_MAPPING);
+                if (cartItemOpt.isPresent()) {
+                    // 유효한 cartId인 경우, cart에서 장소 정보 가져오기
+                    Cart cartItem = cartItemOpt.get();
+                    place = cartItem.getPlace();
+
+                    // 요청된 placeId와 cart의 placeId가 일치하는지 추가 검증
+                    if (!place.getId().equals(placeDto.getPlaceId())) {
+                        throw new CustomPlanException(ErrorCode.INVALID_PLAN_PLACE_MAPPING);
+                    }
+                    usedCarts.add(cartItem);
+                } else {
+                    // cartId가 유효하지 않은 경우(오래된 id), placeId로 장소 정보 조회
+                    place = placeRepository.findById(placeDto.getPlaceId())
+                            .orElseThrow(() -> new CustomPlanException(ErrorCode.PLACE_NOT_FOUND));
+                }
+            } else {
+                // cartId가 없는 경우, placeId로 장소 정보 조회
+                place = placeRepository.findById(placeDto.getPlaceId())
+                        .orElseThrow(() -> new CustomPlanException(ErrorCode.PLACE_NOT_FOUND));
             }
 
             PlanPlace planPlace = PlanPlace.builder()
@@ -124,13 +141,16 @@ public class PlanService {
                     .dayNumber(placeDto.getDayNumber())
                     .startTime(placeDto.getStartTime())
                     .endTime(placeDto.getEndTime())
+                    .cartId(placeDto.getCartId()) // 프론트엔드에서 필요할 수 있으므로 cartId는 유지
                     .build();
 
             plan.addPlanPlace(planPlace);
         }
 
-        // 5. 수정한 사용자의 장바구니를 모두 비웁니다.
-        cartRepository.deleteByUser(user);
+        // 5. 이 계획을 업데이트하는 데 사용된 장바구니 항목들만 삭제
+        if (!usedCarts.isEmpty()) {
+            cartRepository.deleteAll(usedCarts);
+        }
     }
 
     @Transactional

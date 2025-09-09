@@ -55,10 +55,13 @@ public class PlanPlace {
     @Column(name = "end_time", nullable = false)
     private LocalTime endTime; // 방문 종료 시간
 
+    @Column
+    private Long cartId;
+
     @Builder
     public PlanPlace(Plan plan, Place place, String placeName, Integer dayNumber, Integer cost,
                      String type, String time, Integer budget, Integer totalPrice,
-                     LocalTime startTime, LocalTime endTime) {
+                     LocalTime startTime, LocalTime endTime, Long cartId) {
         this.plan = plan;
         this.place = place;
         this.placeName = placeName;   // 장소 이름 문자열 저장
@@ -70,6 +73,7 @@ public class PlanPlace {
         this.totalPrice = totalPrice;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.cartId = cartId;
     }
 
     void setPlan(Plan plan) {
