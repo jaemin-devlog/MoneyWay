@@ -52,6 +52,8 @@ public class AdminDataService {
     private static final String HEADER_MAP_X = "mapx"; // 맛집/카페 위경도용
     private static final String HEADER_MAP_Y = "mapy"; //  맛집/카페 위경도용
     private static final String HEADER_CONTENT_ID = "contentid"; //  관광지 가격 업데이트용 헤더
+    private static final String HEADER_RATING = "rating";
+    private static final String HEADER_TOP_REVIEW = "top_review";
     private static final int TOUR_API_FETCH_SIZE = 100;
     private static final int DB_QUERY_BATCH_SIZE = 1000;
 
@@ -120,7 +122,15 @@ public class AdminDataService {
 
         try (InputStream is = file.getInputStream(); Workbook workbook = new XSSFWorkbook(is)) {
             Sheet sheet = workbook.getSheetAt(0);
-            Map<String, Integer> columnIndexMap = findExcelColumnIndices(sheet.getRow(0), HEADER_TITLE, HEADER_ADDRESS, HEADER_MAP_X, HEADER_MAP_Y);
+            Map<String, Integer> columnIndexMap = findExcelColumnIndices(
+                    sheet.getRow(0),
+                    HEADER_TITLE,
+                    HEADER_ADDRESS,
+                    HEADER_MAP_X,
+                    HEADER_MAP_Y,
+                    HEADER_RATING,
+                    HEADER_TOP_REVIEW
+            );
 
             // 1. 엑셀에서 고유한 맛집 후보 목록 읽기
             Map<String, RestaurantJeju> candidatesFromExcel = readUniqueRestaurantsFromSheet(sheet, columnIndexMap);
@@ -131,14 +141,18 @@ public class AdminDataService {
             // 2. DB에 이미 존재하는 맛집 키 목록 조회
             Set<String> existingRestaurantKeys = findExistingRestaurantKeysInBatches(new ArrayList<>(candidatesFromExcel.keySet()));
 
-            // 3. 새로운 맛집만 필터링하여 저장
+            // 3. 새로운 맛집만 저장
             List<RestaurantJeju> restaurantsToSave = filterNewRestaurants(candidatesFromExcel, existingRestaurantKeys);
             if (!restaurantsToSave.isEmpty()) {
                 placeRepository.saveAll(restaurantsToSave);
             }
 
-            // 4. 최종 결과 리포트 생성
-            return buildUploadResult(candidatesFromExcel.size(), restaurantsToSave.size(), existingRestaurantKeys);
+            // ✅ 4. 기존 맛집 업데이트 (rating, topReview 등)
+            updateExistingRestaurants(candidatesFromExcel, existingRestaurantKeys);
+
+            // 5. 최종 결과 리포트 생성
+            int successCount = restaurantsToSave.size() + existingRestaurantKeys.size();
+            return new ExcelUploadResult(candidatesFromExcel.size(), successCount, 0, Collections.emptyList());
 
         } catch (IOException e) {
             log.error("맛집 엑셀 파일 처리 중 I/O 오류 발생", e);
@@ -150,7 +164,33 @@ public class AdminDataService {
     }
 
     /**
-     * ✅ [추가] 엑셀 파일을 읽어 기존 관광지의 가격 정보를 업데이트합니다.
+     * ✅ 기존 DB에 있는 맛집 엔티티를 업데이트하는 로직
+     */
+    private void updateExistingRestaurants(Map<String, RestaurantJeju> candidates, Set<String> existingKeys) {
+        for (String key : existingKeys) {
+            RestaurantJeju newData = candidates.get(key);
+            if (newData == null) continue;
+
+            placeRepository.findByTitleAndAddress(newData.getTitle(), newData.getAddress())
+                    .ifPresent(existing -> {
+                        existing.setRating(newData.getRating());
+                        existing.setTopReview(newData.getTopReview());
+                        existing.setScore(newData.getScore());
+                        existing.setReview(newData.getReview());
+                        existing.setMenu(newData.getMenu());
+                        existing.setUrl(newData.getUrl());
+                        existing.setThumbnailUrl(newData.getThumbnailUrl());
+                        existing.setPriceInfo(newData.getPriceInfo());
+                        existing.setCategoryCode(newData.getCategoryCode());
+                        existing.setMapX(newData.getMapX());
+                        existing.setMapY(newData.getMapY());
+                    });
+        }
+    }
+
+
+    /**
+     * [추가] 엑셀 파일을 읽어 기존 관광지의 가격 정보를 업데이트합니다.
      *
      * @param file contentid와 priceInfo(price2) 컬럼을 포함하는 엑셀 파일
      * @return 처리 결과 DTO
@@ -299,7 +339,7 @@ public class AdminDataService {
         return priceUpdates;
     }
 
-    // ... mapItemToTourPlace, buildRestaurantFromRow 등 나머지 헬퍼 메서드는 변경 없이 그대로 유지 ...
+
     private TourPlace mapItemToTourPlace(TourApiResponseDto.Item item) {
         return TourPlace.builder()
                 .title(item.title())
@@ -336,7 +376,17 @@ public class AdminDataService {
                 .categoryCode(getStringValue(row, columnIndexMap, HEADER_CATEGORY_CODE))
                 .mapX(getStringValue(row, columnIndexMap, HEADER_MAP_X)) // ✅ [추가] mapX 필드 설정
                 .mapY(getStringValue(row, columnIndexMap, HEADER_MAP_Y)) // ✅ [추가] mapY 필드 설정
+                .rating(parseDoubleSafe(getStringValue(row, columnIndexMap, HEADER_RATING)))
+                .topReview(getStringValue(row, columnIndexMap, HEADER_TOP_REVIEW))
                 .build();
+    }
+
+    private Double parseDoubleSafe(String value) {
+        try {
+            return (value == null || value.isBlank()) ? null : Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private Map<String, Integer> findExcelColumnIndices(Row headerRow, String... requiredHeaders) {
@@ -367,4 +417,82 @@ public class AdminDataService {
         DataFormatter formatter = new DataFormatter();
         return formatter.formatCellValue(cell).trim();
     }
+
+    public ExcelUploadResult updateTourPlaceInfoFromExcel(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new CustomFileException(ErrorCode.FILE_IS_EMPTY);
+        }
+
+        try (InputStream is = file.getInputStream(); Workbook workbook = new XSSFWorkbook(is)) {
+            Sheet sheet = workbook.getSheetAt(0);
+            // contentid, price2, rating, top_review 헤더 확인
+            Map<String, Integer> columnIndexMap = findExcelColumnIndices(
+                    sheet.getRow(0),
+                    HEADER_CONTENT_ID,
+                    HEADER_PRICE_INFO,
+                    HEADER_RATING,
+                    HEADER_TOP_REVIEW
+            );
+
+            Map<String, Map<String, Object>> updates = new HashMap<>();
+
+            for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+
+                String contentId = getStringValue(row, columnIndexMap, HEADER_CONTENT_ID);
+                if (contentId.isBlank()) continue;
+
+                String priceInfo = getStringValue(row, columnIndexMap, HEADER_PRICE_INFO).replaceAll("[^\\d]", "");
+                Double rating = parseDoubleSafe(getStringValue(row, columnIndexMap, HEADER_RATING));
+                if (rating == null) rating = 0.0; // 안전 처리
+                String topReview = getStringValue(row, columnIndexMap, HEADER_TOP_REVIEW);
+
+                updates.put(contentId, Map.of(
+                        "priceInfo", priceInfo,
+                        "rating", rating,
+                        "topReview", topReview
+                ));
+            }
+
+            if (updates.isEmpty()) {
+                return new ExcelUploadResult(0, 0, 0, Collections.emptyList());
+            }
+
+            // DB에서 해당 contentId들 조회
+            List<TourPlace> existingPlaces = placeRepository.findTourPlacesByContentIds(updates.keySet());
+            Map<String, TourPlace> existingMap = existingPlaces.stream()
+                    .collect(Collectors.toMap(TourPlace::getContentid, p -> p));
+
+            AtomicInteger successCount = new AtomicInteger(0);
+            List<String> notFound = new ArrayList<>();
+
+            updates.forEach((contentId, values) -> {
+                TourPlace existing = existingMap.get(contentId);
+                String priceInfo = (String) values.get("priceInfo");
+                Double rating = (Double) values.get("rating");
+                String topReview = (String) values.get("topReview");
+
+                if (existing != null) {
+                    // update
+                    if (priceInfo != null && !priceInfo.isBlank()) existing.updatePriceInfo(priceInfo);
+                    if (rating != null) existing.setRating(rating);
+                    if (topReview != null && !topReview.isBlank()) existing.setTopReview(topReview);
+                    successCount.incrementAndGet();
+                } else {
+                    // insert 대신 notFound 처리
+                    notFound.add(contentId);
+                }
+            });
+
+            return new ExcelUploadResult(updates.size(), successCount.get(), notFound.size(), notFound);
+
+        } catch (IOException e) {
+            log.error("관광지 정보 엑셀 처리 중 I/O 오류 발생", e);
+            throw new CustomFileException(ErrorCode.FILE_PROCESSING_ERROR, e);
+        }
+    }
+
+
+
 }

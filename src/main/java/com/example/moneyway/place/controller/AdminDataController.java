@@ -77,6 +77,14 @@ public class AdminDataController {
         adminDataService.syncAllTourDetails();
         return ResponseEntity.ok(SuccessResponse.withMessage("TourAPI 상세 정보 동기화 작업이 시작되었습니다."));
     }
+    @Operation(summary = "관광지 정보 엑셀 업로드", description = "엑셀 파일을 업로드하여 기존 관광지의 가격/평점/대표리뷰를 업데이트합니다. (contentId 기준)")
+    @PostMapping("/upload/tour-info")
+    public ResponseEntity<SuccessResponse<ExcelUploadResult>> uploadTourPlaceInfo(@RequestParam("file") MultipartFile file) {
+        validateFile(file);
+        ExcelUploadResult result = adminDataService.updateTourPlaceInfoFromExcel(file);
+        return ResponseEntity.ok(SuccessResponse.withData("관광지 정보가 성공적으로 업데이트되었습니다.", result));
+    }
+
 
     @Operation(summary = "맛집 정보 엑셀 업로드", description = "엑셀 파일을 업로드하여 맛집 정보를 DB에 저장합니다.")
     @ApiResponse(responseCode = "200", description = "업로드 및 처리 성공",

@@ -4,10 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.PrimaryKeyJoinColumn;
 import jakarta.persistence.Transient;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.util.Collections;
@@ -15,6 +12,7 @@ import java.util.List;
 
 @Entity
 @Getter
+@Setter
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
@@ -40,6 +38,13 @@ public class RestaurantJeju extends Place {
     @Column(name = "mapy")
     private String mapY;
 
+    // 추가된 필드
+    @Column(name = "rating")
+    private Double rating;   // 별점 (예: 4.3)
+
+    @Column(name = "top_review", columnDefinition = "TEXT")
+    private String topReview; // 대표 리뷰 텍스트
+
     @Override
     protected PlaceCategory calculateCategory() {
         if ("c2".equals(this.categoryCode)) {
@@ -61,6 +66,7 @@ public class RestaurantJeju extends Place {
     public String getAddress() {
         return this.address;
     }
+
     @Override
     public int getNumericPrice() {
         if (this.priceInfo == null || this.priceInfo.isBlank() || !this.priceInfo.matches("\\d+")) {
@@ -85,18 +91,19 @@ public class RestaurantJeju extends Place {
 
     @Override
     public String getDescription() {
-        return null; // 맛집/카페에는 별도의 상세 설명이 없음
+        return this.topReview; // 리뷰를 설명처럼 노출 가능
     }
 
     @Override
     public String getMapX() {
-        return this.mapX; // 추가된 mapX 필드 반환
+        return this.mapX;
     }
 
     @Override
     public String getMapY() {
-        return this.mapY; // 추가된 mapY 필드 반환
+        return this.mapY;
     }
+
     @Override
     public String getMenu() {
         return this.menu;
