@@ -17,18 +17,19 @@ public class AiPlanClient {
         this.API_KEY = apiKey;
     }
 
-
     public String requestPlan(String prompt) throws Exception {
         OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(60, TimeUnit.SECONDS)
-                .writeTimeout(60, TimeUnit.SECONDS)
-                .readTimeout(120, TimeUnit.SECONDS) // 응답 대기 시간
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS)
                 .build();
 
         JSONObject json = new JSONObject();
         json.put("model", "gpt-4o-mini");
         json.put("messages", new org.json.JSONArray()
-                .put(new JSONObject().put("role", "system").put("content", "You are a helpful travel planner."))
+                .put(new JSONObject().put("role", "system").put("content",
+                        "You are a travel planner AI. Respond ONLY with valid JSON. " +
+                                "Do not include +, comments, markdown, or explanations."))
                 .put(new JSONObject().put("role", "user").put("content", prompt))
         );
         json.put("temperature", 0.7);
@@ -49,10 +50,24 @@ public class AiPlanClient {
 
             String responseBody = response.body().string();
             JSONObject resJson = new JSONObject(responseBody);
-            return resJson.getJSONArray("choices")
+            String raw = resJson.getJSONArray("choices")
                     .getJSONObject(0)
                     .getJSONObject("message")
                     .getString("content");
+
+            // JSON 부분만 추출
+            int start = raw.indexOf("{");
+            int end = raw.lastIndexOf("}");
+            if (start >= 0 && end > start) {
+                String cleaned = raw.substring(start, end + 1);
+
+                // 불필요한 기호 제거 (+, backtick 등)
+                cleaned = cleaned.replaceAll("[+`]", "");
+
+                return cleaned;
+            }
+            throw new IllegalStateException("AI 응답이 JSON 형식이 아님: " + raw);
         }
     }
+
 }

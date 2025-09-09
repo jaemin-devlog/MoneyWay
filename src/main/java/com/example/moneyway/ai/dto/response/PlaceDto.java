@@ -7,6 +7,7 @@ public record PlaceDto(
         String title,
         String address,
         String thumbnailUrl,
+        String thumbnailUrl2,
         String categoryName,
         String priceInfo,
         Double latitude,
