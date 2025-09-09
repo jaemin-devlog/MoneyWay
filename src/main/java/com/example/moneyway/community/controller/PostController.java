@@ -1,7 +1,7 @@
 package com.example.moneyway.community.controller;
 
 import com.example.moneyway.auth.userdetails.UserDetailsImpl;
-import com.example.moneyway.community.dto.request.CreatePostRequest;
+import com.example.moneyway.community.dto.request.CreatePostRequestDto;
 import com.example.moneyway.community.dto.request.PostUpdateRequest;
 import com.example.moneyway.community.dto.response.PostDetailResponse;
 import com.example.moneyway.community.dto.response.PostSummaryResponse;
@@ -13,9 +13,11 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -28,16 +30,20 @@ public class PostController {
 
     private final PostService postService;
     private final PostViewService postViewService;
+
     /**
      * ✅ 게시글 생성
      */
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> createPost(
             @AuthenticationPrincipal UserDetailsImpl userDetails,
-            @Valid @RequestBody CreatePostRequest request) {
+            @Valid @RequestPart("post") CreatePostRequestDto request,
+            @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnail,
+            @RequestPart(value = "photos", required = false) List<MultipartFile> photos
+    ) {
 
         // 인증된 사용자 ID로 게시글을 생성합니다.
-        Long postId = postService.createPost(userDetails.getUserId(), request);
+        Long postId = postService.createPost(userDetails.getUserId(), request, thumbnail, photos);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")

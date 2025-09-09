@@ -1,7 +1,13 @@
-#application.yml
+upload:
+  path: /var/app/uploads   # 컨테이너/VM의 영속 볼륨
+
 spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:production}  # local or production (기본은 local, server=production 환경변수 설정)
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 150MB # 이미지 10장 가정
   jackson:
     serialization:
       write-dates-as-timestamps: false

@@ -64,6 +64,10 @@ public enum ErrorCode {
     FILE_IS_EMPTY(HttpStatus.BAD_REQUEST, "업로드된 파일이 비어있습니다."),
     FILE_PROCESSING_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "파일 처리 중 오류가 발생했습니다. 파일 형식을 확인해주세요."),
     INVALID_FILE_FORMAT(HttpStatus.BAD_REQUEST, "파일 형식이 올바르지 않거나 필수 헤더가 누락되었습니다."),
+    FILE_TOO_LARGE(HttpStatus.BAD_REQUEST, "파일 크기가 너무 큽니다. 10MB 이하의 파일만 업로드할 수 있습니다."),
+    FILE_TYPE_NOT_ALLOWED(HttpStatus.BAD_REQUEST, "허용되지 않는 파일 형식입니다. (허용: jpeg, png, webp, gif)"),
+    FILE_TOO_MANY(HttpStatus.BAD_REQUEST, "한 번에 너무 많은 파일을 업로드할 수 없습니다. (최대 10개)"),
+    FILE_SAVE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 저장 중 오류가 발생했습니다."),
 
 
     // ================== COMMUNITY: POST ==================
