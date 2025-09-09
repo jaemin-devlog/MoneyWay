@@ -1,6 +1,9 @@
 upload:
   path: /var/app/uploads   # 컨테이너/VM의 영속 볼륨
 
+app:
+  public-base-url: https://moneyway.cloud
+
 spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:production}  # local or production (기본은 local, server=production 환경변수 설정)

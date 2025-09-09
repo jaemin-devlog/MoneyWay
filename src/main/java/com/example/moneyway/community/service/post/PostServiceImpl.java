@@ -50,6 +50,9 @@ public class PostServiceImpl implements PostService {
     @Value("${upload.path}")
     private String uploadPath;
 
+    @Value("${app.public-base-url}")
+    private String publicBaseUrl;
+
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of("image/jpeg", "image/png", "image/webp", "image/gif");
     private static final long MAX_FILE_SIZE_BYTES = 10L * 1024 * 1024; // 10MB
     private static final int MAX_IMAGE_COUNT = 10;
@@ -209,7 +212,7 @@ public class PostServiceImpl implements PostService {
 
             Files.copy(file.getInputStream(), destinationPath, StandardCopyOption.REPLACE_EXISTING);
 
-            return "/uploads/" + storedFileName;
+            return publicBaseUrl + "/uploads/" + storedFileName;
         } catch (IOException e) {
             throw new CustomPostException(ErrorCode.FILE_SAVE_FAILED);
         }
