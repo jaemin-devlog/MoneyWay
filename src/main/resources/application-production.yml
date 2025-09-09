@@ -65,6 +65,10 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
+  mvc:
+    async:
+      request-timeout: 600000
+
 logging:
   level:
     com.example.moneyway: INFO

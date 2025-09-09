@@ -5,6 +5,8 @@ import com.example.moneyway.common.exception.CustomException.CustomPlaceExceptio
 import com.example.moneyway.common.exception.ErrorCode;
 import com.example.moneyway.place.domain.Place;
 import com.example.moneyway.place.domain.PlaceCategory;
+import com.example.moneyway.place.domain.RestaurantJeju;
+import com.example.moneyway.place.domain.TourPlace;
 import com.example.moneyway.place.dto.response.PlaceDetailResponseDto;
 import com.example.moneyway.place.dto.response.PlaceInfoResponseDto;
 import com.example.moneyway.place.repository.PlaceRepository;
@@ -112,5 +114,19 @@ public class PlaceQueryService {
     private Place findPlaceById(Long placeId) {
         return placeRepository.findById(placeId)
                 .orElseThrow(() -> new CustomPlaceException(ErrorCode.PLACE_NOT_FOUND));
+    }
+
+    // 관광지 contentId 기준으로 리뷰/평점 포함 조회
+    public PlaceDetailResponseDto findTourPlaceDetail(String contentId) {
+        TourPlace tourPlace = placeRepository.findTourPlaceByContentid(contentId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 contentId 관광지를 찾을 수 없습니다."));
+        return PlaceDetailResponseDto.fromTourPlace(tourPlace);
+    }
+
+    // 식당 title+address 기준으로 조회 (엑셀 구조를 감안)
+    public PlaceDetailResponseDto findRestaurantDetail(String title, String address) {
+        RestaurantJeju restaurant = placeRepository.findByTitleAndAddress(title, address)
+                .orElseThrow(() -> new IllegalArgumentException("해당 식당을 찾을 수 없습니다."));
+        return PlaceDetailResponseDto.fromRestaurant(restaurant);
     }
 }
