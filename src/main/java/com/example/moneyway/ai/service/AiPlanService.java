@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Files;
@@ -31,7 +32,8 @@ public class AiPlanService {
 
     // txt 템플릿 로드
     private String loadPromptTemplate() throws Exception {
-        return new String(Files.readAllBytes(Paths.get("src/main/resources/prompt_template.txt")));
+        ClassPathResource resource = new ClassPathResource("prompt_template.txt");
+        return new String(resource.getInputStream().readAllBytes());
     }
 
     // 안전한 시간 파싱
