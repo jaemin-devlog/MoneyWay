@@ -40,6 +40,8 @@ public class Plan extends BaseTimeEntity {
     @Builder.Default
     private List<PlanPlace> planPlaces = new ArrayList<>();
 
+    @Column(columnDefinition = "LONGTEXT")
+    private String rawResponse;   // AI 원문 JSON 그대로 저장
 
 
     /**

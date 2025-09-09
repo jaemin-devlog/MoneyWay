@@ -4,6 +4,9 @@ import com.example.moneyway.place.domain.Place;
 import com.example.moneyway.place.domain.PlaceCategory;
 import com.example.moneyway.place.domain.RestaurantJeju;
 import com.example.moneyway.place.domain.TourPlace;
+
+import com.example.moneyway.place.dto.internal.NearbyPlaceDto;
+import lombok.Data;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,6 +18,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
 
 @Repository
 public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceRepositoryCustom {
@@ -95,5 +99,67 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
 
     List<Place> findByTitle(String title);
 
+
+    /**
+     * ai place 추가 부분
+     */
+
+    // 관광지/액티비티 (예산 범위 내에서 랜덤 20개)
+    @Query(value = """
+    SELECT p.place_pk_id AS id,
+           p.title AS title,
+           p.category AS categoryName,
+           tp.addr1 AS address,
+           tp.firstimage AS thumbnailUrl,
+           tp.price_info AS priceInfo,
+           tp.mapx AS mapx,
+           tp.mapy AS mapy
+    FROM place p
+    JOIN tour_place tp ON p.place_pk_id = tp.place_pk_id
+    WHERE p.category IN ('TOURIST_ATTRACTION', 'ACTIVITY')
+      AND (tp.price_info IS NULL OR CAST(tp.price_info AS UNSIGNED) <= :maxPrice)
+    ORDER BY RAND()
+    LIMIT 20
+    """, nativeQuery = true)
+    List<NearbyPlaceDto> findTourAndActivity(@Param("maxPrice") int maxPrice);
+
+
+    // 식당 (예산 범위 내에서 랜덤 20개)
+    @Query(value = """
+    SELECT rj.place_pk_id AS id,
+           p.title AS title,
+           'RESTAURANT' AS categoryName,
+           rj.address AS address,
+           rj.img AS thumbnailUrl,
+           rj.price_info AS priceInfo,
+           rj.mapx AS mapx,
+           rj.mapy AS mapy
+    FROM restaurant_jeju rj
+    JOIN place p ON p.place_pk_id = rj.place_pk_id
+    WHERE (rj.price_info IS NULL OR CAST(rj.price_info AS UNSIGNED) <= :maxPrice)
+    ORDER BY RAND()
+    LIMIT 20
+    """, nativeQuery = true)
+    List<NearbyPlaceDto> findRestaurants(@Param("maxPrice") int maxPrice);
+
+
+    // 숙소 (예산 범위 내에서 랜덤 20개)
+    @Query(value = """
+    SELECT p.place_pk_id AS id,
+           p.title AS title,
+           p.category AS categoryName,
+           tp.addr1 AS address,
+           tp.firstimage AS thumbnailUrl,
+           tp.price_info AS priceInfo,
+           tp.mapx AS mapx,
+           tp.mapy AS mapy
+    FROM place p
+    JOIN tour_place tp ON p.place_pk_id = tp.place_pk_id
+    WHERE p.category = 'ACCOMMODATION'
+      AND (tp.price_info IS NULL OR CAST(tp.price_info AS UNSIGNED) <= :maxPrice)
+    ORDER BY RAND()
+    LIMIT 20
+    """, nativeQuery = true)
+    List<NearbyPlaceDto> findAccommodations(@Param("maxPrice") int maxPrice);
 
 }
