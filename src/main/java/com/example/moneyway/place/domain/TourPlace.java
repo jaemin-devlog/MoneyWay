@@ -48,6 +48,22 @@ public class TourPlace extends Place {
     @Column(columnDefinition = "TEXT")
     private String infotext;
 
+    // TourPlace.java
+    @Column(name = "rating")
+    private Double rating;
+
+    @Column(name = "top_review", columnDefinition = "TEXT")
+    private String topReview;
+
+    public void setRating(Double rating) {
+        this.rating = rating;
+    }
+
+    public void setTopReview(String topReview) {
+        this.topReview = topReview;
+    }
+
+
     @Override
     protected PlaceCategory calculateCategory() {
         if (this.contenttypeid == null) {

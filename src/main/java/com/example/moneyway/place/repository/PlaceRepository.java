@@ -162,4 +162,10 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
     """, nativeQuery = true)
     List<NearbyPlaceDto> findAccommodations(@Param("maxPrice") int maxPrice);
 
+    /**
+     * RestaurantJeju 엔티티를 title + address 조합으로 조회합니다.
+     */
+    @Query("SELECT r FROM RestaurantJeju r WHERE r.title = :title AND r.address = :address")
+    Optional<RestaurantJeju> findByTitleAndAddress(@Param("title") String title, @Param("address") String address);
+
 }
