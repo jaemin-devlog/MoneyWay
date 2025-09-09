@@ -37,6 +37,7 @@
    - totalBudget = 전체 예산 ÷ duration
    - day.usedCost = 해당 일차의 place.cost 합
    - totalUsedCost = 모든 days.usedCost 합
+   - 각 day에 사용된 비용(usedCost)과 전체 사용 비용(totalUsedCost)을 반드시 계산해서 JSON에 포함해줘
 
 출력:
 - 반드시 JSON 객체로만 출력
