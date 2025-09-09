@@ -24,9 +24,11 @@ public class PlanPlaceResponseDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm")
     private final LocalTime endTime;
     private final Long cartId;
+    private final String mapX;
+    private final String mapY;
 
     @Builder
-    private PlanPlaceResponseDto(Long placeId, String placeName, String thumbnailUrl, String category, Integer cost, Integer dayNumber, LocalTime startTime, LocalTime endTime, Long cartId) {
+    private PlanPlaceResponseDto(Long placeId, String placeName, String thumbnailUrl, String category, Integer cost, Integer dayNumber, LocalTime startTime, LocalTime endTime, Long cartId, String mapX, String mapY) {
         this.placeId = placeId;
         this.placeName = placeName;
         this.thumbnailUrl = thumbnailUrl;
@@ -36,6 +38,8 @@ public class PlanPlaceResponseDto {
         this.startTime = startTime;
         this.endTime = endTime;
         this.cartId = cartId;
+        this.mapX = mapX;
+        this.mapY = mapY;
     }
 
     public static PlanPlaceResponseDto from(PlanPlace planPlace) {
@@ -55,6 +59,8 @@ public class PlanPlaceResponseDto {
                 .startTime(planPlace.getStartTime())   //  누락된 부분 추가
                 .endTime(planPlace.getEndTime())       //  누락된 부분 추가
                 .cartId(planPlace.getCartId())
+                .mapX(place.getMapX())
+                .mapY(place.getMapY())
                 .build();
     }
 }

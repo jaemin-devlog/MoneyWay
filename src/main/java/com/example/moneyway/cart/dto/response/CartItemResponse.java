@@ -22,6 +22,8 @@ public class CartItemResponse {
     private final String imageUrl;    // 장소 대표 이미지 URL
     private final int price;          // 유저가 해당 장소에 설정한 금액
     private final String category;    // ✅ [추가] 장소 카테고리
+    private final String mapX;
+    private final String mapY;
 
     /**
      * Cart 엔티티를 CartItemResponse로 변환하는 정적 팩토리 메서드
@@ -45,6 +47,8 @@ public class CartItemResponse {
                 .imageUrl(place.getThumbnailUrl())         // 장소 썸네일 이미지 URL
                 .price(cart.getPrice())                    // 설정된 가격
                 .category(categoryName)                    // ✅ [추가] 카테고리 정보 추가
+                .mapX(place.getMapX())
+                .mapY(place.getMapY())
                 .build();
     }
 }
