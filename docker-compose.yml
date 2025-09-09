@@ -6,6 +6,8 @@ services:
     env_file: .env
     ports:
       - "8081:8080"
+    volumes:
+      - /var/www/moneyway-uploads:/var/app/uploads
     depends_on:
       mysql:
         condition: service_healthy

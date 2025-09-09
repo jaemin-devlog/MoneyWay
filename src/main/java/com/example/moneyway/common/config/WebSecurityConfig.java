@@ -49,6 +49,7 @@ public class WebSecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // 1. 인증 없이 접근을 허용할 경로들
                         .requestMatchers(
+                                "/uploads/**",      // 업로드된 파일 접근
                                 "/api/**", // [임시 디버깅용]
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
