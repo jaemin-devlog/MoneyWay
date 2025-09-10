@@ -11,8 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.concurrent.CompletableFuture;
-
 @RestController
 @RequestMapping("api/ai")
 @RequiredArgsConstructor
@@ -29,12 +27,15 @@ public class AiPlanController {
 
     // 최종 저장
     @PostMapping("/plans")
-    public CompletableFuture<ResponseEntity<PlanSaveResponseDto>> createPlanByAi(
+    public ResponseEntity<PlanSaveResponseDto> createPlanByAi(
             @RequestBody AiPlanCreateRequestDto request,
-            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+            @AuthenticationPrincipal UserDetailsImpl userDetails) throws Exception {
 
-        return aiPlanService.createPlanByAi(request, userDetails.getUser())
-                .thenApply(ResponseEntity::ok);
+        if (userDetails == null) {
+            throw new IllegalStateException("로그인이 필요합니다.");
+        }
+
+        PlanSaveResponseDto response = aiPlanService.createPlanByAi(request, userDetails.getUser());
+        return ResponseEntity.ok(response);
     }
-
 }
