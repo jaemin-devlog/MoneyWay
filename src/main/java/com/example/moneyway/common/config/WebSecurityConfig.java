@@ -82,7 +82,7 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://moneyway-572cf.web.app", "http://localhost:8081", "http://125.132.9.19", "https://moneyway.cloud"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://moneyway-572cf.web.app", "http://localhost:8081", "http://125.132.9.19", "https://moneyway.cloud", "https://moneyway.jeju.kr"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
