@@ -29,11 +29,16 @@ public class AiPlanService {
     private final PlanRepository planRepository;
     private final PlaceRepository placeRepository;
     private final AiPlanClient openAiClient;
+    private String promptTemplate;
+    private final ObjectMapper mapper; // 주입받기
 
     // txt 템플릿 로드
     private String loadPromptTemplate() throws Exception {
-        ClassPathResource resource = new ClassPathResource("prompt_template.txt");
-        return new String(resource.getInputStream().readAllBytes());
+        if (promptTemplate == null) {
+            ClassPathResource resource = new ClassPathResource("prompt_template.txt");
+            promptTemplate = new String(resource.getInputStream().readAllBytes());
+        }
+        return promptTemplate;
     }
 
     // 안전한 시간 파싱
@@ -61,14 +66,16 @@ public class AiPlanService {
         int foodBudget          = (int)(budget * 0.2 / duration);
 
         // 예산 내에서 랜덤 후보 20개 가져오기
-        List<NearbyPlaceDto> tours = placeRepository.findTourAndActivity(sightseeingBudget);
-        List<NearbyPlaceDto> foods = placeRepository.findRestaurants(foodBudget);
-        List<NearbyPlaceDto> accommodations = placeRepository.findAccommodations(accommodationBudget);
+        List<NearbyPlaceDto> tours = placeRepository.findTourAndActivity(sightseeingBudget)
+                .stream().limit(10).toList();
+        List<NearbyPlaceDto> foods = placeRepository.findRestaurants(foodBudget)
+                .stream().limit(10).toList();
+        List<NearbyPlaceDto> accommodations = placeRepository.findAccommodations(accommodationBudget)
+                .stream().limit(5).toList();
 
         log.debug("숙소 후보 개수: {}", accommodations.size());
 
         // 프롬프트 생성
-        ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> placesWrapper = new HashMap<>();
         placesWrapper.put("tourAndActivities", tours);
         placesWrapper.put("restaurants", foods);

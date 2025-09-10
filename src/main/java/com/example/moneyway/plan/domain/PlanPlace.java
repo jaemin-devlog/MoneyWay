@@ -48,7 +48,7 @@ public class PlanPlace {
     @Column(name = "totalPrice")
     private Integer totalPrice; // 하루 총 비용
 
-    // ✅ 새로 추가된 필드
+    // 새로 추가된 필드
     @Column(name = "start_time", nullable = false)
     private LocalTime startTime; // 방문 시작 시간
 
