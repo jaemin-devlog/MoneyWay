@@ -1,11 +1,18 @@
 package com.example.moneyway.ai.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
+import okhttp3.sse.EventSource;
+import okhttp3.sse.EventSourceListener;
+import okhttp3.sse.EventSources;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+// ... import 동일
 
 @Component
 public class AiPlanClient {
@@ -20,19 +27,19 @@ public class AiPlanClient {
     public String requestPlan(String prompt) throws Exception {
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(10, TimeUnit.SECONDS)
-                .writeTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(60, TimeUnit.SECONDS)
+                .writeTimeout(10, TimeUnit.SECONDS)
+                .readTimeout(60, TimeUnit.SECONDS) // stream 안쓰니 30초 정도 제한
                 .build();
 
         JSONObject json = new JSONObject();
-        json.put("model", "gpt-4o-mini");
+        json.put("model", "gpt-4o-mini"); // 빠른 모델
+        json.put("stream", false);        // 스트리밍 끔
         json.put("messages", new org.json.JSONArray()
                 .put(new JSONObject().put("role", "system").put("content",
-                        "You are a travel planner AI. Respond ONLY with valid JSON. " +
-                                "Do not include +, comments, markdown, or explanations."))
+                        "You are a travel planner AI. Respond ONLY with valid JSON."))
                 .put(new JSONObject().put("role", "user").put("content", prompt))
         );
-        json.put("temperature", 0.7);
+        json.put("temperature", 0.2);
 
         RequestBody body = RequestBody.create(
                 json.toString(),
@@ -46,28 +53,19 @@ public class AiPlanClient {
                 .build();
 
         try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) throw new RuntimeException("API Error: " + response);
-
-            String responseBody = response.body().string();
-            JSONObject resJson = new JSONObject(responseBody);
-            String raw = resJson.getJSONArray("choices")
+            if (!response.isSuccessful()) {
+                throw new IllegalStateException("OpenAI API error: " + response);
+            }
+            String raw = response.body().string();
+            JSONObject obj = new JSONObject(raw);
+            String content = obj.getJSONArray("choices")
                     .getJSONObject(0)
                     .getJSONObject("message")
                     .getString("content");
 
-            // JSON 부분만 추출
-            int start = raw.indexOf("{");
-            int end = raw.lastIndexOf("}");
-            if (start >= 0 && end > start) {
-                String cleaned = raw.substring(start, end + 1);
-
-                // 불필요한 기호 제거 (+, backtick 등)
-                cleaned = cleaned.replaceAll("[+`]", "");
-
-                return cleaned;
-            }
-            throw new IllegalStateException("AI 응답이 JSON 형식이 아님: " + raw);
+            // JSON 검증
+            new ObjectMapper().readTree(content);
+            return content;
         }
     }
-
 }
