@@ -132,7 +132,7 @@ public class AiPlanService {
                 .replace("{sightseeingBudget}", String.valueOf(sightseeingBudget))
                 .replace("{foodBudget}", String.valueOf(foodBudget));
 
-//        log.debug("Prompt to AI: {}", filledPrompt);
+        log.error("Prompt: [{}]", filledPrompt);
 
         // GPT 호출
         String aiResponse = openAiClient.requestPlan(filledPrompt);
