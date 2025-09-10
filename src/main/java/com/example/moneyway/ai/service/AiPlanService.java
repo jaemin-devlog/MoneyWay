@@ -2,8 +2,10 @@ package com.example.moneyway.ai.service;
 
 import com.example.moneyway.ai.dto.request.AiPlanCreateRequestDto;
 import com.example.moneyway.ai.dto.request.TravelPlanRequestDto;
+import com.example.moneyway.ai.dto.response.PlaceDto;
 import com.example.moneyway.ai.dto.response.PlanResponseDto;
 import com.example.moneyway.ai.dto.response.PlanSaveResponseDto;
+import com.example.moneyway.ai.dto.response.SimplePlaceDto;
 import com.example.moneyway.place.dto.internal.NearbyPlaceDto;
 import com.example.moneyway.place.repository.PlaceRepository;
 import com.example.moneyway.plan.domain.Plan;
@@ -60,18 +62,56 @@ public class AiPlanService {
         int budget = request.getBudget();
         int duration = request.getDuration();
 
+        if (budget <= 0) {
+            throw new IllegalArgumentException("예산(budget)은 0보다 커야 합니다.");
+        }
+        if (duration <= 0) {
+            throw new IllegalArgumentException("여행 기간(duration)은 1일 이상이어야 합니다.");
+        }
+
+        int perDayCount = 2; // 후보 개수 줄이기
         // 비율 분배 (60% 숙소, 20% 관광, 20% 식사) — 하루 단위로 계산
         int accommodationBudget = (int)(budget * 0.6 / duration);
         int sightseeingBudget   = (int)(budget * 0.2 / duration);
         int foodBudget          = (int)(budget * 0.2 / duration);
+        int tourLimit = duration * perDayCount;
+        int foodLimit = duration * perDayCount;
+        int accommodationLimit = Math.min(duration, 2); // 숙소도 2개만
 
         // 예산 내에서 랜덤 후보 20개 가져오기
-        List<NearbyPlaceDto> tours = placeRepository.findTourAndActivity(sightseeingBudget)
-                .stream().limit(10).toList();
-        List<NearbyPlaceDto> foods = placeRepository.findRestaurants(foodBudget)
-                .stream().limit(10).toList();
-        List<NearbyPlaceDto> accommodations = placeRepository.findAccommodations(accommodationBudget)
-                .stream().limit(5).toList();
+        List<SimplePlaceDto> tours = placeRepository.findTourAndActivity(sightseeingBudget)
+                .stream()
+                .limit(tourLimit) // 필요하다면 개수 줄이기
+                .map(p -> new SimplePlaceDto(
+                        p.getId(),          // placeId
+                        p.getTitle(),       // title
+                        p.getPriceInfo(),   // priceInfo
+                        p.getCategoryName() // categoryName
+                ))
+                .toList();
+
+        List<SimplePlaceDto> foods = placeRepository.findRestaurants(foodBudget)
+                .stream()
+                .limit(foodLimit)
+                .map(p -> new SimplePlaceDto(
+                        p.getId(),          // placeId
+                        p.getTitle(),       // title
+                        p.getPriceInfo(),   // priceInfo
+                        p.getCategoryName() // categoryName
+                ))
+                .toList();
+
+        List<SimplePlaceDto> accommodations = placeRepository.findAccommodations(accommodationBudget)
+                .stream()
+                .limit(accommodationLimit)
+                .map(p -> new SimplePlaceDto(
+                        p.getId(),          // placeId
+                        p.getTitle(),       // title
+                        p.getPriceInfo(),   // priceInfo
+                        p.getCategoryName() // categoryName
+                ))
+                .toList();
+
 
         log.debug("숙소 후보 개수: {}", accommodations.size());
 
@@ -92,14 +132,21 @@ public class AiPlanService {
                 .replace("{sightseeingBudget}", String.valueOf(sightseeingBudget))
                 .replace("{foodBudget}", String.valueOf(foodBudget));
 
-        log.debug("Prompt to AI: {}", filledPrompt);
+//        log.debug("Prompt to AI: {}", filledPrompt);
 
         // GPT 호출
         String aiResponse = openAiClient.requestPlan(filledPrompt);
         log.debug("AI raw response: {}", aiResponse);
 
-        // JSON → DTO 매핑
-        PlanResponseDto response = mapper.readValue(aiResponse, PlanResponseDto.class);
+        // json 전처리 추가
+        String cleaned = aiResponse
+                .replaceAll("```json", "")
+                .replaceAll("```", "")
+                .trim();
+        log.error("Cleaned response: [{}]", cleaned);
+
+        PlanResponseDto response = mapper.readValue(cleaned, PlanResponseDto.class);
+//        PlanResponseDto response = mapper.readValue(aiResponse, PlanResponseDto.class);
 
         // 서버에서 usedCost, totalUsedCost 재계산
         int totalUsedCost = 0;
@@ -120,7 +167,8 @@ public class AiPlanService {
             ));
         }
 
-        return new PlanResponseDto(totalUsedCost, fixedDays);
+        return new PlanResponseDto(totalUsedCost, fixedDays, request.getDuration());
+
     }
 
     // priceInfo → int 변환 유틸 (예: "25000" → 25000, "무료" → 0)
