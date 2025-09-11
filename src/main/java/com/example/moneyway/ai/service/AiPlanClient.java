@@ -41,7 +41,7 @@ public class AiPlanClient {
                                 + " Do not include explanations, text, or markdown fences." ))
                 .put(new JSONObject().put("role", "user").put("content", prompt))
         );
-        json.put("temperature", 0.2);
+        json.put("temperature", 0.0);
 
         RequestBody body = RequestBody.create(
                 json.toString(),

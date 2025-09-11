@@ -78,30 +78,28 @@ public class AiPlanService {
 
         double radius = 5.0; // km 반경
 
-        // === 1. 숙소 먼저 뽑기 ===
-        List<SimplePlaceDto> accommodations = placeRepository.findAccommodationsNearby(
-                        accommodationBudget,
-                        33.4996,   // 기본 위도 (예: 제주 중심 좌표) → 첫 실행시 기준 좌표
-                        126.5312,  // 기본 경도
-                        radius
-                ).stream()
-                .limit(accommodationLimit)
-                .map(p -> new SimplePlaceDto(
-                        p.getId(),
-                        p.getTitle(),
-                        p.getPriceInfo(),
-                        p.getCategoryName(),
-                        p.getMapy(),   // latitude
-                        p.getMapx()    // longitude
-                ))
-                .toList();
+        // === 1. 숙소 무작위로 하나 뽑기 (예산 반영) ===
+        NearbyPlaceDto randomAccommodation = placeRepository.findRandomAccommodation(accommodationBudget);
+
+        List<SimplePlaceDto> accommodations = List.of(
+                new SimplePlaceDto(
+                        randomAccommodation.getId(),
+                        randomAccommodation.getTitle(),
+                        randomAccommodation.getPriceInfo(),
+                        randomAccommodation.getCategoryName(),
+                        randomAccommodation.getMapy(),   // latitude
+                        randomAccommodation.getMapx()    // longitude
+                )
+        );
 
         log.debug("숙소 후보 개수: {}", accommodations.size());
 
-        // 기준 좌표 = 첫 번째 숙소 (없으면 제주 중심 좌표)
-        NearbyPlaceDto randomAccommodation = placeRepository.findRandomAccommodation();
+        // === 기준 좌표 = 무작위 숙소 좌표 ===
         double baseLat = randomAccommodation.getMapy();
         double baseLng = randomAccommodation.getMapx();
+
+
+
 
 
         // === 2. 관광지 후보 (숙소 반경 내) ===

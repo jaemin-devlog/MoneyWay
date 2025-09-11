@@ -205,10 +205,12 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
     FROM place p
     JOIN tour_place tp ON p.place_pk_id = tp.place_pk_id
     WHERE p.category = 'ACCOMMODATION'
+      AND (tp.price_info IS NULL OR CAST(tp.price_info AS UNSIGNED) <= :maxPrice)
     ORDER BY RAND()
     LIMIT 1
     """, nativeQuery = true)
-        NearbyPlaceDto findRandomAccommodation();
+    NearbyPlaceDto findRandomAccommodation(@Param("maxPrice") int maxPrice);
+
 
 
     /**
