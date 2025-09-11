@@ -4,5 +4,7 @@ public record SimplePlaceDto(
         Long placeId,
         String title,
         String priceInfo,
-        String categoryName
+        String categoryName,
+        Double latitude,
+        Double longitude
 ) {}

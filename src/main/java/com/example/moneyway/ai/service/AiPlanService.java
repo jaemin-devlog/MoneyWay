@@ -2,10 +2,8 @@ package com.example.moneyway.ai.service;
 
 import com.example.moneyway.ai.dto.request.AiPlanCreateRequestDto;
 import com.example.moneyway.ai.dto.request.TravelPlanRequestDto;
-import com.example.moneyway.ai.dto.response.PlaceDto;
-import com.example.moneyway.ai.dto.response.PlanResponseDto;
-import com.example.moneyway.ai.dto.response.PlanSaveResponseDto;
-import com.example.moneyway.ai.dto.response.SimplePlaceDto;
+import com.example.moneyway.ai.dto.response.*;
+import com.example.moneyway.place.domain.AiPlaceDto;
 import com.example.moneyway.place.dto.internal.NearbyPlaceDto;
 import com.example.moneyway.place.repository.PlaceRepository;
 import com.example.moneyway.plan.domain.Plan;
@@ -78,39 +76,68 @@ public class AiPlanService {
         int foodLimit = duration * perDayCount;
         int accommodationLimit = Math.min(duration, 2); // 숙소도 2개만
 
-        // 예산 내에서 랜덤 후보 20개 가져오기
-        List<SimplePlaceDto> tours = placeRepository.findTourAndActivity(sightseeingBudget)
-                .stream()
-                .limit(tourLimit) // 필요하다면 개수 줄이기
-                .map(p -> new SimplePlaceDto(
-                        p.getId(),          // placeId
-                        p.getTitle(),       // title
-                        p.getPriceInfo(),   // priceInfo
-                        p.getCategoryName() // categoryName
-                ))
-                .toList();
+        double radius = 5.0; // km 반경
 
-        List<SimplePlaceDto> foods = placeRepository.findRestaurants(foodBudget)
-                .stream()
-                .limit(foodLimit)
-                .map(p -> new SimplePlaceDto(
-                        p.getId(),          // placeId
-                        p.getTitle(),       // title
-                        p.getPriceInfo(),   // priceInfo
-                        p.getCategoryName() // categoryName
-                ))
-                .toList();
-
-        List<SimplePlaceDto> accommodations = placeRepository.findAccommodations(accommodationBudget)
-                .stream()
+        // === 1. 숙소 먼저 뽑기 ===
+        List<SimplePlaceDto> accommodations = placeRepository.findAccommodationsNearby(
+                        accommodationBudget,
+                        33.4996,   // 기본 위도 (예: 제주 중심 좌표) → 첫 실행시 기준 좌표
+                        126.5312,  // 기본 경도
+                        radius
+                ).stream()
                 .limit(accommodationLimit)
                 .map(p -> new SimplePlaceDto(
-                        p.getId(),          // placeId
-                        p.getTitle(),       // title
-                        p.getPriceInfo(),   // priceInfo
-                        p.getCategoryName() // categoryName
+                        p.getId(),
+                        p.getTitle(),
+                        p.getPriceInfo(),
+                        p.getCategoryName(),
+                        p.getMapy(),   // latitude
+                        p.getMapx()    // longitude
                 ))
                 .toList();
+
+        log.debug("숙소 후보 개수: {}", accommodations.size());
+
+        // 기준 좌표 = 첫 번째 숙소 (없으면 제주 중심 좌표)
+        double baseLat = accommodations.isEmpty() ? 33.4996 : accommodations.get(0).latitude();
+        double baseLng = accommodations.isEmpty() ? 126.5312 : accommodations.get(0).longitude();
+
+        // === 2. 관광지 후보 (숙소 반경 내) ===
+        List<SimplePlaceDto> tours = placeRepository.findTourAndActivityNearby(
+                        sightseeingBudget,
+                        baseLat,
+                        baseLng,
+                        radius
+                ).stream()
+                .limit(tourLimit)
+                .map(p -> new SimplePlaceDto(
+                        p.getId(),
+                        p.getTitle(),
+                        p.getPriceInfo(),
+                        p.getCategoryName(),
+                        p.getMapy(),
+                        p.getMapx()
+                ))
+                .toList();
+
+        // === 3. 식당 후보 (숙소 반경 내) ===
+        List<SimplePlaceDto> foods = placeRepository.findRestaurantsNearby(
+                        foodBudget,
+                        baseLat,
+                        baseLng,
+                        radius
+                ).stream()
+                .limit(foodLimit)
+                .map(p -> new SimplePlaceDto(
+                        p.getId(),
+                        p.getTitle(),
+                        p.getPriceInfo(),
+                        p.getCategoryName(),
+                        p.getMapy(),
+                        p.getMapx()
+                ))
+                .toList();
+
 
 
         log.debug("숙소 후보 개수: {}", accommodations.size());
@@ -149,23 +176,56 @@ public class AiPlanService {
 //        PlanResponseDto response = mapper.readValue(aiResponse, PlanResponseDto.class);
 
         // 서버에서 usedCost, totalUsedCost 재계산
+        // 서버에서 usedCost, totalUsedCost 재계산
         int totalUsedCost = 0;
         List<com.example.moneyway.ai.dto.response.DayPlanDto> fixedDays = new ArrayList<>();
 
         for (var day : response.days()) {
-            int dayCost = day.places().stream()
-                    .mapToInt(p -> p.cost() != 0 ? p.cost() : parsePriceInfo(p.priceInfo()))
-                    .sum();
+            List<AiPlaceDto> fixedPlaces = new ArrayList<>();
+            int dayCost = 0;
+
+            for (var p : day.places()) {
+                // 기본 cost 계산
+                int cost = p.cost() != 0 ? p.cost() : parsePriceInfo(p.priceInfo());
+                dayCost += cost;
+
+                // DB에서 좌표 가져오기
+                var placeOpt = placeRepository.findById(p.placeId());
+                String lat = null;
+                String lng = null;
+                if (placeOpt.isPresent()) {
+                    var place = placeOpt.get();
+                    lat = place.getMapY(); // String
+                    lng = place.getMapX(); // String
+                }
+
+                // PlaceDto 대신 AiPlaceDto 사용
+                fixedPlaces.add(new AiPlaceDto(
+                        p.placeId(),
+                        p.title(),
+                        p.address(),
+                        p.categoryName(),
+                        p.priceInfo(),
+                        lat,
+                        lng,
+                        p.time(),
+                        cost,
+                        p.startTime(),
+                        p.endTime()
+                ));
+            }
 
             totalUsedCost += dayCost;
 
-            fixedDays.add(new com.example.moneyway.ai.dto.response.DayPlanDto(
+            fixedDays.add(new DayPlanDto(
                     day.day(),
-                    day.places(),
+                    fixedPlaces,
                     day.totalBudget(),
                     dayCost
             ));
-        }
+
+    }
+
 
         return new PlanResponseDto(totalUsedCost, fixedDays, request.getDuration());
 
