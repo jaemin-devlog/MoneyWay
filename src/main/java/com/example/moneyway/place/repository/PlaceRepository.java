@@ -192,6 +192,25 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
             @Param("radius") double radius
     );
 
+    //모든 Place 중 랜덤 하나
+    @Query(value = """
+    SELECT p.place_pk_id AS id,
+           p.title AS title,
+           p.category AS categoryName,
+           tp.addr1 AS address,
+           tp.firstimage AS thumbnailUrl,
+           tp.price_info AS priceInfo,
+           tp.mapy AS mapy,
+           tp.mapx AS mapx
+    FROM place p
+    JOIN tour_place tp ON p.place_pk_id = tp.place_pk_id
+    WHERE p.category = 'ACCOMMODATION'
+    ORDER BY RAND()
+    LIMIT 1
+    """, nativeQuery = true)
+        NearbyPlaceDto findRandomAccommodation();
+
+
     /**
      * RestaurantJeju 엔티티를 title + address 조합으로 조회합니다.
      */

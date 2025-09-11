@@ -67,7 +67,7 @@ public class AiPlanService {
             throw new IllegalArgumentException("여행 기간(duration)은 1일 이상이어야 합니다.");
         }
 
-        int perDayCount = 2; // 후보 개수 줄이기
+        int perDayCount = 4; // 후보 개수 줄이기
         // 비율 분배 (60% 숙소, 20% 관광, 20% 식사) — 하루 단위로 계산
         int accommodationBudget = (int)(budget * 0.6 / duration);
         int sightseeingBudget   = (int)(budget * 0.2 / duration);
@@ -99,8 +99,10 @@ public class AiPlanService {
         log.debug("숙소 후보 개수: {}", accommodations.size());
 
         // 기준 좌표 = 첫 번째 숙소 (없으면 제주 중심 좌표)
-        double baseLat = accommodations.isEmpty() ? 33.4996 : accommodations.get(0).latitude();
-        double baseLng = accommodations.isEmpty() ? 126.5312 : accommodations.get(0).longitude();
+        NearbyPlaceDto randomAccommodation = placeRepository.findRandomAccommodation();
+        double baseLat = randomAccommodation.getMapy();
+        double baseLng = randomAccommodation.getMapx();
+
 
         // === 2. 관광지 후보 (숙소 반경 내) ===
         List<SimplePlaceDto> tours = placeRepository.findTourAndActivityNearby(
