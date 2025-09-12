@@ -67,7 +67,7 @@ public class AiPlanService {
             throw new IllegalArgumentException("여행 기간(duration)은 1일 이상이어야 합니다.");
         }
 
-        int perDayCount = 4; // 후보 개수 줄이기
+        int perDayCount = 4; // 후보 개수
         // 비율 분배 (60% 숙소, 20% 관광, 20% 식사) — 하루 단위로 계산
         int accommodationBudget = (int)(budget * 0.6 / duration);
         int sightseeingBudget   = (int)(budget * 0.2 / duration);
@@ -224,7 +224,7 @@ public class AiPlanService {
                     dayCost
             ));
 
-    }
+        }
 
 
         return new PlanResponseDto(totalUsedCost, fixedDays, request.getDuration());
@@ -242,7 +242,6 @@ public class AiPlanService {
     }
 
 
-    // 플랜 저장
     // 플랜 저장
     @Transactional
     public PlanSaveResponseDto createPlanByAi(AiPlanCreateRequestDto request, User user) throws Exception {

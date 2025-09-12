@@ -192,7 +192,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
             @Param("radius") double radius
     );
 
-    //모든 Place 중 랜덤 하나
+    //모든 ACCOMODATION 중 랜덤 하나
     @Query(value = """
     SELECT p.place_pk_id AS id,
            p.title AS title,
