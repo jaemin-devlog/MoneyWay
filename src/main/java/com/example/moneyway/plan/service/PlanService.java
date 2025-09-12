@@ -34,8 +34,14 @@ public class PlanService {
 
     @Transactional
     public Plan createEmptyPlan(String title, User user) {
+        String newTitle = title;
+        if (newTitle == null || newTitle.isBlank()) {
+            String titlePrefix = "새 여행 계획";
+            long count = planRepository.countByUserIdAndTitleStartingWith(user.getId(), titlePrefix);
+            newTitle = titlePrefix + " " + (count + 1);
+        }
         Plan plan = Plan.builder()
-                .title(title)
+                .title(newTitle)
                 .totalPrice(0) // 초기값
                 .user(user)
                 .build();
