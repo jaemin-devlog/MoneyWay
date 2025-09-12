@@ -98,9 +98,9 @@ public class PlanController {
             @RequestBody(required = false) PlanTitleRequestDto requestDto,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        String title = (requestDto != null && requestDto.getTitle() != null)
+        String title = (requestDto != null && requestDto.getTitle() != null && !requestDto.getTitle().isBlank())
                 ? requestDto.getTitle()
-                : "새 여행 계획";
+                : null;
 
         Plan createdPlan = planService.createEmptyPlan(title, userDetails.getUser());
 

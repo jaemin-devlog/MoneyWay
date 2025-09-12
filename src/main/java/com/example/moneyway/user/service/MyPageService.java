@@ -74,17 +74,23 @@ public class MyPageService {
         // 1. 사용자 정보 조회
         User user = userService.findByEmail(email);
 
-        // 2. 현재 비밀번호가 맞는지 확인
+        // 2. [안전한 방법] 사용자의 비밀번호가 애초에 존재하는지 확인
+        if (user.getPassword() == null) {
+            // 비밀번호가 null이면, 카카오로만 가입한 사용자이므로 변경을 막습니다.
+            throw new CustomUserException(ErrorCode.SOCIAL_LOGIN_USER_CANNOT_CHANGE_PASSWORD);
+        }
+
+        // 3. 현재 비밀번호가 맞는지 확인
         if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
             throw new CustomUserException(ErrorCode.INVALID_CURRENT_PASSWORD);
         }
 
-        // 3. 새 비밀번호가 이전 비밀번호와 동일한지 확인
+        // 4. 새 비밀번호가 이전 비밀번호와 동일한지 확인
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
             throw new CustomUserException(ErrorCode.PASSWORD_SAME_AS_BEFORE);
         }
 
-        // 4. 모든 검증 통과 시, 새 비밀번호를 암호화하여 업데이트
+        // 5. 모든 검증 통과 시, 새 비밀번호를 암호화하여 업데이트
         user.updatePassword(passwordEncoder.encode(newPassword));
     }
     /**
