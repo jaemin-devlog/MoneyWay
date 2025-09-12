@@ -57,13 +57,15 @@ public class PostController {
     /**
      * ✅ 게시글 수정
      */
-    @PatchMapping("/{postId}")
+    @PostMapping(value = "/{postId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> updatePost(
             @PathVariable Long postId,
-            @Valid @RequestBody PostUpdateRequest request,
+            @Valid @RequestPart("post") PostUpdateRequest request,
+            @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnail,
+            @RequestPart(value = "photos", required = false) List<MultipartFile> photos,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
 
-        postService.updatePost(postId, userDetails.getUserId(), request);
+        postService.updatePost(postId, userDetails.getUserId(), request, thumbnail, photos);
         return ResponseEntity.ok().build();
     }
 

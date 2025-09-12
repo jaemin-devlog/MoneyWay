@@ -27,7 +27,6 @@ public class PostUpdateRequest {
     @PositiveOrZero(message = "지출 비용은 0 이상의 값이어야 합니다.")
     private final Integer totalCost; // 총 지출 비용
 
-    @NotBlank(message = "썸네일 이미지는 필수입니다.")
     private final String thumbnailUrl; // 대표 썸네일 URL
 
     @Size(max = 10, message = "첨부 이미지는 최대 10개까지만 등록할 수 있습니다.")

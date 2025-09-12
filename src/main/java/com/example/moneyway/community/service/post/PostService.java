@@ -17,7 +17,7 @@ public interface PostService {
     Long createPost(Long userId, CreatePostRequestDto request, MultipartFile thumbnail, List<MultipartFile> photos);
 
     // 게시글 수정
-    void updatePost(Long postId, Long userId, PostUpdateRequest request);
+    void updatePost(Long postId, Long userId, PostUpdateRequest request, MultipartFile thumbnail, List<MultipartFile> photos);
 
     // 게시글 삭제
     void deletePost(Long postId, Long userId);

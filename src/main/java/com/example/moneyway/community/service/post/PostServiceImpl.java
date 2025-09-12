@@ -87,7 +87,8 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public void updatePost(Long postId, Long userId, PostUpdateRequest request) {
+    public void updatePost(Long postId, Long userId, PostUpdateRequest request, MultipartFile thumbnail, List<MultipartFile> photos) {
+        // 1. 게시글 조회 및 권한 확인
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new CustomPostException(ErrorCode.POST_NOT_FOUND));
 
@@ -95,29 +96,53 @@ public class PostServiceImpl implements PostService {
             throw new CustomPostException(ErrorCode.POST_FORBIDDEN_UPDATE);
         }
 
-        // Delete old files if their URLs are not in the new request
-        List<String> newImageUrls = request.getImageUrls() != null ? request.getImageUrls() : Collections.emptyList();
-        List<PostImage> oldImages = new ArrayList<>(post.getImages());
-
-        oldImages.stream()
-                .filter(img -> !newImageUrls.contains(img.getImageUrl()))
-                .forEach(img -> deletePhysical(img.getImageUrl()));
-
-        // Also check the thumbnail
-        if (post.getThumbnailUrl() != null && !post.getThumbnailUrl().equals(request.getThumbnailUrl())) {
+        // 2. 썸네일 업데이트 로직
+        String newThumbnailUrl = post.getThumbnailUrl(); // 기본값: 기존 썸네일 유지
+        if (thumbnail != null && !thumbnail.isEmpty()) {
+            // 새 썸네일 파일이 있으면: 기존 파일 삭제 후 새 파일 저장
+            validateFile(thumbnail, false);
             deletePhysical(post.getThumbnailUrl());
+            newThumbnailUrl = storeFile(thumbnail);
+        } else if (request.getThumbnailUrl() == null || request.getThumbnailUrl().isBlank()) {
+            // 썸네일 삭제 요청 (프론트에서 thumbnailUrl을 null이나 빈 값으로 보낼 때)
+            deletePhysical(post.getThumbnailUrl());
+            newThumbnailUrl = null;
         }
 
+        // 3. 본문 이미지 업데이트 로직
+        // 3.1. 유지할 기존 이미지 URL 목록
+        List<String> urlsToKeep = request.getImageUrls() != null ? request.getImageUrls() : Collections.emptyList();
+
+        // 3.2. 삭제할 기존 이미지 찾아서 물리적 파일 삭제
+        List<PostImage> imagesToDelete = post.getImages().stream()
+                .filter(img -> !urlsToKeep.contains(img.getImageUrl()))
+                .toList();
+
+        imagesToDelete.forEach(img -> deletePhysical(img.getImageUrl()));
+
+        // 3.3. 새로운 이미지 파일 저장
+        if (photos != null) {
+            int currentImageCount = urlsToKeep.size();
+            if (currentImageCount + photos.size() > MAX_IMAGE_COUNT) {
+                throw new CustomPostException(ErrorCode.FILE_TOO_MANY);
+            }
+            photos.forEach(file -> validateFile(file, false));
+        }
+        List<String> newImageUrls = storeFiles(photos);
+
+        // 4. 게시글 엔티티 업데이트 (텍스트, 썸네일)
         post.updatePost(
                 request.getTitle(),
                 request.getContent(),
                 request.getTotalCost(),
-                request.getThumbnailUrl()
+                newThumbnailUrl
         );
 
-        postImageRepository.deleteAll(oldImages);
-        post.getImages().clear();
-        savePostImages(post, newImageUrls);
+        // 5. 이미지 연관관계 업데이트 (기존 이미지 삭제, 새 이미지 추가)
+        postImageRepository.deleteAll(imagesToDelete); // DB에서 삭제
+        post.getImages().removeAll(imagesToDelete);   // 컬렉션에서 삭제
+
+        savePostImages(post, newImageUrls); // 새 이미지 DB에 저장 및 연관관계 설정
     }
 
     @Override
