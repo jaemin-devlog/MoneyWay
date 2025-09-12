@@ -67,7 +67,7 @@ public class AiPlanService {
             throw new IllegalArgumentException("여행 기간(duration)은 1일 이상이어야 합니다.");
         }
 
-        int perDayCount = 4; // 후보 개수 줄이기
+        int perDayCount = 4; // 후보 개수
         // 비율 분배 (60% 숙소, 20% 관광, 20% 식사) — 하루 단위로 계산
         int accommodationBudget = (int)(budget * 0.6 / duration);
         int sightseeingBudget   = (int)(budget * 0.2 / duration);
@@ -78,30 +78,28 @@ public class AiPlanService {
 
         double radius = 5.0; // km 반경
 
-        // === 1. 숙소 먼저 뽑기 ===
-        List<SimplePlaceDto> accommodations = placeRepository.findAccommodationsNearby(
-                        accommodationBudget,
-                        33.4996,   // 기본 위도 (예: 제주 중심 좌표) → 첫 실행시 기준 좌표
-                        126.5312,  // 기본 경도
-                        radius
-                ).stream()
-                .limit(accommodationLimit)
-                .map(p -> new SimplePlaceDto(
-                        p.getId(),
-                        p.getTitle(),
-                        p.getPriceInfo(),
-                        p.getCategoryName(),
-                        p.getMapy(),   // latitude
-                        p.getMapx()    // longitude
-                ))
-                .toList();
+        // === 1. 숙소 무작위로 하나 뽑기 (예산 반영) ===
+        NearbyPlaceDto randomAccommodation = placeRepository.findRandomAccommodation(accommodationBudget);
+
+        List<SimplePlaceDto> accommodations = List.of(
+                new SimplePlaceDto(
+                        randomAccommodation.getId(),
+                        randomAccommodation.getTitle(),
+                        randomAccommodation.getPriceInfo(),
+                        randomAccommodation.getCategoryName(),
+                        randomAccommodation.getMapy(),   // latitude
+                        randomAccommodation.getMapx()    // longitude
+                )
+        );
 
         log.debug("숙소 후보 개수: {}", accommodations.size());
 
-        // 기준 좌표 = 첫 번째 숙소 (없으면 제주 중심 좌표)
-        NearbyPlaceDto randomAccommodation = placeRepository.findRandomAccommodation();
+        // === 기준 좌표 = 무작위 숙소 좌표 ===
         double baseLat = randomAccommodation.getMapy();
         double baseLng = randomAccommodation.getMapx();
+
+
+
 
 
         // === 2. 관광지 후보 (숙소 반경 내) ===
@@ -226,7 +224,7 @@ public class AiPlanService {
                     dayCost
             ));
 
-    }
+        }
 
 
         return new PlanResponseDto(totalUsedCost, fixedDays, request.getDuration());
@@ -244,7 +242,6 @@ public class AiPlanService {
     }
 
 
-    // 플랜 저장
     // 플랜 저장
     @Transactional
     public PlanSaveResponseDto createPlanByAi(AiPlanCreateRequestDto request, User user) throws Exception {

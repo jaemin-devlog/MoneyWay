@@ -41,7 +41,7 @@ public class AiPlanClient {
                                 + " Do not include explanations, text, or markdown fences." ))
                 .put(new JSONObject().put("role", "user").put("content", prompt))
         );
-        json.put("temperature", 0.2);
+        json.put("temperature", 0.0);
 
         RequestBody body = RequestBody.create(
                 json.toString(),
@@ -70,6 +70,7 @@ public class AiPlanClient {
                                 .getJSONObject(0)
                                 .getJSONObject("delta")
                                 .optString("content");
+//                        log.debug("Delta chunk: {}", delta);
                         sb.append(delta);
                     } catch (Exception e) {
                         log.error("Chunk parse error: {}", data, e);
@@ -87,11 +88,26 @@ public class AiPlanClient {
         latch.await(120, TimeUnit.SECONDS);
 
         String content = sb.toString().trim();
-        log.debug("Final AI content: {}", content);
+        log.info("Final AI content: {}", content);
+
+        int firstBrace = content.indexOf('{');
+        int lastBrace  = content.lastIndexOf('}');
+        if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
+            content = content.substring(firstBrace, lastBrace + 1);
+        }
+        log.info("Cleaned AI content: {}", content);
 
         // JSON 검증
-        new ObjectMapper().readTree(content);
+        try {
+            new ObjectMapper().readTree(content);
+        } catch (Exception e) {
+            log.error("AI 응답 JSON 파싱 실패. 원문: {}", content, e);
+            throw new RuntimeException("AI 응답이 올바른 JSON이 아님");
+        }
         return content;
+        // JSON 검증
     }
 
 }
+
+
