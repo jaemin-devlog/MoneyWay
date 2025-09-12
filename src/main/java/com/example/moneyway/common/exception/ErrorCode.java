@@ -25,6 +25,7 @@ public enum ErrorCode {
     INVALID_CURRENT_PASSWORD(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다."),
     PASSWORD_SAME_AS_BEFORE(HttpStatus.BAD_REQUEST, "이전과 동일한 비밀번호는 사용할 수 없습니다."),
     NEW_PASSWORD_REQUIRED(HttpStatus.BAD_REQUEST, "새로운 비밀번호를 입력해주세요."),
+    SOCIAL_LOGIN_USER_CANNOT_CHANGE_PASSWORD(HttpStatus.BAD_REQUEST, "소셜 로그인 사용자는 비밀번호를 변경할 수 없습니다."),
 
     // ================= USER: 비밀번호 재설정 (비로그인 상태) =================
     PASSWORD_RESET_EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "입력하신 이메일로 가입된 계정이 없습니다."),
