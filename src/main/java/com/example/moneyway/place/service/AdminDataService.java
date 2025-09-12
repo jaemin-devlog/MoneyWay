@@ -147,7 +147,7 @@ public class AdminDataService {
                 placeRepository.saveAll(restaurantsToSave);
             }
 
-            // ✅ 4. 기존 맛집 업데이트 (rating, topReview 등)
+            //  4. 기존 맛집 업데이트 (rating, topReview 등)
             updateExistingRestaurants(candidatesFromExcel, existingRestaurantKeys);
 
             // 5. 최종 결과 리포트 생성
@@ -164,7 +164,7 @@ public class AdminDataService {
     }
 
     /**
-     * ✅ 기존 DB에 있는 맛집 엔티티를 업데이트하는 로직
+     *  기존 DB에 있는 맛집 엔티티를 업데이트하는 로직
      */
     private void updateExistingRestaurants(Map<String, RestaurantJeju> candidates, Set<String> existingKeys) {
         for (String key : existingKeys) {

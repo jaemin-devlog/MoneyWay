@@ -16,8 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.time.LocalTime;
 import java.util.*;
 
@@ -30,7 +28,7 @@ public class AiPlanService {
     private final PlaceRepository placeRepository;
     private final AiPlanClient openAiClient;
     private String promptTemplate;
-    private final ObjectMapper mapper; // 주입받기
+    private final ObjectMapper mapper;
 
     // txt 템플릿 로드
     private String loadPromptTemplate() throws Exception {
@@ -67,18 +65,16 @@ public class AiPlanService {
             throw new IllegalArgumentException("여행 기간(duration)은 1일 이상이어야 합니다.");
         }
 
-        int perDayCount = 4; // 후보 개수
-        // 비율 분배 (60% 숙소, 20% 관광, 20% 식사) — 하루 단위로 계산
+        int perDayCount = 4;
         int accommodationBudget = (int)(budget * 0.6 / duration);
         int sightseeingBudget   = (int)(budget * 0.2 / duration);
         int foodBudget          = (int)(budget * 0.2 / duration);
         int tourLimit = duration * perDayCount;
         int foodLimit = duration * perDayCount;
-        int accommodationLimit = Math.min(duration, 2); // 숙소도 2개만
 
-        double radius = 5.0; // km 반경
+        double radius = 5.0;
 
-        // === 1. 숙소 무작위로 하나 뽑기 (예산 반영) ===
+        // === 1. 숙소 하나 선택 ===
         NearbyPlaceDto randomAccommodation = placeRepository.findRandomAccommodation(accommodationBudget);
 
         List<SimplePlaceDto> accommodations = List.of(
@@ -87,62 +83,37 @@ public class AiPlanService {
                         randomAccommodation.getTitle(),
                         randomAccommodation.getPriceInfo(),
                         randomAccommodation.getCategoryName(),
-                        randomAccommodation.getMapy(),   // latitude
-                        randomAccommodation.getMapx()    // longitude
+                        randomAccommodation.getMapy(),
+                        randomAccommodation.getMapx()
                 )
         );
 
-        log.debug("숙소 후보 개수: {}", accommodations.size());
-
-        // === 기준 좌표 = 무작위 숙소 좌표 ===
         double baseLat = randomAccommodation.getMapy();
         double baseLng = randomAccommodation.getMapx();
 
-
-
-
-
-        // === 2. 관광지 후보 (숙소 반경 내) ===
+        // === 2. 관광지 후보 ===
         List<SimplePlaceDto> tours = placeRepository.findTourAndActivityNearby(
-                        sightseeingBudget,
-                        baseLat,
-                        baseLng,
-                        radius
+                        sightseeingBudget, baseLat, baseLng, radius
                 ).stream()
                 .limit(tourLimit)
                 .map(p -> new SimplePlaceDto(
-                        p.getId(),
-                        p.getTitle(),
-                        p.getPriceInfo(),
-                        p.getCategoryName(),
-                        p.getMapy(),
-                        p.getMapx()
+                        p.getId(), p.getTitle(), p.getPriceInfo(), p.getCategoryName(),
+                        p.getMapy(), p.getMapx()
                 ))
                 .toList();
 
-        // === 3. 식당 후보 (숙소 반경 내) ===
+        // === 3. 식당 후보 ===
         List<SimplePlaceDto> foods = placeRepository.findRestaurantsNearby(
-                        foodBudget,
-                        baseLat,
-                        baseLng,
-                        radius
+                        foodBudget, baseLat, baseLng, radius
                 ).stream()
                 .limit(foodLimit)
                 .map(p -> new SimplePlaceDto(
-                        p.getId(),
-                        p.getTitle(),
-                        p.getPriceInfo(),
-                        p.getCategoryName(),
-                        p.getMapy(),
-                        p.getMapx()
+                        p.getId(), p.getTitle(), p.getPriceInfo(), p.getCategoryName(),
+                        p.getMapy(), p.getMapx()
                 ))
                 .toList();
 
-
-
-        log.debug("숙소 후보 개수: {}", accommodations.size());
-
-        // 프롬프트 생성
+        // === 프롬프트 생성 ===
         Map<String, Object> placesWrapper = new HashMap<>();
         placesWrapper.put("tourAndActivities", tours);
         placesWrapper.put("restaurants", foods);
@@ -161,77 +132,186 @@ public class AiPlanService {
 
         log.error("Prompt: [{}]", filledPrompt);
 
-        // GPT 호출
+        // === GPT 호출 ===
         String aiResponse = openAiClient.requestPlan(filledPrompt);
         log.debug("AI raw response: {}", aiResponse);
 
-        // json 전처리 추가
+        // === 전처리 ===
         String cleaned = aiResponse
                 .replaceAll("```json", "")
                 .replaceAll("```", "")
                 .trim();
+        int firstBrace = cleaned.indexOf("{");
+        int lastBrace = cleaned.lastIndexOf("}");
+        if (firstBrace != -1 && lastBrace != -1 && firstBrace < lastBrace) {
+            cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+        } else {
+            throw new RuntimeException("AI 응답이 JSON 형식이 아님: " + cleaned);
+        }
         log.error("Cleaned response: [{}]", cleaned);
 
         PlanResponseDto response = mapper.readValue(cleaned, PlanResponseDto.class);
-//        PlanResponseDto response = mapper.readValue(aiResponse, PlanResponseDto.class);
 
-        // 서버에서 usedCost, totalUsedCost 재계산
-        // 서버에서 usedCost, totalUsedCost 재계산
+        // === 후처리 ===
         int totalUsedCost = 0;
-        List<com.example.moneyway.ai.dto.response.DayPlanDto> fixedDays = new ArrayList<>();
+        List<DayPlanDto> fixedDays = new ArrayList<>();
+        List<String> requiredSlots = List.of("오전", "점심", "카페", "오후1", "오후2", "저녁", "숙소");
 
         for (var day : response.days()) {
-            List<AiPlaceDto> fixedPlaces = new ArrayList<>();
+            List<AiPlaceDto> fixedPlaces = new ArrayList<>(day.places());
             int dayCost = 0;
 
-            for (var p : day.places()) {
-                // 기본 cost 계산
-                int cost = p.cost() != 0 ? p.cost() : parsePriceInfo(p.priceInfo());
-                dayCost += cost;
+            // 1. 누락된 슬롯 보정
+            for (String slot : requiredSlots) {
+                boolean exists = fixedPlaces.stream().anyMatch(p -> slot.equals(p.time()));
+                if (!exists) {
+                    if ("숙소".equals(slot)) {
+                        fixedPlaces.add(new AiPlaceDto(
+                                randomAccommodation.getId(),
+                                randomAccommodation.getTitle(),
+                                null,
+                                "ACCOMMODATION",
+                                randomAccommodation.getPriceInfo(),
+                                String.valueOf(randomAccommodation.getMapy()),
+                                String.valueOf(randomAccommodation.getMapx()),
+                                "숙소",
+                                parsePriceInfo(randomAccommodation.getPriceInfo()),
+                                getDefaultStartTime("숙소"),
+                                getDefaultEndTime("숙소")
+                        ));
+                    } else {
+                        fixedPlaces.add(new AiPlaceDto(
+                                0L,
+                                slot + " 자유시간",
+                                null,
+                                switch (slot) {
+                                    case "점심", "저녁" -> "RESTAURANT";
+                                    case "카페" -> "CAFE";
+                                    default -> "TOURIST_ATTRACTION";
+                                },
+                                "0",
+                                null,
+                                null,
+                                slot,
+                                0,
+                                getDefaultStartTime(slot),
+                                getDefaultEndTime(slot)
+                        ));
+                    }
+                }
+            }
 
-                // DB에서 좌표 가져오기
-                var placeOpt = placeRepository.findById(p.placeId());
-                String lat = null;
-                String lng = null;
-                if (placeOpt.isPresent()) {
-                    var place = placeOpt.get();
-                    lat = place.getMapY(); // String
-                    lng = place.getMapX(); // String
+            // 2. time 기준 카테고리 강제 보정
+            for (int i = 0; i < fixedPlaces.size(); i++) {
+                AiPlaceDto p = fixedPlaces.get(i);
+                String forcedCategory = switch (p.time()) {
+                    case "점심", "저녁" -> "RESTAURANT";
+                    case "카페" -> "CAFE";
+                    case "숙소" -> "ACCOMMODATION";
+                    default -> "TOURIST_ATTRACTION";
+                };
+
+                // 숙소가 오전/오후 슬롯에 들어간 경우 → 관광지로 교체
+                if ((p.time().equals("오전") || p.time().equals("오후1") || p.time().equals("오후2"))
+                        && "ACCOMMODATION".equals(p.categoryName())) {
+                    fixedPlaces.set(i, new AiPlaceDto(
+                            p.placeId(),
+                            p.title() + " (숙소→관광 보정)",
+                            p.address(),
+                            "TOURIST_ATTRACTION",
+                            p.priceInfo(),
+                            p.latitude(),
+                            p.longitude(),
+                            p.time(),
+                            p.cost(),
+                            p.startTime(),
+                            p.endTime()
+                    ));
+                    continue;
                 }
 
-                // PlaceDto 대신 AiPlaceDto 사용
-                fixedPlaces.add(new AiPlaceDto(
-                        p.placeId(),
-                        p.title(),
-                        p.address(),
-                        p.categoryName(),
-                        p.priceInfo(),
-                        lat,
-                        lng,
-                        p.time(),
-                        cost,
-                        p.startTime(),
-                        p.endTime()
+                // 나머지 일반 보정
+                if (!forcedCategory.equals(p.categoryName())) {
+                    fixedPlaces.set(i, new AiPlaceDto(
+                            p.placeId(),
+                            p.title(),
+                            p.address(),
+                            forcedCategory,
+                            p.priceInfo(),
+                            p.latitude(),
+                            p.longitude(),
+                            p.time(),
+                            p.cost(),
+                            p.startTime(),
+                            p.endTime()
+                    ));
+                }
+            }
+
+            // 3. 좌표 보강
+            List<AiPlaceDto> enrichedPlaces = new ArrayList<>();
+            for (AiPlaceDto p : fixedPlaces) {
+                String lat = p.latitude();
+                String lng = p.longitude();
+                if (p.placeId() != 0L && (lat == null || lng == null)) {
+                    var placeOpt = placeRepository.findById(p.placeId());
+                    if (placeOpt.isPresent()) {
+                        var place = placeOpt.get();
+                        lat = place.getMapY();
+                        lng = place.getMapX();
+                    }
+                }
+                enrichedPlaces.add(new AiPlaceDto(
+                        p.placeId(), p.title(), p.address(), p.categoryName(),
+                        p.priceInfo(), lat, lng,
+                        p.time(), p.cost(),
+                        p.startTime(), p.endTime()
                 ));
             }
 
+            // 4. 슬롯 순서 정렬
+            enrichedPlaces.sort(Comparator.comparingInt(p -> requiredSlots.indexOf(p.time())));
+
+            // 5. 비용 합산
+            for (var p : enrichedPlaces) {
+                dayCost += p.cost();
+            }
             totalUsedCost += dayCost;
 
-            fixedDays.add(new DayPlanDto(
-                    day.day(),
-                    fixedPlaces,
-                    day.totalBudget(),
-                    dayCost
-            ));
-
+            fixedDays.add(new DayPlanDto(day.day(), enrichedPlaces, day.totalBudget(), dayCost));
         }
 
-
         return new PlanResponseDto(totalUsedCost, fixedDays, request.getDuration());
-
     }
 
-    // priceInfo → int 변환 유틸 (예: "25000" → 25000, "무료" → 0)
+    // 기본 시간대 매핑
+    private String getDefaultStartTime(String slot) {
+        return switch (slot) {
+            case "오전" -> "09:00";
+            case "점심" -> "11:30";
+            case "카페" -> "13:00";
+            case "오후1" -> "14:30";
+            case "오후2" -> "16:30";
+            case "저녁" -> "18:30";
+            case "숙소" -> "20:30";
+            default -> "09:00";
+        };
+    }
+
+    private String getDefaultEndTime(String slot) {
+        return switch (slot) {
+            case "오전" -> "11:00";
+            case "점심" -> "12:30";
+            case "카페" -> "14:00";
+            case "오후1" -> "16:00";
+            case "오후2" -> "18:00";
+            case "저녁" -> "20:00";
+            case "숙소" -> "22:00";
+            default -> "10:00";
+        };
+    }
+
+    // priceInfo → int 변환 유틸
     private int parsePriceInfo(String priceInfo) {
         if (priceInfo == null || priceInfo.isBlank()) return 0;
         try {
@@ -240,7 +320,6 @@ public class AiPlanService {
             return 0;
         }
     }
-
 
     // 플랜 저장
     @Transactional
@@ -256,13 +335,11 @@ public class AiPlanService {
                 .user(user)
                 .build();
 
-        //  Day / Place 저장
         for (int dayIndex = 0; dayIndex < planResponse.days().size(); dayIndex++) {
             var dayPlan = planResponse.days().get(dayIndex);
             int dayNumber = dayIndex + 1;
 
             for (var placeDto : dayPlan.places()) {
-                // placeId == 0 인 경우(카페, 자유시간 등)는 DB에 없는 장소라 null 허용
                 var place = (placeDto.placeId() != 0)
                         ? placeRepository.findById(placeDto.placeId()).orElse(null)
                         : null;
@@ -288,5 +365,4 @@ public class AiPlanService {
         Long planId = planRepository.save(plan).getId();
         return new PlanSaveResponseDto(planId, planResponse);
     }
-
 }
