@@ -18,7 +18,7 @@
    - 하루 코스 순서를 반드시 지킬 것
    - 각 slot에는 반드시 장소를 채워 넣을 것 (빈칸 허용 안 됨)
    - 같은 placeId는 숙소(ACCOMMODATION)를 제외하고, 반복해서 사용하지 말 것
-   - 즉, TOURIST_ATTRACTION, ACTIVITY, RESTAURANT, CAFE는 여행 전체에서 한 번만 사용 가능
+   - 즉, TOURIST_ATTRACTION, ACTIVITY, RESTAURANT, CAFE는 여행 전체에서 한 번만 사용 가능(반드시 한번만 사용할 것)
 
 4. 시간대별 categoryName 규칙:
    - "오전", "오후" → 반드시 TOURIST_ATTRACTION 또는 ACTIVITY

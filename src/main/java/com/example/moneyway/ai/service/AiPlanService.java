@@ -69,7 +69,7 @@ public class AiPlanService {
         int accommodationBudget = (int)(budget * 0.6 / duration);
         int sightseeingBudget   = (int)(budget * 0.2 / duration);
         int foodBudget          = (int)(budget * 0.2 / duration);
-        int tourLimit = duration * perDayCount;
+        int tourLimit = duration * (perDayCount / 2);
         int foodLimit = duration * perDayCount;
 
         double radius = 5.0;
