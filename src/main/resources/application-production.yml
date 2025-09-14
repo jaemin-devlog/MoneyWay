@@ -80,6 +80,10 @@ jwt:
   issuer: ${JWT_ISSUER}
   secret-key: ${JWT_SECRET_KEY}
 
+
+kakao:
+  admin-key: ${KAKAO_ADMIN_KEY}
+
 tourapi:
   service-key: ${TOUR_API_KEY}
 
