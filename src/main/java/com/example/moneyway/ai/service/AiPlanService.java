@@ -65,7 +65,7 @@ public class AiPlanService {
             throw new IllegalArgumentException("여행 기간(duration)은 1일 이상이어야 합니다.");
         }
 
-        int perDayCount = 4;
+        int perDayCount = 2;
         int accommodationBudget = (int)(budget * 0.6 / duration);
         int sightseeingBudget   = (int)(budget * 0.2 / duration);
         int foodBudget          = (int)(budget * 0.2 / duration);
@@ -155,7 +155,7 @@ public class AiPlanService {
         // === 후처리 ===
         int totalUsedCost = 0;
         List<DayPlanDto> fixedDays = new ArrayList<>();
-        List<String> requiredSlots = List.of("오전", "점심", "카페", "오후1", "오후2", "저녁", "숙소");
+        List<String> requiredSlots = List.of("오전", "점심", "카페", "오후", "저녁", "숙소");
 
         for (var day : response.days()) {
             List<AiPlaceDto> fixedPlaces = new ArrayList<>(day.places());
@@ -212,7 +212,7 @@ public class AiPlanService {
                 };
 
                 // 숙소가 오전/오후 슬롯에 들어간 경우 → 관광지로 교체
-                if ((p.time().equals("오전") || p.time().equals("오후1") || p.time().equals("오후2"))
+                if ((p.time().equals("오전") || p.time().equals("오후"))
                         && "ACCOMMODATION".equals(p.categoryName())) {
                     fixedPlaces.set(i, new AiPlaceDto(
                             p.placeId(),
@@ -290,8 +290,8 @@ public class AiPlanService {
             case "오전" -> "09:00";
             case "점심" -> "11:30";
             case "카페" -> "13:00";
-            case "오후1" -> "14:30";
-            case "오후2" -> "16:30";
+            case "오후" -> "15:30";
+//            case "오후2" -> "16:30";
             case "저녁" -> "18:30";
             case "숙소" -> "20:30";
             default -> "09:00";
@@ -303,8 +303,8 @@ public class AiPlanService {
             case "오전" -> "11:00";
             case "점심" -> "12:30";
             case "카페" -> "14:00";
-            case "오후1" -> "16:00";
-            case "오후2" -> "18:00";
+            case "오후" -> "18:00";
+//            case "오후2" -> "18:00";
             case "저녁" -> "20:00";
             case "숙소" -> "22:00";
             default -> "10:00";
