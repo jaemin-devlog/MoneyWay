@@ -1,5 +1,6 @@
 package com.example.moneyway.user.service;
 
+import com.example.moneyway.auth.oauth.KakaoOAuthClient;
 import com.example.moneyway.auth.token.repository.RefreshTokenRepository;
 import com.example.moneyway.common.exception.CustomException.CustomUserException;
 import com.example.moneyway.common.exception.ErrorCode;
@@ -9,6 +10,7 @@ import com.example.moneyway.community.dto.response.common.WriterInfo;
 import com.example.moneyway.community.repository.action.PostLikeRepository;
 import com.example.moneyway.community.repository.action.PostScrapRepository;
 import com.example.moneyway.community.repository.post.PostRepository;
+import com.example.moneyway.user.domain.LoginType;
 import com.example.moneyway.user.domain.User;
 import com.example.moneyway.user.dto.response.MyPageResponse;
 import com.example.moneyway.user.dto.response.UserResponse;
@@ -34,6 +36,7 @@ public class MyPageService {
     private final UserService userService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final KakaoOAuthClient kakaoOAuthClient;
 
     // Community 관련
     private final PostRepository postRepository;
@@ -59,9 +62,15 @@ public class MyPageService {
         // 1. 삭제할 사용자 조회
         User user = userService.findByEmail(email);
 
-        // ✅ 2. 사용자의 Refresh Token을 DB에서 삭제하여 재로그인 방지
+        // 2. 카카오 사용자인 경우, 카카오 계정 연결 끊기 수행
+        if (user.getLoginType() == LoginType.KAKAO) {
+            kakaoOAuthClient.unlink(user.getKakaoId());
+        }
+
+        // 3. 사용자의 Refresh Token을 DB에서 삭제하여 재로그인 방지
         refreshTokenRepository.deleteByUser(user);
 
+        // 4. 회원 정보 비활성화
         user.withdraw();
     }
     /**
