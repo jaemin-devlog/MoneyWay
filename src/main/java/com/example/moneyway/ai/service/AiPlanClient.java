@@ -33,7 +33,7 @@ public class AiPlanClient {
                 .build();
 
         JSONObject json = new JSONObject();
-        json.put("model", "gpt-4o-mini");
+        json.put("model", "gpt-4o");
         json.put("stream", true);  // 스트리밍
         json.put("messages", new org.json.JSONArray()
                 .put(new JSONObject().put("role", "system").put("content",
@@ -41,7 +41,7 @@ public class AiPlanClient {
                                 + " Do not include explanations, text, or markdown fences." ))
                 .put(new JSONObject().put("role", "user").put("content", prompt))
         );
-        json.put("temperature", 0.0);
+        json.put("temperature", 0.2);
 
         RequestBody body = RequestBody.create(
                 json.toString(),
