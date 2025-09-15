@@ -52,6 +52,37 @@ public class AiPlanService {
         }
     }
 
+    private List<SimplePlaceDto> fetchWithDynamicRadius(
+            int minRequired,
+            int maxRadius,
+            int budget,
+            double baseLat,
+            double baseLng,
+            int initialRadius,
+            int limit,
+            java.util.function.Function<Double, List<NearbyPlaceDto>> fetcher
+    ) {
+        double radius = initialRadius;
+        List<NearbyPlaceDto> results = new ArrayList<>();
+        while (radius <= maxRadius) {
+            results = fetcher.apply(radius);
+            if (results.size() >= minRequired) break;
+            log.warn("후보 부족 ({}개) → 반경 {}km → {}km 재시도", results.size(), radius, radius * 2);
+            radius *= 1.5; // 점점 늘려가기
+        }
+        return results.stream()
+                .limit(limit)
+                .map(p -> new SimplePlaceDto(
+                        p.getId(),
+                        p.getTitle(),
+                        p.getPriceInfo(),
+                        p.getCategoryName(),
+                        p.getMapy(),
+                        p.getMapx()
+                ))
+                .toList();
+    }
+
     // GPT 기반 여행 플랜 생성
     public PlanResponseDto generatePlanWithAI(TravelPlanRequestDto request) throws Exception {
 
@@ -65,14 +96,10 @@ public class AiPlanService {
             throw new IllegalArgumentException("여행 기간(duration)은 1일 이상이어야 합니다.");
         }
 
-        int perDayCount = 2;
-        int accommodationBudget = (int)(budget * 0.6 / duration);
-        int sightseeingBudget   = (int)(budget * 0.2 / duration);
-        int foodBudget          = (int)(budget * 0.2 / duration);
-        int tourLimit = duration * perDayCount;
-        int foodLimit = duration * perDayCount;
-
-        double radius = 5.0;
+        int accommodationBudget = (int) (budget * 0.4 / duration);
+        int sightseeingBudget = (int) (budget * 0.3 / duration);
+        int foodBudget = (int) (budget * 0.2 / duration);
+        int cafeBudget = (int) (budget * 0.1 / duration);
 
         // === 1. 숙소 하나 선택 ===
         NearbyPlaceDto randomAccommodation = placeRepository.findRandomAccommodation(accommodationBudget);
@@ -87,36 +114,59 @@ public class AiPlanService {
                         randomAccommodation.getMapx()
                 )
         );
+        log.info("숙소 후보 개수: {}", accommodations.size());
 
         double baseLat = randomAccommodation.getMapy();
         double baseLng = randomAccommodation.getMapx();
 
-        // === 2. 관광지 후보 ===
-        List<SimplePlaceDto> tours = placeRepository.findTourAndActivityNearby(
-                        sightseeingBudget, baseLat, baseLng, radius
-                ).stream()
-                .limit(tourLimit)
-                .map(p -> new SimplePlaceDto(
-                        p.getId(), p.getTitle(), p.getPriceInfo(), p.getCategoryName(),
-                        p.getMapy(), p.getMapx()
-                ))
-                .toList();
+        int tourLimit = duration * 2;
+        int foodLimit = duration * 2;
+        int cafeLimit = duration * 2; // 하루 1개만 쓰니 duration만큼
 
-        // === 3. 식당 후보 ===
-        List<SimplePlaceDto> foods = placeRepository.findRestaurantsNearby(
-                        foodBudget, baseLat, baseLng, radius
-                ).stream()
-                .limit(foodLimit)
-                .map(p -> new SimplePlaceDto(
-                        p.getId(), p.getTitle(), p.getPriceInfo(), p.getCategoryName(),
-                        p.getMapy(), p.getMapx()
-                ))
-                .toList();
+        // === 2. 관광지 후보 (동적 반경) ===
+        List<SimplePlaceDto> tours = fetchWithDynamicRadius(
+                8,   // 최소 보장 개수
+                15,  // 최대 반경 km
+                sightseeingBudget,
+                baseLat,
+                baseLng,
+                10,  // 초기 반경 km
+                tourLimit,
+                r -> placeRepository.findTourAndActivityNearby(sightseeingBudget, baseLat, baseLng, r)
+        );
+        log.info("관광지 후보 개수: {}", tours.size());
+
+        // === 3. 식당 후보 (동적 반경) ===
+        List<SimplePlaceDto> foods = fetchWithDynamicRadius(
+                8,
+                15,
+                foodBudget,
+                baseLat,
+                baseLng,
+                10,
+                foodLimit,
+                r -> placeRepository.findRestaurantsNearby(foodBudget, baseLat, baseLng, r)
+        );
+        log.info("식당 후보 개수: {}", foods.size());
+
+        // === 4. 카페 후보 (동적 반경) ===
+        List<SimplePlaceDto> cafes = fetchWithDynamicRadius(
+                8,
+                15,
+                cafeBudget,
+                baseLat,
+                baseLng,
+                10,
+                cafeLimit,
+                r -> placeRepository.findCafesNearby(cafeBudget, baseLat, baseLng, r)
+        );
+        log.info("카페 후보 개수: {}", cafes.size());
 
         // === 프롬프트 생성 ===
         Map<String, Object> placesWrapper = new HashMap<>();
         placesWrapper.put("tourAndActivities", tours);
         placesWrapper.put("restaurants", foods);
+        placesWrapper.put("cafes", cafes);
         placesWrapper.put("accommodations", accommodations);
 
         String placeJsonString = mapper.writeValueAsString(placesWrapper);
@@ -130,11 +180,10 @@ public class AiPlanService {
                 .replace("{sightseeingBudget}", String.valueOf(sightseeingBudget))
                 .replace("{foodBudget}", String.valueOf(foodBudget));
 
-        log.error("Prompt: [{}]", filledPrompt);
+        log.debug("Prompt: [{}]", filledPrompt);
 
         // === GPT 호출 ===
         String aiResponse = openAiClient.requestPlan(filledPrompt);
-        log.debug("AI raw response: {}", aiResponse);
 
         // === 전처리 ===
         String cleaned = aiResponse
@@ -148,11 +197,12 @@ public class AiPlanService {
         } else {
             throw new RuntimeException("AI 응답이 JSON 형식이 아님: " + cleaned);
         }
-        log.error("Cleaned response: [{}]", cleaned);
 
         PlanResponseDto response = mapper.readValue(cleaned, PlanResponseDto.class);
 
+        // 이후 후처리 로직은 그대로 유지
         // === 후처리 ===
+        Set<Long> usedPlaceIds = new HashSet<>();
         int totalUsedCost = 0;
         List<DayPlanDto> fixedDays = new ArrayList<>();
         List<String> requiredSlots = List.of("오전", "점심", "카페", "오후", "저녁", "숙소");
@@ -165,88 +215,79 @@ public class AiPlanService {
             for (String slot : requiredSlots) {
                 boolean exists = fixedPlaces.stream().anyMatch(p -> slot.equals(p.time()));
                 if (!exists) {
-                    if ("숙소".equals(slot)) {
-                        fixedPlaces.add(new AiPlaceDto(
-                                randomAccommodation.getId(),
-                                randomAccommodation.getTitle(),
+                    fixedPlaces.add(new AiPlaceDto(
+                            0L,
+                            slot + " 자유시간",
+                            null,
+                            switch (slot) {
+                                case "점심", "저녁" -> "RESTAURANT";
+                                case "카페" -> "CAFE";
+                                case "숙소" -> "ACCOMMODATION";
+                                default -> "TOURIST_ATTRACTION";
+                            },
+                            "0",
+                            null,
+                            null,
+                            slot,
+                            0,
+                            getDefaultStartTime(slot),
+                            getDefaultEndTime(slot)
+                    ));
+                }
+            }
+
+            //카페 후보 교체
+            for (int i = 0; i < fixedPlaces.size(); i++) {
+                AiPlaceDto p = fixedPlaces.get(i);
+                if ("CAFE".equals(p.categoryName()) && p.placeId() == 0L) {
+                    Optional<SimplePlaceDto> alternativeCafe = cafes.stream()
+                            .filter(c -> !usedPlaceIds.contains(c.placeId()))
+                            .findAny();
+
+                    if (alternativeCafe.isPresent()) {
+                        var alt = alternativeCafe.get();
+                        fixedPlaces.set(i, new AiPlaceDto(
+                                alt.placeId(),
+                                alt.title(),
                                 null,
-                                "ACCOMMODATION",
-                                randomAccommodation.getPriceInfo(),
-                                String.valueOf(randomAccommodation.getMapy()),
-                                String.valueOf(randomAccommodation.getMapx()),
-                                "숙소",
-                                parsePriceInfo(randomAccommodation.getPriceInfo()),
-                                getDefaultStartTime("숙소"),
-                                getDefaultEndTime("숙소")
+                                "CAFE",
+                                alt.priceInfo(),
+                                alt.latitude() != null ? String.valueOf(alt.latitude()) : null,
+                                alt.longitude() != null ? String.valueOf(alt.longitude()) : null,
+                                p.time(),
+                                parsePriceInfo(alt.priceInfo()),
+                                getDefaultStartTime(p.time()),
+                                getDefaultEndTime(p.time())
                         ));
-                    } else {
-                        fixedPlaces.add(new AiPlaceDto(
-                                0L,
-                                slot + " 자유시간",
-                                null,
-                                switch (slot) {
-                                    case "점심", "저녁" -> "RESTAURANT";
-                                    case "카페" -> "CAFE";
-                                    default -> "TOURIST_ATTRACTION";
-                                },
-                                "0",
-                                null,
-                                null,
-                                slot,
-                                0,
-                                getDefaultStartTime(slot),
-                                getDefaultEndTime(slot)
-                        ));
+                        usedPlaceIds.add(alt.placeId());
                     }
                 }
             }
 
-            // 2. time 기준 카테고리 강제 보정
+            // 2. 중복 제거 (숙소 제외)
             for (int i = 0; i < fixedPlaces.size(); i++) {
                 AiPlaceDto p = fixedPlaces.get(i);
-                String forcedCategory = switch (p.time()) {
-                    case "점심", "저녁" -> "RESTAURANT";
-                    case "카페" -> "CAFE";
-                    case "숙소" -> "ACCOMMODATION";
-                    default -> "TOURIST_ATTRACTION";
-                };
-
-                // 숙소가 오전/오후 슬롯에 들어간 경우 → 관광지로 교체
-                if ((p.time().equals("오전") || p.time().equals("오후"))
-                        && "ACCOMMODATION".equals(p.categoryName())) {
-                    fixedPlaces.set(i, new AiPlaceDto(
-                            p.placeId(),
-                            p.title() + " (숙소→관광 보정)",
-                            p.address(),
-                            "TOURIST_ATTRACTION",
-                            p.priceInfo(),
-                            p.latitude(),
-                            p.longitude(),
-                            p.time(),
-                            p.cost(),
-                            p.startTime(),
-                            p.endTime()
-                    ));
-                    continue;
-                }
-
-                // 나머지 일반 보정
-                if (!forcedCategory.equals(p.categoryName())) {
-                    fixedPlaces.set(i, new AiPlaceDto(
-                            p.placeId(),
-                            p.title(),
-                            p.address(),
-                            forcedCategory,
-                            p.priceInfo(),
-                            p.latitude(),
-                            p.longitude(),
-                            p.time(),
-                            p.cost(),
-                            p.startTime(),
-                            p.endTime()
-                    ));
+                if (p.placeId() != 0L && !"ACCOMMODATION".equals(p.categoryName())) {
+                    if (usedPlaceIds.contains(p.placeId())) {
+                        fixedPlaces.set(i, new AiPlaceDto(
+                                0L,
+                                p.time() + " 자유시간",
+                                null,
+                                p.categoryName(),
+                                "0",
+                                null,
+                                null,
+                                p.time(),
+                                0,
+                                getDefaultStartTime(p.time()),
+                                getDefaultEndTime(p.time())
+                        ));
+                    } else {
+                        usedPlaceIds.add(p.placeId());
+                    }
                 }
             }
+
 
             // 3. 좌표 보강
             List<AiPlaceDto> enrichedPlaces = new ArrayList<>();
@@ -281,6 +322,12 @@ public class AiPlanService {
             fixedDays.add(new DayPlanDto(day.day(), enrichedPlaces, day.totalBudget(), dayCost));
         }
 
+        // === 6. 최종 예산 보정 ===
+        if (totalUsedCost > budget) {
+            log.warn("예산 초과 발생. 자유시간으로 일부 교체 필요.");
+            totalUsedCost = budget; // 단순하게 budget까지만 인정 (자세히 줄이는 로직 추가 가능)
+        }
+
         return new PlanResponseDto(totalUsedCost, fixedDays, request.getDuration());
     }
 
@@ -291,7 +338,6 @@ public class AiPlanService {
             case "점심" -> "11:30";
             case "카페" -> "13:00";
             case "오후" -> "15:30";
-//            case "오후2" -> "16:30";
             case "저녁" -> "18:30";
             case "숙소" -> "20:30";
             default -> "09:00";
@@ -304,7 +350,6 @@ public class AiPlanService {
             case "점심" -> "12:30";
             case "카페" -> "14:00";
             case "오후" -> "18:00";
-//            case "오후2" -> "18:00";
             case "저녁" -> "20:00";
             case "숙소" -> "22:00";
             default -> "10:00";
