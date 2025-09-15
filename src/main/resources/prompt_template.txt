@@ -16,9 +16,10 @@
 
 3. 하루 코스 순서: 오전 → 점심 → 카페 → 오후 → 저녁 → 숙소
    - 하루 코스 순서를 반드시 지킬 것
+   - 카페 슬롯에는 {cafes} 안에서만 선택
    - 각 slot에는 반드시 장소를 채워 넣을 것 (빈칸 허용 안 됨)
    - 같은 placeId는 숙소(ACCOMMODATION)를 제외하고, 반복해서 사용하지 말 것
-   - 즉, TOURIST_ATTRACTION, ACTIVITY, RESTAURANT, CAFE는 여행 전체에서 한 번만 사용 가능(반드시 한번만 사용할 것)
+   - 즉, TOURIST_ATTRACTION, ACTIVITY, RESTAURANT, CAFE는 전체에서 한 번만 사용 가능
 
 4. 시간대별 categoryName 규칙:
    - "오전", "오후" → 반드시 TOURIST_ATTRACTION 또는 ACTIVITY

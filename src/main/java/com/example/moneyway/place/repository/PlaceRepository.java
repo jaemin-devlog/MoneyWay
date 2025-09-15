@@ -100,11 +100,9 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
     List<Place> findByTitle(String title);
 
 
-    /**
-     * ai place 추가 부분
-     */
+    // ==================== AI 후보 조회 ====================
 
-    // 관광지/액티비티 (예산 범위 내에서 랜덤 20개)
+    // 관광지/액티비티 (랜덤 5개만)
     @Query(value = """
     SELECT p.place_pk_id AS id,
            p.title AS title,
@@ -133,8 +131,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
             @Param("radius") double radius
     );
 
-
-    // 식당 (예산 + 반경)
+    // 식당 (category_code = 'c1')
     @Query(value = """
     SELECT rj.place_pk_id AS id,
            p.title AS title,
@@ -150,7 +147,8 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
            )) AS distance
     FROM restaurant_jeju rj
     JOIN place p ON p.place_pk_id = rj.place_pk_id
-    WHERE (rj.price_info IS NULL OR CAST(rj.price_info AS UNSIGNED) <= :maxPrice)
+    WHERE rj.category_code = 'c1'
+      AND (rj.price_info IS NULL OR CAST(rj.price_info AS UNSIGNED) <= :maxPrice)
     HAVING distance <= :radius
     ORDER BY RAND()
     LIMIT 20
@@ -163,36 +161,37 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
     );
 
 
-    // 숙소 (예산 + 반경)
+    // 카페 (category_code = 'c2')
     @Query(value = """
-    SELECT p.place_pk_id AS id,
+    SELECT rj.place_pk_id AS id,
            p.title AS title,
-           p.category AS categoryName,
-           tp.addr1 AS address,
-           tp.firstimage AS thumbnailUrl,
-           tp.price_info AS priceInfo,
-           tp.mapx AS mapx,
-           tp.mapy AS mapy,
+           'CAFE' AS categoryName,
+           rj.address AS address,
+           rj.img AS thumbnailUrl,
+           rj.price_info AS priceInfo,
+           rj.mapx AS mapx,
+           rj.mapy AS mapy, 
            (6371 * ACOS(
-                COS(RADIANS(:lat)) * COS(RADIANS(tp.mapy)) * COS(RADIANS(tp.mapx) - RADIANS(:lng))
-                + SIN(RADIANS(:lat)) * SIN(RADIANS(tp.mapy))
+                COS(RADIANS(:lat)) * COS(RADIANS(rj.mapy)) * COS(RADIANS(rj.mapx) - RADIANS(:lng))
+                + SIN(RADIANS(:lat)) * SIN(RADIANS(rj.mapy))
            )) AS distance
-    FROM place p
-    JOIN tour_place tp ON p.place_pk_id = tp.place_pk_id
-    WHERE p.category = 'ACCOMMODATION'
-      AND (tp.price_info IS NULL OR CAST(tp.price_info AS UNSIGNED) <= :maxPrice)
+    FROM restaurant_jeju rj
+    JOIN place p ON p.place_pk_id = rj.place_pk_id
+    WHERE rj.category_code = 'c2'
+      AND (rj.price_info IS NULL OR CAST(rj.price_info AS UNSIGNED) <= :maxPrice)
     HAVING distance <= :radius
     ORDER BY RAND()
     LIMIT 20
     """, nativeQuery = true)
-    List<NearbyPlaceDto> findAccommodationsNearby(
+    List<NearbyPlaceDto> findCafesNearby(
             @Param("maxPrice") int maxPrice,
             @Param("lat") double lat,
             @Param("lng") double lng,
             @Param("radius") double radius
     );
 
-    //모든 ACCOMODATION 중 랜덤 하나
+
+    // 숙소 랜덤 하나
     @Query(value = """
     SELECT p.place_pk_id AS id,
            p.title AS title,
@@ -213,9 +212,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
 
 
 
-    /**
-     * RestaurantJeju 엔티티를 title + address 조합으로 조회합니다.
-     */
+
     @Query("SELECT r FROM RestaurantJeju r WHERE r.title = :title AND r.address = :address")
     Optional<RestaurantJeju> findByTitleAndAddress(@Param("title") String title, @Param("address") String address);
 
