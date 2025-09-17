@@ -28,7 +28,7 @@ public class AiPlanClient {
                 .build();
 
         JSONObject json = new JSONObject();
-        json.put("model", "gpt-4o-mini");
+        json.put("model", "gpt-3.5-turbo");
         json.put("stream", false);  // 스트리밍 해제
         json.put("messages", new org.json.JSONArray()
                 .put(new JSONObject().put("role", "system").put("content",
