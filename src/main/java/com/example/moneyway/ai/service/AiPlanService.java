@@ -119,9 +119,9 @@ public class AiPlanService {
         double baseLat = randomAccommodation.getMapy();
         double baseLng = randomAccommodation.getMapx();
 
-        int tourLimit = duration * 2;
-        int foodLimit = duration * 2;
-        int cafeLimit = duration * 2; // 하루 1개만 쓰니 duration만큼
+        int tourLimit = duration * 2 + 3;
+        int foodLimit = duration * 2 + 3;
+        int cafeLimit = duration * 2 + 3;
 
         // === 2. 관광지 후보 (동적 반경) ===
         List<SimplePlaceDto> tours = fetchWithDynamicRadius(
@@ -205,36 +205,106 @@ public class AiPlanService {
         Set<Long> usedPlaceIds = new HashSet<>();
         int totalUsedCost = 0;
         List<DayPlanDto> fixedDays = new ArrayList<>();
-        List<String> requiredSlots = List.of("오전", "점심", "카페", "오후", "저녁", "숙소");
+        List<String> requiredSlots =
+                (request.getDuration() == 1)
+                        ? List.of("오전", "점심", "카페", "오후", "저녁")   // 당일치기: 숙소 없음
+                        : List.of("오전", "점심", "카페", "오후", "저녁", "숙소"); // 2일 이상: 숙소 포함
 
         for (var day : response.days()) {
             List<AiPlaceDto> fixedPlaces = new ArrayList<>(day.places());
             int dayCost = 0;
 
-            // 1. 누락된 슬롯 보정
+            // 1. 누락된 슬롯 보정 (모든 슬롯 강제 채우기)
             for (String slot : requiredSlots) {
                 boolean exists = fixedPlaces.stream().anyMatch(p -> slot.equals(p.time()));
                 if (!exists) {
-                    fixedPlaces.add(new AiPlaceDto(
-                            0L,
-                            slot + " 자유시간",
-                            null,
-                            switch (slot) {
-                                case "점심", "저녁" -> "RESTAURANT";
-                                case "카페" -> "CAFE";
-                                case "숙소" -> "ACCOMMODATION";
-                                default -> "TOURIST_ATTRACTION";
-                            },
-                            "0",
-                            null,
-                            null,
-                            slot,
-                            0,
-                            getDefaultStartTime(slot),
-                            getDefaultEndTime(slot)
-                    ));
+                    if ("숙소".equals(slot)) {
+                        // 숙소는 무조건 DB에서 가져오기
+                        SimplePlaceDto acc = accommodations.get(0);
+                        fixedPlaces.add(new AiPlaceDto(
+                                acc.placeId(),
+                                acc.title(),
+                                null,
+                                "ACCOMMODATION",
+                                acc.priceInfo(),
+                                acc.latitude() != null ? String.valueOf(acc.latitude()) : null,
+                                acc.longitude() != null ? String.valueOf(acc.longitude()) : null,
+                                "숙소",
+                                parsePriceInfo(acc.priceInfo()),
+                                getDefaultStartTime("숙소"),
+                                getDefaultEndTime("숙소")
+                        ));
+                        usedPlaceIds.add(acc.placeId());
+                    } else {
+                        // 나머지는 자유시간 처리
+                        fixedPlaces.add(new AiPlaceDto(
+                                0L,
+                                slot + " 자유시간",
+                                null,
+                                switch (slot) {
+                                    case "점심", "저녁" -> "RESTAURANT";
+                                    case "카페" -> "CAFE";
+                                    default -> "TOURIST_ATTRACTION";
+                                },
+                                "0",
+                                null,
+                                null,
+                                slot,
+                                0,
+                                getDefaultStartTime(slot),
+                                getDefaultEndTime(slot)
+                        ));
+                    }
                 }
             }
+
+            // 2. 이미 존재하는 숙소인데 placeId=0 → DB 숙소로 교체
+            for (int i = 0; i < fixedPlaces.size(); i++) {
+                AiPlaceDto p = fixedPlaces.get(i);
+                if ("ACCOMMODATION".equals(p.categoryName()) && p.placeId() == 0L) {
+                    SimplePlaceDto acc = accommodations.get(0);
+                    fixedPlaces.set(i, new AiPlaceDto(
+                            acc.placeId(),
+                            acc.title(),
+                            null,
+                            "ACCOMMODATION",
+                            acc.priceInfo(),
+                            acc.latitude() != null ? String.valueOf(acc.latitude()) : null,
+                            acc.longitude() != null ? String.valueOf(acc.longitude()) : null,
+                            p.time(),
+                            parsePriceInfo(acc.priceInfo()),
+                            getDefaultStartTime(p.time()),
+                            getDefaultEndTime(p.time())
+                    ));
+                    usedPlaceIds.add(acc.placeId());
+                }
+            }
+
+            // 3. 일반 장소 중복 제거 (숙소 제외)
+            for (int i = 0; i < fixedPlaces.size(); i++) {
+                AiPlaceDto p = fixedPlaces.get(i);
+                if (p.placeId() != 0L && !"ACCOMMODATION".equals(p.categoryName())) {
+                    if (usedPlaceIds.contains(p.placeId())) {
+                        fixedPlaces.set(i, new AiPlaceDto(
+                                0L,
+                                p.time() + " 자유시간",
+                                null,
+                                p.categoryName(),
+                                "0",
+                                null,
+                                null,
+                                p.time(),
+                                0,
+                                getDefaultStartTime(p.time()),
+                                getDefaultEndTime(p.time())
+                        ));
+                    } else {
+                        usedPlaceIds.add(p.placeId());
+                    }
+                }
+            }
+
+
 
             //카페 후보 교체
             for (int i = 0; i < fixedPlaces.size(); i++) {
@@ -264,30 +334,6 @@ public class AiPlanService {
                 }
             }
 
-            // 2. 중복 제거 (숙소 제외)
-            for (int i = 0; i < fixedPlaces.size(); i++) {
-                AiPlaceDto p = fixedPlaces.get(i);
-                if (p.placeId() != 0L && !"ACCOMMODATION".equals(p.categoryName())) {
-                    if (usedPlaceIds.contains(p.placeId())) {
-                        fixedPlaces.set(i, new AiPlaceDto(
-                                0L,
-                                p.time() + " 자유시간",
-                                null,
-                                p.categoryName(),
-                                "0",
-                                null,
-                                null,
-                                p.time(),
-                                0,
-                                getDefaultStartTime(p.time()),
-                                getDefaultEndTime(p.time())
-                        ));
-                    } else {
-                        usedPlaceIds.add(p.placeId());
-                    }
-                }
-            }
-
 
             // 3. 좌표 보강
             List<AiPlaceDto> enrichedPlaces = new ArrayList<>();
@@ -311,7 +357,14 @@ public class AiPlanService {
             }
 
             // 4. 슬롯 순서 정렬
-            enrichedPlaces.sort(Comparator.comparingInt(p -> requiredSlots.indexOf(p.time())));
+            enrichedPlaces.sort(Comparator.comparingInt(p -> {
+                String safeTime = p.time();
+                if (safeTime == null) {
+                    log.warn("AI 응답에서 time=null 발견. 기본값 '오전'으로 대체합니다. place={}", p.title());
+                    safeTime = "오전";
+                }
+                return requiredSlots.indexOf(safeTime);
+            }));
 
             // 5. 비용 합산
             for (var p : enrichedPlaces) {
@@ -336,7 +389,7 @@ public class AiPlanService {
         return switch (slot) {
             case "오전" -> "09:00";
             case "점심" -> "11:30";
-            case "카페" -> "13:00";
+            case "카페" -> "14:00";
             case "오후" -> "15:30";
             case "저녁" -> "18:30";
             case "숙소" -> "20:30";
@@ -348,7 +401,7 @@ public class AiPlanService {
         return switch (slot) {
             case "오전" -> "11:00";
             case "점심" -> "12:30";
-            case "카페" -> "14:00";
+            case "카페" -> "15:00";
             case "오후" -> "18:00";
             case "저녁" -> "20:00";
             case "숙소" -> "22:00";

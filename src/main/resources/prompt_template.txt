@@ -45,9 +45,9 @@
    - 각 day에 사용된 비용(usedCost)과 전체 사용 비용(totalUsedCost)을 반드시 계산해서 JSON에 포함해줘
 
 8. 숙소 관련 규칙:
-    - 숙소(ACCOMMODATION)는 반드시 모든 일차에 포함되어야 한다.
+    - duration이 1일이라면 당일치기이므로 숙소(ACCOMMODATION)를 포함하지 않는다.
+    - duration이 2일 이상이라면 숙소(ACCOMMODATION)는 반드시 모든 일차에 포함되어야 한다.
     - 같은 숙소(placeId)를 여행 기간 전체에서 반복해서 사용하라.
-    - 즉, 1일차~마지막 일차까지 매일 숙소 slot을 채워 넣어야 한다.
 
 
 출력:
