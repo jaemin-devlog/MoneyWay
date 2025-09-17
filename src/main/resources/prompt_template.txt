@@ -13,6 +13,7 @@
 2. 총 사용 비용(totalUsedCost)은 반드시 budget({budget})을 넘지 않아야 합니다.
    - 각 day.usedCost 합을 계산할 때, 모든 days.usedCost의 합(totalUsedCost)이 budget 이하가 되도록 장소를 선택하세요.
    - 만약 예산을 넘게 된다면, 무료 또는 저렴한 장소 위주로 조정하세요.
+   {budget} 예산을 최대한 활용하라. 총 사용 비용이 {budget}의 70% 이상이 되도록 하라.
 
 3. 하루 코스 순서: 오전 → 점심 → 카페 → 오후 → 저녁 → 숙소
    - 하루 코스 순서를 반드시 지킬 것

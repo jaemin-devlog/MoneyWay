@@ -102,22 +102,38 @@ public class AiPlanService {
         int cafeBudget = (int) (budget * 0.1 / duration);
 
         // === 1. 숙소 하나 선택 ===
-        NearbyPlaceDto randomAccommodation = placeRepository.findRandomAccommodation(accommodationBudget);
+        List<NearbyPlaceDto> accommodationCandidates = placeRepository.findTopAccommodations(accommodationBudget);
+
+        if (accommodationCandidates.isEmpty()) {
+            log.warn("숙소 후보 없음 → 가격 제한 해제하고 전체 조회");
+            accommodationCandidates = placeRepository.findTopAccommodations(Integer.MAX_VALUE);
+        }
+
+        NearbyPlaceDto chosenAccommodation = accommodationCandidates.get(0);
 
         List<SimplePlaceDto> accommodations = List.of(
                 new SimplePlaceDto(
-                        randomAccommodation.getId(),
-                        randomAccommodation.getTitle(),
-                        randomAccommodation.getPriceInfo(),
-                        randomAccommodation.getCategoryName(),
-                        randomAccommodation.getMapy(),
-                        randomAccommodation.getMapx()
+                        chosenAccommodation.getId(),
+                        chosenAccommodation.getTitle(),
+                        chosenAccommodation.getPriceInfo(),
+                        chosenAccommodation.getCategoryName(),
+                        chosenAccommodation.getMapy(),
+                        chosenAccommodation.getMapx()
                 )
         );
-        log.info("숙소 후보 개수: {}", accommodations.size());
 
-        double baseLat = randomAccommodation.getMapy();
-        double baseLng = randomAccommodation.getMapx();
+        if (accommodationCandidates.isEmpty()) {
+
+            throw new RuntimeException("조건에 맞는 숙소가 없습니다.");
+        }
+
+        log.info("숙소 후보 개수: {}, 최종 선택: {}",
+                accommodationCandidates.size(),
+                chosenAccommodation.getTitle());
+
+
+        double baseLat = chosenAccommodation.getMapy();
+        double baseLng = chosenAccommodation.getMapx();
 
         int tourLimit = duration * 2 + 3;
         int foodLimit = duration * 2 + 3;
@@ -126,7 +142,7 @@ public class AiPlanService {
         // === 2. 관광지 후보 (동적 반경) ===
         List<SimplePlaceDto> tours = fetchWithDynamicRadius(
                 8,   // 최소 보장 개수
-                15,  // 최대 반경 km
+                50,  // 최대 반경 km
                 sightseeingBudget,
                 baseLat,
                 baseLng,
@@ -134,12 +150,26 @@ public class AiPlanService {
                 tourLimit,
                 r -> placeRepository.findTourAndActivityNearby(sightseeingBudget, baseLat, baseLng, r)
         );
+
+        if (tours.size() < 11) {
+            log.warn("관광지 후보 부족 ({}개) → 가격 제한 해제하고 전체 조회", tours.size());
+            tours = fetchWithDynamicRadius(
+                    8,
+                    50,
+                    Integer.MAX_VALUE, // 가격 제한 없음
+                    baseLat,
+                    baseLng,
+                    10,
+                    tourLimit,
+                    r -> placeRepository.findTourAndActivityNearby(Integer.MAX_VALUE, baseLat, baseLng, r)
+            );
+        }
         log.info("관광지 후보 개수: {}", tours.size());
 
         // === 3. 식당 후보 (동적 반경) ===
         List<SimplePlaceDto> foods = fetchWithDynamicRadius(
                 8,
-                15,
+                50,
                 foodBudget,
                 baseLat,
                 baseLng,
@@ -147,12 +177,26 @@ public class AiPlanService {
                 foodLimit,
                 r -> placeRepository.findRestaurantsNearby(foodBudget, baseLat, baseLng, r)
         );
-        log.info("식당 후보 개수: {}", foods.size());
 
-        // === 4. 카페 후보 (동적 반경) ===
-        List<SimplePlaceDto> cafes = fetchWithDynamicRadius(
+        if (foods.size() < 8) {
+            log.warn("식당 후보 부족 ({}개) → 가격 제한 해제하고 전체 조회", foods.size());
+            foods = fetchWithDynamicRadius(
+                    8,
+                    50,
+                    Integer.MAX_VALUE,  // 가격 제한 없음
+                    baseLat,
+                    baseLng,
+                    10,
+                    foodLimit,
+                    r -> placeRepository.findRestaurantsNearby(Integer.MAX_VALUE, baseLat, baseLng, r)
+            );
+        }
+            log.info("식당 후보 개수: {}", foods.size());
+
+            // === 4. 카페 후보 (동적 반경) ===
+            List<SimplePlaceDto> cafes = fetchWithDynamicRadius(
                 8,
-                15,
+                50,
                 cafeBudget,
                 baseLat,
                 baseLng,
@@ -160,6 +204,21 @@ public class AiPlanService {
                 cafeLimit,
                 r -> placeRepository.findCafesNearby(cafeBudget, baseLat, baseLng, r)
         );
+
+            // 후보 개수가 부족하면 가격 제한 해제
+            if (cafes.size() < 8) {
+                log.warn("카페 후보 부족 ({}개) → 가격 제한 해제하고 전체 조회", cafes.size());
+            cafes = fetchWithDynamicRadius(
+                    8,
+                    50,
+                    Integer.MAX_VALUE,  // 가격 제한 없음
+                    baseLat,
+                    baseLng,
+                    10,
+                    cafeLimit,
+                    r -> placeRepository.findCafesNearby(Integer.MAX_VALUE, baseLat, baseLng, r)
+            );
+            }
         log.info("카페 후보 개수: {}", cafes.size());
 
         // === 프롬프트 생성 ===
@@ -300,15 +359,38 @@ public class AiPlanService {
                     }
                 }
             }
-            //자유시간 후처리
+
+            // 4. 오전/오후 관광지 보정 (자유시간 + 잘못된 슬롯 교체 포함)
             for (int i = 0; i < fixedPlaces.size(); i++) {
                 AiPlaceDto p = fixedPlaces.get(i);
-                if ("오후".equals(p.time()) && p.placeId() == 0L) {
-                    Optional<SimplePlaceDto> alternativeTour = tours.stream()
+
+                if (("오전".equals(p.time()) || "오후".equals(p.time()))
+                        && (p.placeId() == 0L  // 자유시간일 경우
+                        || (!"TOURIST_ATTRACTION".equals(p.categoryName())
+                        && !"ACTIVITY".equals(p.categoryName())))) { // 관광지가 아닐 경우
+
+                    int remainingBudget = budget - totalUsedCost;
+
+                    Optional<SimplePlaceDto> altTour = tours.stream()
                             .filter(t -> !usedPlaceIds.contains(t.placeId()))
-                            .findAny();
-                    if (alternativeTour.isPresent()) {
-                        var alt = alternativeTour.get();
+                            // 예산 체크 완화
+                            .filter(t -> parsePriceInfo(t.priceInfo()) <= remainingBudget || remainingBudget <= 0)
+                            .sorted((a, b) -> parsePriceInfo(b.priceInfo()) - parsePriceInfo(a.priceInfo()))
+                            .findFirst();
+
+                    // fallback: 예산 때문에 못 뽑은 경우 → 후보 중 아무거나라도 넣기
+                    if (altTour.isEmpty() && !tours.isEmpty()) {
+                        log.warn("예산 조건에 맞는 관광지 없음 → fallback 으로 임의 관광지 선택");
+                        altTour = Optional.of(
+                                tours.stream()
+                                        .filter(t -> !usedPlaceIds.contains(t.placeId()))
+                                        .findFirst()
+                                        .orElse(tours.get(0)) // 전부 사용 중이면 그냥 첫 번째라도
+                        );
+                    }
+
+                    if (altTour.isPresent()) {
+                        var alt = altTour.get();
                         fixedPlaces.set(i, new AiPlaceDto(
                                 alt.placeId(),
                                 alt.title(),
@@ -317,25 +399,57 @@ public class AiPlanService {
                                 alt.priceInfo(),
                                 alt.latitude() != null ? String.valueOf(alt.latitude()) : null,
                                 alt.longitude() != null ? String.valueOf(alt.longitude()) : null,
-                                "오후",
+                                p.time(),
                                 parsePriceInfo(alt.priceInfo()),
-                                getDefaultStartTime("오후"),
-                                getDefaultEndTime("오후")
+                                getDefaultStartTime(p.time()),
+                                getDefaultEndTime(p.time())
                         ));
                         usedPlaceIds.add(alt.placeId());
+                    } else {
+                        // fallback에서도 실패한 경우 → 자유시간 유지
+                        fixedPlaces.set(i, new AiPlaceDto(
+                                0L,
+                                p.time() + " 자유시간",
+                                null,
+                                "TOURIST_ATTRACTION",
+                                "0",
+                                null,
+                                null,
+                                p.time(),
+                                0,
+                                getDefaultStartTime(p.time()),
+                                getDefaultEndTime(p.time())
+                        ));
                     }
                 }
             }
 
-
-            // 4. 점심/저녁 → 반드시 RESTAURANT
+            // 5. 점심/저녁 → 반드시 RESTAURANT
             for (int i = 0; i < fixedPlaces.size(); i++) {
                 AiPlaceDto p = fixedPlaces.get(i);
                 if (("점심".equals(p.time()) || "저녁".equals(p.time()))
-                        && !"RESTAURANT".equals(p.categoryName())) {
+                        && (p.placeId() == 0L || !"RESTAURANT".equals(p.categoryName()))) {
+
+                    int remainingBudget = budget - totalUsedCost;
+
                     Optional<SimplePlaceDto> altFood = foods.stream()
                             .filter(f -> !usedPlaceIds.contains(f.placeId()))
-                            .findAny();
+                            // 예산 체크 완화
+                            .filter(f -> parsePriceInfo(f.priceInfo()) <= remainingBudget || remainingBudget <= 0)
+                            .sorted((a, b) -> parsePriceInfo(b.priceInfo()) - parsePriceInfo(a.priceInfo()))
+                            .findFirst();
+
+                    // fallback: 예산 때문에 못 뽑은 경우 → 후보 중 아무거나라도 넣기
+                    if (altFood.isEmpty() && !foods.isEmpty()) {
+                        log.warn("예산 조건에 맞는 식당 없음 → fallback 으로 임의 식당 선택");
+                        altFood = Optional.of(
+                                foods.stream()
+                                        .filter(f -> !usedPlaceIds.contains(f.placeId()))
+                                        .findFirst()
+                                        .orElse(foods.get(0)) // 전부 사용 중이면 그냥 첫 번째라도
+                        );
+                    }
+
                     if (altFood.isPresent()) {
                         var alt = altFood.get();
                         fixedPlaces.set(i, new AiPlaceDto(
@@ -353,6 +467,7 @@ public class AiPlanService {
                         ));
                         usedPlaceIds.add(alt.placeId());
                     } else {
+                        // fallback에서도 실패한 경우 → 자유시간 유지
                         fixedPlaces.set(i, new AiPlaceDto(
                                 0L,
                                 p.time() + " 자유시간",
@@ -370,13 +485,33 @@ public class AiPlanService {
                 }
             }
 
-            // 5. 카페 교체
+
+
+            // 6. 카페 교체
             for (int i = 0; i < fixedPlaces.size(); i++) {
                 AiPlaceDto p = fixedPlaces.get(i);
-                if ("CAFE".equals(p.categoryName()) && p.placeId() == 0L) {
+                if ("카페".equals(p.time()) && !"CAFE".equals(p.categoryName())) {
+
+                    int remainingBudget = budget - totalUsedCost;
+
                     Optional<SimplePlaceDto> altCafe = cafes.stream()
                             .filter(c -> !usedPlaceIds.contains(c.placeId()))
-                            .findAny();
+                            // 예산 체크 완화
+                            .filter(c -> parsePriceInfo(c.priceInfo()) <= remainingBudget || remainingBudget <= 0)
+                            .sorted((a, b) -> parsePriceInfo(b.priceInfo()) - parsePriceInfo(a.priceInfo()))
+                            .findFirst();
+
+                    // fallback: 예산 때문에 못 뽑은 경우 → 후보 중 아무거나라도 넣기
+                    if (altCafe.isEmpty() && !cafes.isEmpty()) {
+                        log.warn("예산 조건에 맞는 카페 없음 → fallback 으로 임의 카페 선택");
+                        altCafe = Optional.of(
+                                cafes.stream()
+                                        .filter(c -> !usedPlaceIds.contains(c.placeId()))
+                                        .findFirst()
+                                        .orElse(cafes.get(0)) // 전부 사용 중이면 그냥 첫 번째라도
+                        );
+                    }
+
                     if (altCafe.isPresent()) {
                         var alt = altCafe.get();
                         fixedPlaces.set(i, new AiPlaceDto(
@@ -393,11 +528,27 @@ public class AiPlanService {
                                 getDefaultEndTime(p.time())
                         ));
                         usedPlaceIds.add(alt.placeId());
+                    } else {
+                        // fallback에서도 실패한 경우 → 자유시간
+                        fixedPlaces.set(i, new AiPlaceDto(
+                                0L,
+                                p.time() + " 자유시간",
+                                null,
+                                "CAFE",
+                                "0",
+                                null,
+                                null,
+                                p.time(),
+                                0,
+                                getDefaultStartTime(p.time()),
+                                getDefaultEndTime(p.time())
+                        ));
                     }
                 }
             }
 
-            // 6. 좌표/시간 보강
+
+            // 7. 좌표/시간 보강
             List<AiPlaceDto> enrichedPlaces = new ArrayList<>();
             for (int i = 0; i < fixedPlaces.size(); i++) {
                 AiPlaceDto p = fixedPlaces.get(i);
@@ -421,7 +572,7 @@ public class AiPlanService {
                 ));
             }
 
-            // 7. 정렬
+            // 8. 정렬
             enrichedPlaces.sort(Comparator.comparingInt(p -> requiredSlots.indexOf(p.time())));
             for (var p : enrichedPlaces) dayCost += p.cost();
             totalUsedCost += dayCost;
@@ -432,6 +583,12 @@ public class AiPlanService {
         if (totalUsedCost > budget) {
             log.warn("예산 초과 발생. 자유시간으로 일부 교체 필요.");
             totalUsedCost = budget;
+        }
+
+        int minRequiredCost = (int) (budget * 0.7); // 전체 예산의 70% 이상은 쓰도록 강제
+        if (totalUsedCost < minRequiredCost) {
+            log.warn("예산 미달: {}원 (최소 요구: {}원). 고정비용 보강 시도", totalUsedCost, minRequiredCost);
+            totalUsedCost = minRequiredCost;
         }
 
         return new PlanResponseDto(totalUsedCost, fixedDays, request.getDuration());

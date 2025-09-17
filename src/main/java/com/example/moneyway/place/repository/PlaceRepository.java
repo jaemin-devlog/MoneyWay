@@ -191,7 +191,7 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
     );
 
 
-    // 숙소 랜덤 하나
+    // 숙소 후보 (가격 높은 순으로)
     @Query(value = """
     SELECT p.place_pk_id AS id,
            p.title AS title,
@@ -205,13 +205,10 @@ public interface PlaceRepository extends JpaRepository<Place, Long>, PlaceReposi
     JOIN tour_place tp ON p.place_pk_id = tp.place_pk_id
     WHERE p.category = 'ACCOMMODATION'
       AND (tp.price_info IS NULL OR CAST(tp.price_info AS UNSIGNED) <= :maxPrice)
-    ORDER BY RAND()
-    LIMIT 1
+    ORDER BY CAST(tp.price_info AS UNSIGNED) DESC 
+    LIMIT 10
     """, nativeQuery = true)
-    NearbyPlaceDto findRandomAccommodation(@Param("maxPrice") int maxPrice);
-
-
-
+    List<NearbyPlaceDto> findTopAccommodations(@Param("maxPrice") int maxPrice);
 
     @Query("SELECT r FROM RestaurantJeju r WHERE r.title = :title AND r.address = :address")
     Optional<RestaurantJeju> findByTitleAndAddress(@Param("title") String title, @Param("address") String address);
