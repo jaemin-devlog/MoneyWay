@@ -591,7 +591,7 @@ public class AiPlanService {
             totalUsedCost = minRequiredCost;
         }
 
-        return new PlanResponseDto(totalUsedCost, fixedDays, request.getDuration());
+        return new PlanResponseDto(totalUsedCost, fixedDays, request.getDuration(), true);
     }
 
     private String getDefaultStartTime(String slot) {
@@ -637,6 +637,7 @@ public class AiPlanService {
                 .totalPrice(request.getBudget())
                 .usedCost(planResponse.totalUsedCost())
                 .user(user)
+                .isAi(true)
                 .build();
         for (int dayIndex = 0; dayIndex < planResponse.days().size(); dayIndex++) {
             var dayPlan = planResponse.days().get(dayIndex);
@@ -662,6 +663,6 @@ public class AiPlanService {
             }
         }
         Long planId = planRepository.save(plan).getId();
-        return new PlanSaveResponseDto(planId, planResponse);
+        return new PlanSaveResponseDto(planId, planResponse, true);
     }
 }
