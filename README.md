@@ -1,5 +1,9 @@
 # 🧭 MoneyWay
 
+<div align="center">
+    <img width="360" alt="MoneyWay 로고" src="src/main/resources/static/image-photoroom.png">
+</div>
+
 `MoneyWay`는 **예산, 여행 기간, 장소 데이터를 기반으로 AI가 제주 여행 일정을 추천하고, 사용자가 직접 장소를 담아 여행 계획을 구성하며, 커뮤니티에서 여행 기록과 비용 정보를 공유할 수 있는 여행 예산 플랫폼**입니다.
 
 단순 장소 조회에 그치지 않고 **공공 관광 데이터 수집, 맛집/카페 엑셀 업로드, 예산 기반 AI 코스 생성, 장바구니, 여행 계획 저장/수정, 이미지 기반 커뮤니티, 좋아요/스크랩/조회수, 이메일/Kakao 인증, 관리자 데이터 동기화, Docker/Nginx 배포**까지 하나의 서비스 흐름으로 설계했습니다.
@@ -11,31 +15,32 @@
 ```mermaid
 flowchart TB
     subgraph Client["Client"]
-        Web["Web / Mobile Client"]
+        App["Web / Mobile App"]
     end
 
     subgraph Backend["Spring Boot Backend"]
         API["REST API Controllers"]
         Security["Spring Security + JWT / OAuth2"]
         Domain["Domain Services"]
-        Async["Async Data Sync Workers"]
+        Workers["Async Data Sync Workers"]
         Static["Static Upload Resource Handler"]
     end
 
     subgraph DomainModules["Core Domain"]
-        Auth["auth / user"]
+        Auth["auth"]
+        User["user"]
         Place["place"]
         AI["ai"]
-        Plan["plan / cart"]
+        Plan["plan"]
+        Cart["cart"]
         Community["community"]
         Admin["admin data"]
-        Common["common exception / config"]
     end
 
     subgraph Storage["Storage"]
         MySQL["MySQL 8"]
         Redis["Redis 7"]
-        Uploads["Upload Volume"]
+        FileStorage["Upload File Storage"]
     end
 
     subgraph External["External Services"]
@@ -47,65 +52,63 @@ flowchart TB
     end
 
     subgraph Deploy["Deploy"]
-        Docker["Docker Multi-stage Build"]
-        Compose["Docker Compose"]
+        Dockerfile["Docker Multi-stage Build"]
+        DockerCompose["Docker Compose"]
         Nginx["Nginx Reverse Proxy / SSL"]
-        Server["Ubuntu Server"]
+        Ubuntu["Ubuntu Server"]
     end
 
-    Web --> API
+    App --> API
     API --> Security
     Security --> Domain
     Domain --> DomainModules
-    Async --> DomainModules
-    Static --> Uploads
+    Workers --> DomainModules
+    Static --> FileStorage
 
     DomainModules --> MySQL
     Auth --> Redis
-    Community --> Uploads
+    Community --> FileStorage
 
-    Auth --> Kakao
-    Auth --> Gmail
-    Place --> TourAPI
+    DomainModules --> Kakao
+    DomainModules --> TourAPI
+    DomainModules --> OpenAI
+    DomainModules --> Gmail
     Admin --> Excel
-    AI --> OpenAI
 
-    Server --> Nginx
-    Nginx --> Compose
-    Compose --> Docker
-    Compose --> MySQL
-    Compose --> Redis
-    Docker --> Backend
+    Ubuntu --> Nginx
+    Nginx --> DockerCompose
+    DockerCompose --> Dockerfile
+    Dockerfile --> Backend
 ```
 
 <br>
 
 # 🎯 프로젝트 목표
 
-**1. `예산 중심` AI 여행 일정 생성**
-- 사용자가 입력한 예산과 여행 기간을 기준으로 숙소, 관광지/액티비티, 식당 예산을 분리합니다.
-- DB에 저장된 실제 제주 장소 후보만 OpenAI 프롬프트에 전달하여 존재하지 않는 장소가 추천되지 않도록 제한했습니다.
-- AI 응답을 JSON으로 검증한 뒤, 누락된 시간대, 카테고리 불일치, 좌표 누락, 비용 합산을 서버에서 후처리합니다.
+**1. `실제 장소 데이터` 기반 AI 여행 추천**
+- AI가 임의의 장소를 생성하지 않도록 DB에 저장된 실제 제주 장소 후보만 프롬프트에 전달합니다.
+- 숙소를 기준점으로 삼고 반경 5km 내 관광지/액티비티/식당 후보를 조회해 이동 동선을 고려했습니다.
+- OpenAI 응답은 JSON 검증, 슬롯 보정, 카테고리 보정, 좌표 보강, 비용 합산을 거쳐 클라이언트에 반환합니다.
 
-**2. `장소 데이터 파이프라인` 구축**
+**2. `예산 중심` 여행 계획 도메인 설계**
+- 전체 예산을 숙소, 관광, 식비 예산으로 나누고 여행 기간에 맞춰 일차별 비용을 계산합니다.
+- 장바구니에서 장소를 선택하고 가격을 조정한 뒤 여행 계획에 반영할 수 있도록 구성했습니다.
+- 계획 조회, 수정, 삭제 시 사용자 소유권을 검증하여 다른 사용자의 일정에 접근하지 못하도록 했습니다.
+
+**3. `장소 데이터 파이프라인` 구축**
 - 한국관광공사 TourAPI에서 제주 관광지, 숙소, 액티비티, 쇼핑 데이터를 수집합니다.
-- 맛집/카페 데이터와 관광지 가격/평점/대표 리뷰는 엑셀 업로드로 보강합니다.
+- 맛집/카페 데이터와 관광지 가격/평점/대표 리뷰는 엑셀 업로드를 통해 보강합니다.
 - `Place`를 공통 부모로 두고 `TourPlace`, `RestaurantJeju`를 JOINED 상속 구조로 분리했습니다.
 
-**3. `여행 계획 편집 흐름` 구현**
-- 사용자는 장소를 장바구니에 담고, 가격을 조정한 뒤 여행 계획에 반영할 수 있습니다.
-- AI가 생성한 일정을 바로 저장하거나, 빈 여행 계획을 생성해 직접 수정할 수 있습니다.
-- 계획 조회, 목록, 수정, 삭제에서 사용자 소유권을 검증합니다.
+**4. `커뮤니티` 기반 여행 기록 공유**
+- 여행 후기와 비용 정보를 게시글, 댓글, 이미지로 공유할 수 있습니다.
+- 좋아요, 스크랩, 조회수 기능을 분리해 사용자의 반응 데이터를 관리합니다.
+- 조회수는 사용자 또는 IP 기준으로 1시간 중복 증가를 방지합니다.
 
-**4. `여행 커뮤니티` 기능 제공**
-- 여행 후기/공유 게시글을 이미지와 함께 작성하고, 좋아요와 스크랩을 토글할 수 있습니다.
-- 댓글은 삭제 상태를 보존하는 방식으로 관리하고, 조회수는 사용자 또는 IP 기준으로 1시간 중복 증가를 방지합니다.
-- 게시글 목록은 최신순, 좋아요순, 댓글순, 스크랩순으로 정렬할 수 있습니다.
-
-**5. `운영과 배포`까지 고려한 백엔드 구성**
+**5. `운영과 배포`까지 고려한 백엔드 구현**
 - Swagger 그룹 문서, 공통 예외 응답, JWT 인증 필터, CORS, 정적 업로드 경로를 분리했습니다.
-- Docker multi-stage build, Docker Compose, Nginx SSL reverse proxy, 업로드 볼륨 구성을 포함했습니다.
-- Redis를 활용해 비밀번호 재설정 이메일 인증코드와 인증 완료 상태를 TTL 기반으로 관리합니다.
+- Redis TTL을 활용해 비밀번호 재설정 인증코드와 인증 완료 상태를 관리합니다.
+- Docker multi-stage build, Docker Compose, Nginx reverse proxy, HTTPS, 업로드 볼륨 구성을 포함했습니다.
 
 <br>
 
@@ -114,7 +117,7 @@ flowchart TB
 - Java 21
 - Spring Boot 3.4.5
 - Spring Web MVC
-- Spring Data JPA / Hibernate
+- Spring Data JPA
 - Spring Security
 - OAuth2 Client
 - JWT
@@ -142,21 +145,23 @@ flowchart TB
 ```mermaid
 flowchart LR
     Start["앱 진입"] --> Login["이메일 / Kakao 로그인"]
-    Login --> Search["장소 탐색 / 키워드 검색"]
-    Search --> Cart["장바구니 담기 / 가격 조정"]
+    Login --> Home["홈 / 장소 탐색 / 커뮤니티"]
 
+    Home --> PlaceSearch["장소 목록 / 카테고리 / 키워드 검색"]
+    PlaceSearch --> Cart["장바구니 담기 / 가격 조정"]
     Cart --> ManualPlan["직접 여행 계획 생성"]
-    Search --> AIRequest["예산 / 기간 입력"]
-    AIRequest --> AIPlan["AI 여행 코스 추천"]
 
-    AIPlan --> SavePlan["여행 계획 저장"]
+    Home --> AIRequest["예산 / 여행 기간 입력"]
+    AIRequest --> AIPlan["AI 여행 코스 추천"]
+    AIPlan --> SavePlan["AI 일정 저장"]
     ManualPlan --> SavePlan
+
     SavePlan --> MyPlans["내 여행 계획 목록 / 상세"]
     MyPlans --> EditPlan["일정 수정 / 삭제"]
 
-    SavePlan --> Community["커뮤니티 공유"]
+    Home --> Community["여행 후기 작성"]
     Community --> Reaction["댓글 / 좋아요 / 스크랩 / 조회"]
-    Login --> MyPage["마이페이지 / 내 글 / 스크랩 / 탈퇴"]
+    Home --> MyPage["마이페이지 / 내 글 / 내 스크랩"]
 ```
 
 <br>
@@ -187,7 +192,7 @@ flowchart LR
 
 **4. 장바구니 / 여행 계획**
 - 장소 장바구니 추가, 조회, 가격 수정, 삭제
-- 중복 장소 추가 시 멱등 처리
+- 동일 장소 중복 추가 시 조용히 무시하는 멱등 처리
 - 빈 여행 계획 생성, 내 계획 목록 조회, 상세 조회, 수정, 삭제
 - 계획 수정 시 기존 장소 구성을 교체하고 사용된 장바구니 항목을 정리
 - 여행 계획 접근 시 작성자 권한 검증
@@ -212,13 +217,13 @@ flowchart LR
 
 # 📚 설계
 
-AI 여행 일정 생성, 여행 계획 상태 흐름, ER 다이어그램 순서로 설계했습니다.
+커뮤니케이션 다이어그램, 데이터 동기화 다이어그램, ER 다이어그램의 순서로 설계했습니다.
 
 - 서비스를 단순 CRUD가 아니라 `장소 데이터`, `AI 추천`, `일정 편집`, `커뮤니티`, `인증`의 흐름으로 분리했습니다.
-- 외부 API 호출과 데이터 보정은 서비스 계층에서 처리하고, 컨트롤러는 요청/응답 계약에 집중하도록 구성했습니다.
-- 공통 인증, 예외, Swagger, CORS, 업로드 리소스 설정은 `common` 영역으로 분리했습니다.
+- 각 도메인 객체의 책임을 기준으로 서비스 계층을 나누고, 공통 인증/응답/예외 처리는 `common` 영역으로 분리했습니다.
+- 클라이언트와의 계약이 중요한 기능은 Swagger 그룹 문서로 API 범위를 나누어 관리했습니다.
 
-## 1. AI 여행 일정 생성 커뮤니케이션 다이어그램
+## 1. AI 여행 일정 커뮤니케이션 다이어그램
 
 ```mermaid
 sequenceDiagram
@@ -233,11 +238,14 @@ sequenceDiagram
     API->>AS: generatePlanWithAI(request)
     AS->>PR: 예산 이하 랜덤 숙소 조회
     PR-->>AS: accommodation
+
     AS->>PR: 숙소 반경 내 관광지 / 식당 후보 조회
     PR-->>AS: candidate places
+
     AS->>AS: 프롬프트 템플릿 + 후보 장소 JSON 구성
     AS->>OAI: JSON 일정 생성 요청
     OAI-->>AS: AI raw JSON 응답
+
     AS->>AS: JSON 검증 / 슬롯 보정 / 비용 합산 / 좌표 보강
     AS-->>API: PlanResponseDto
     API-->>U: 추천 일정 반환
@@ -249,115 +257,217 @@ sequenceDiagram
     AS-->>U: 저장된 planId + 일정 반환
 ```
 
-## 2. 여행 계획 흐름 다이어그램
+## 2. 장소 데이터 동기화 다이어그램
 
 ```mermaid
-stateDiagram-v2
-    [*] --> PLACE_SEARCH: 장소 탐색
-    PLACE_SEARCH --> CART_READY: 장바구니 담기
-    CART_READY --> MANUAL_PLAN: 직접 계획 생성
-    PLACE_SEARCH --> AI_REQUESTED: AI 추천 요청
-    AI_REQUESTED --> AI_GENERATED: AI 일정 생성
-    AI_GENERATED --> SAVED: 일정 저장
-    MANUAL_PLAN --> SAVED: 일정 저장
-    SAVED --> UPDATED: 일정 수정
-    UPDATED --> SAVED: 수정 완료
-    SAVED --> COMMUNITY_SHARED: 커뮤니티 공유
-    SAVED --> DELETED: 일정 삭제
-    COMMUNITY_SHARED --> SAVED
-    DELETED --> [*]
+sequenceDiagram
+    participant Admin as 관리자
+    participant API as AdminDataController
+    participant DS as AdminDataService
+    participant Tour as TourAPI
+    participant Excel as Excel File
+    participant PR as PlaceRepository
+    participant DB as MySQL
+    participant Worker as dataSyncTaskExecutor
+
+    Admin->>API: TourAPI 전체 동기화 요청
+    API->>DS: syncAllTourData()
+    DS->>Tour: 제주 장소 목록 조회
+    Tour-->>DS: 관광지 / 숙소 / 액티비티 데이터
+    DS->>PR: contentId 중복 확인
+    PR-->>DS: existing contentIds
+    DS->>DB: 신규 TourPlace 저장
+
+    Admin->>API: TourAPI 상세 정보 동기화 요청
+    API->>DS: syncAllTourDetails()
+    DS->>Worker: 장소별 상세 정보 병렬 처리
+    Worker->>Tour: detailInfo / detailIntro 조회
+    Worker->>DB: 상세 정보 업데이트
+
+    Admin->>API: 맛집 / 관광지 엑셀 업로드
+    API->>DS: upload excel
+    DS->>Excel: 필수 헤더 검증
+    DS->>PR: 기존 데이터 조회
+    DS->>DB: RestaurantJeju 저장 또는 TourPlace 보강
 ```
 
-## 3. ER 다이어그램
+## 3. ERD
+
+테이블 수가 많아 전체 ERD를 한 번에 펼치면 가독성이 떨어지므로, 핵심 흐름 기준으로 도메인별 ERD를 분리했습니다.
+
+### 회원 / 인증
 
 ```mermaid
 erDiagram
-    USERS ||--o{ REFRESH_TOKENS : issues
+    USERS {
+        bigint id PK
+        string kakao_id
+        string email
+        string nickname
+        string profile_image_url
+        string login_type
+        boolean is_deleted
+    }
+    REFRESH_TOKEN {
+        bigint id PK
+        bigint user_id FK
+        string refresh_token
+    }
+    EMAIL_CODE_REDIS {
+        string key PK
+        string code
+        string ttl
+    }
+
+    USERS ||--o{ REFRESH_TOKEN : issues
+    USERS ||--o{ EMAIL_CODE_REDIS : verifies
+```
+
+### 장소 / 데이터
+
+```mermaid
+erDiagram
+    PLACE {
+        bigint place_pk_id PK
+        string title
+        string tel
+        string category
+        string dtype
+    }
+    TOUR_PLACE {
+        bigint place_pk_id PK, FK
+        string contentid
+        string contenttypeid
+        string addr1
+        string mapx
+        string mapy
+        string price_info
+        double rating
+        string top_review
+    }
+    RESTAURANT_JEJU {
+        bigint place_pk_id PK, FK
+        string address
+        string menu
+        string price_info
+        string category_code
+        string mapx
+        string mapy
+        double rating
+        string top_review
+    }
+
+    PLACE ||--|| TOUR_PLACE : extends
+    PLACE ||--|| RESTAURANT_JEJU : extends
+```
+
+### 장바구니 / 여행 계획
+
+```mermaid
+erDiagram
+    USERS {
+        bigint id PK
+        string email
+    }
+    PLACE {
+        bigint place_pk_id PK
+        string title
+        string category
+    }
+    CART {
+        bigint id PK
+        bigint user_id FK
+        bigint place_pk_id FK
+        int price
+    }
+    PLAN {
+        bigint id PK
+        bigint user_id FK
+        string title
+        int budget
+        int duration
+        int total_price
+        int used_cost
+    }
+    PLAN_PLACE {
+        bigint id PK
+        bigint plan_id FK
+        bigint place_pk_id FK
+        string place_name
+        int day_number
+        int cost
+        string time_slot
+        time start_time
+        time end_time
+    }
+
     USERS ||--o{ CART : owns
     USERS ||--o{ PLAN : creates
+    PLACE ||--o{ CART : selected
+    PLAN ||--o{ PLAN_PLACE : contains
+    PLACE ||--o{ PLAN_PLACE : referenced
+```
+
+### 커뮤니티
+
+```mermaid
+erDiagram
+    USERS {
+        bigint id PK
+        string nickname
+    }
+    POST {
+        bigint id PK
+        bigint user_id FK
+        string title
+        string content
+        int total_cost
+        int like_count
+        int comment_count
+        int scrap_count
+        int view_count
+    }
+    POST_IMAGE {
+        bigint id PK
+        bigint post_id FK
+        string image_url
+    }
+    COMMENT {
+        bigint id PK
+        bigint post_id FK
+        bigint user_id FK
+        string content
+        boolean deleted
+    }
+    POST_LIKE {
+        bigint id PK
+        bigint post_id FK
+        bigint user_id FK
+    }
+    POST_SCRAP {
+        bigint id PK
+        bigint post_id FK
+        bigint user_id FK
+    }
+    POST_VIEW {
+        bigint id PK
+        bigint post_id FK
+        bigint user_id FK
+        string ip_address
+        datetime viewed_at
+    }
+
     USERS ||--o{ POST : writes
     USERS ||--o{ COMMENT : writes
     USERS ||--o{ POST_LIKE : likes
     USERS ||--o{ POST_SCRAP : scraps
     USERS ||--o{ POST_VIEW : views
-
-    PLACE ||--|| TOUR_PLACE : extends
-    PLACE ||--|| RESTAURANT_JEJU : extends
-    PLACE ||--o{ CART : saved
-    PLACE ||--o{ PLAN_PLACE : referenced
-
-    PLAN ||--o{ PLAN_PLACE : contains
-
     POST ||--o{ POST_IMAGE : has
     POST ||--o{ COMMENT : has
     POST ||--o{ POST_LIKE : receives
     POST ||--o{ POST_SCRAP : receives
     POST ||--o{ POST_VIEW : records
 ```
-
-<br>
-
-# 🚀 실행 가이드
-
-## 1. 요구 사항
-
-- Java 21
-- Gradle 8.x
-- MySQL 8
-- Redis 7
-- OpenAI API key
-- TourAPI service key
-- Kakao OAuth client id
-- SMTP mail account
-
-## 2. 로컬 실행
-
-```bash
-git clone https://github.com/{your-github-username}/MoneyWay1.git
-cd MoneyWay1
-
-./gradlew clean bootJar
-java -jar build/libs/app.jar --spring.profiles.active=local
-```
-
-## 3. Docker Compose 실행
-
-```bash
-docker compose up -d --build
-```
-
-## 4. 주요 환경 변수
-
-```env
-MYSQLHOST=localhost
-MYSQLPORT=3306
-MYSQLDATABASE=moneyway
-MYSQLUSER=root
-MYSQLPASSWORD=your_mysql_password
-
-REDISHOST=localhost
-REDISPORT=6379
-REDISPASSWORD=your_redis_password
-
-JWT_ISSUER=MoneyWay-Auth-Server
-JWT_SECRET_KEY=your_jwt_secret
-
-MAIL_USERNAME=your_mail_username
-MAIL_PASSWORD=your_mail_password
-
-KAKAO_CLIENT_ID=your_kakao_client_id
-OAUTH_BACKEND_CALLBACK_URI=http://localhost:8080/login/oauth2/code/kakao
-OAUTH_FRONTEND_REDIRECT_URI=http://localhost:3000
-
-TOUR_API_KEY=your_tour_api_key
-OPENAI_API_KEY=your_openai_api_key
-COOKIE_SECURE=false
-```
-
-## 5. API 문서
-
-- Local Swagger UI: `http://localhost:8081/swagger-ui/index.html`
-- Production Swagger UI: `https://moneyway.cloud/swagger-ui/index.html`
 
 <br>
 
@@ -371,11 +481,11 @@ gitGraph
     branch develop
     checkout develop
     commit id: "base"
-    branch feature/auth
-    checkout feature/auth
-    commit id: "auth"
+    branch feature/place
+    checkout feature/place
+    commit id: "place data"
     checkout develop
-    merge feature/auth
+    merge feature/place
     branch feature/ai-plan
     checkout feature/ai-plan
     commit id: "ai plan"
@@ -401,18 +511,3 @@ gitGraph
 
 > ### MoneyWay의 기록
 > #### [Dockerfile](Dockerfile) | [Docker Compose](docker-compose.yml) | [Nginx 설정](nginx/moneyway.conf) | [AI 프롬프트](src/main/resources/prompt_template.txt) | [Swagger 설정](src/main/java/com/example/moneyway/common/config/SwaggerConfig.java)
-
-
-
-
-오후 3:53
-
-
-
-
-
-
-
-
-
-
