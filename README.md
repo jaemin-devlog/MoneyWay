@@ -1,7 +1,7 @@
 # 🧭 MoneyWay
 
 <div align="center">
-    <img width="360" alt="MoneyWay 로고" src="src/main/resources/static/image-photoroom.png">
+    <img width="360" alt="MoneyWay 로고" src="src/main/resources/image-photoroom.png">
 </div>
 
 `MoneyWay`는 **예산, 여행 기간, 장소 데이터를 기반으로 AI가 제주 여행 일정을 추천하고, 사용자가 직접 장소를 담아 여행 계획을 구성하며, 커뮤니티에서 여행 기록과 비용 정보를 공유할 수 있는 여행 예산 플랫폼**입니다.
