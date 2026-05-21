@@ -32,8 +32,6 @@ public class Plan extends BaseTimeEntity {
 
     private int usedCost;
 
-    private boolean isAi;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;

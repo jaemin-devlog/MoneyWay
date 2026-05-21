@@ -5,6 +5,5 @@ import java.util.List;
 public record PlanResponseDto(
         int totalUsedCost,
         List<DayPlanDto> days,
-        int duration,
-        boolean isAi
+        int duration
 ) {}
